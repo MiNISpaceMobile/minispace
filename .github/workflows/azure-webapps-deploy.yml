@@ -4,7 +4,8 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: pw-mini-space
-  AZURE_WEBAPP_PACKAGE_PATH: './package'
+  AZURE_WEBAPP_PACKAGE_PATH: './publish'
+  DOTNET_MAIN_PROJECT_NAME: Api
   DOTNET_VERSION: '8.0.x'
 
 permissions:
@@ -26,7 +27,7 @@ jobs:
       run: |
         dotnet restore
         dotnet build --configuration Release
-        dotnet publish -c Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}' 
+        dotnet publish ${{ env.DOTNET_MAIN_PROJECT_NAME }} -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
     - name: Azure login
       uses: azure/login@v2

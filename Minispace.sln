@@ -7,12 +7,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Api", "Api\Api.csproj", "{6
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D8FE86A3-65E4-4C39-B2C6-9BE48FE72366}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		ArtOfWar.md = ArtOfWar.md
+		LICENSE = LICENSE
+		README.md = README.md
 		Specyfikacja_1.0.pdf = Specyfikacja_1.0.pdf
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{53565A1C-09BE-4162-9999-C84B5051B2E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{53565A1C-09BE-4162-9999-C84B5051B2E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{89E1CF6C-AFEB-406F-870F-6C6FE1AAF247}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{89E1CF6C-AFEB-406F-870F-6C6FE1AAF247}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

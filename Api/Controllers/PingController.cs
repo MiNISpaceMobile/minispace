@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domain.Abstractions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
@@ -7,9 +8,18 @@ namespace Api.Controllers
     [ApiController]
     public class PingController : ControllerBase
     {
+        private IPingResponder pingResponder;
+
+        public PingController(IPingResponder pingResponder)
+        {
+            this.pingResponder = pingResponder;
+        }
+
         [HttpGet]
         [Produces("text/plain")]
-        public ActionResult<string> GetPing() => Ok("Pong");
-
+        public ActionResult<string> GetPing()
+        {
+            return Ok(pingResponder.Response());
+        }
     }
 }

@@ -4,5 +4,6 @@
 public abstract class BaseEntity
 {
     public ulong Id { get; set; }
+    public Guid Guid { get; set; }
 }
 

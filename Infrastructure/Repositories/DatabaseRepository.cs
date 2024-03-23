@@ -17,19 +17,26 @@ public class DatabaseRepository<RecordType> : IRepository<RecordType> where Reco
 
     public void Add(RecordType record) => records.Add(record);
 
-    public RecordType? Get(ulong key) => records.Find(key);
-
+    public RecordType? Get(ulong id) => records.Find(id);
+    public RecordType? Get(Guid guid) => records.FirstOrDefault(guid);
     public IEnumerable<RecordType> GetAll() => records;
 
-    public bool TryDelete(ulong key)
+    public bool TryDelete(ulong id)
     {
-        var record = records.Find(key);
+        var record = Get(id);
         if (record is null)
             return false;
         records.Remove(record);
         return true;
     }
-
+    public bool TryDelete(Guid guid)
+    {
+        var record = Get(guid);
+        if (record is null)
+            return false;
+        records.Remove(record);
+        return true;
+    }
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
         var selected = records.Where(predicate);

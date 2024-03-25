@@ -6,19 +6,17 @@ namespace Infrastructure.Repositories;
 
 public class DatabaseRepository<RecordType> : IRepository<RecordType> where RecordType : notnull, BaseEntity
 {
-    private DbContext dbContext;
     private DbSet<RecordType> records;
 
-    public DatabaseRepository(DbContext dbContext)
+    public DatabaseRepository(DbSet<RecordType> records)
     {
-        this.dbContext = dbContext;
-        records = dbContext.Set<RecordType>();
+        this.records = records;
     }
 
     public void Add(RecordType record) => records.Add(record);
 
     public RecordType? Get(ulong id) => records.Find(id);
-    public RecordType? Get(Guid guid) => records.FirstOrDefault(guid);
+    public RecordType? Get(Guid guid) => records.FirstOrDefault(r => r.Guid == guid);
     public IEnumerable<RecordType> GetAll() => records;
 
     public bool TryDelete(ulong id)
@@ -43,6 +41,4 @@ public class DatabaseRepository<RecordType> : IRepository<RecordType> where Reco
         records.RemoveRange(selected);
         return selected.Count();
     }
-
-    public void SaveChanges() => dbContext.SaveChanges();
 }

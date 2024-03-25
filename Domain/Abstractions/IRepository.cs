@@ -16,6 +16,4 @@ public interface IRepository<RecordType> where RecordType : notnull, BaseEntity
     bool TryDelete(ulong id);
     bool TryDelete(Guid guid);
     int DeleteAll(Func<RecordType, bool> predicate);
-
-    void SaveChanges();
 }

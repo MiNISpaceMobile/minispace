@@ -3,18 +3,16 @@ using Domain.BaseTypes;
 
 namespace Infrastructure.Repositories;
 
+[Obsolete("Only use for tests!")]
 public class DictionaryRepository<RecordType> : IRepository<RecordType> where RecordType : notnull, BaseEntity
 {
     private Dictionary<ulong, RecordType> recordsById;
     private Dictionary<Guid, RecordType> recordsByGuid;
 
-    public int SaveChangesCounter { get; private set; }
-
     public DictionaryRepository(IEnumerable<RecordType> records)
     {
         recordsById = records.ToDictionary(r => r.Id);
         recordsByGuid = records.ToDictionary(r => r.Guid);
-        SaveChangesCounter = 0;
     }
 
     public void Add(RecordType record)
@@ -63,6 +61,4 @@ public class DictionaryRepository<RecordType> : IRepository<RecordType> where Re
         }
         return selected.Count();
     }
-
-    public void SaveChanges() => SaveChangesCounter++;
 }

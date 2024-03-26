@@ -6,8 +6,8 @@ namespace Domain.DataModel;
 
 public class User : BaseEntity
 {
-    public static byte[] CalculatePasswordHash(string password, DateTime salt)
-        => SHA512.HashData(Encoding.UTF8.GetBytes($"{password}{salt.ToString("s")}"));
+    public static byte[] CalculatePasswordHash(string password, string salt)
+        => SHA512.HashData(Encoding.UTF8.GetBytes($"{password}{salt}"));
 
     public DateTime CreationDate { get; }
 
@@ -19,26 +19,36 @@ public class User : BaseEntity
     public string? ProfilePicture { get; set; }
 
     // You *don't* store user passwords. You just store their hashes
-    // I suggest we add "salt" to these hashes as it is an easy technique
+    // I suggest we add salt to these hashes as it is an easy technique
     // which additionally increases security in case of a breach
-    // We can use account creation date as salt
+    // We can use User Guid or CreationDate as salt
+    // I suggest we use the first one
     public byte[] SaltedPasswordHash { get; set; }
 
     // Entity Framework likes empty constructors, but we shouldn't use them
     protected User() { }
 
-    public User(string username, string email, string password, DateTime? creationDate = null, string? profilePicture = null)
+    public User(string username, string email, string password, DateTime? creationDate = null)
     {
         CreationDate = creationDate ?? DateTime.Now;
 
         Username = username;
         Email = email;
 
-        ProfilePicture = profilePicture;
+        SaltedPasswordHash = CalculatePasswordHash(password);
+    }
 
-        SaltedPasswordHash = CalculatePasswordHash(password, CreationDate);
+    public byte[] CalculatePasswordHash(string password) => CalculatePasswordHash(password, Guid.ToString()); // CreationDate.ToString("s"));
+
+    public bool UpdatePassword(string password)
+    {
+        var newHash = CalculatePasswordHash(password);
+        if (SaltedPasswordHash.SequenceEqual(newHash))
+            return false;
+        SaltedPasswordHash = newHash;
+        return true;
     }
 
     public bool CheckPassword(string password)
-        => SaltedPasswordHash.SequenceEqual(CalculatePasswordHash(password, CreationDate));
+        => SaltedPasswordHash.SequenceEqual(CalculatePasswordHash(password));
 }

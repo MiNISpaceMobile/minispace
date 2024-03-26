@@ -25,8 +25,10 @@ public class User : BaseEntity
     // I suggest we use the first one
     public byte[] SaltedPasswordHash { get; set; }
 
+#pragma warning disable CS8618 // Unassigned non-nullables
     // Entity Framework likes empty constructors, but we shouldn't use them
     protected User() { }
+#pragma warning restore CS8618 // Unassigned non-nullables
 
     public User(string username, string email, string password, DateTime? creationDate = null)
     {

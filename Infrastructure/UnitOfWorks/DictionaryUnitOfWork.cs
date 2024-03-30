@@ -7,21 +7,30 @@ namespace Infrastructure.UnitOfWorks;
 [Obsolete("Only use for tests!")]
 public class DictionaryUnitOfWork : IUnitOfWork
 {
-    private Dictionary<Type, IEnumerable<BaseEntity>> records;
+    private Dictionary<Type, List<BaseEntity>> tables;
 
     public int CommitCount { get; private set; }
 
-    public DictionaryUnitOfWork(Dictionary<Type, IEnumerable<BaseEntity>> records)
+    public DictionaryUnitOfWork(IEnumerable<BaseEntity> records)
     {
-        this.records = records;
+        tables = new Dictionary<Type, List<BaseEntity>>();
+        foreach (BaseEntity record in records)
+        {
+            if (!tables.TryGetValue(record.GetType(), out List<BaseEntity>? table))
+            {
+                table = new List<BaseEntity>();
+                tables.Add(record.GetType(), table);
+            }
+            table.Add(record);
+        }
     }
 
     public IRepository<RecordType> Repository<RecordType>() where RecordType : notnull, BaseEntity
     {
-        if (!records.TryGetValue(typeof(RecordType), out IEnumerable<BaseEntity>? entities))
-            entities = Enumerable.Empty<RecordType>();
+        if (!tables.TryGetValue(typeof(RecordType), out List<BaseEntity>? records))
+            records = new List<BaseEntity>(0);
 
-        return new DictionaryRepository<RecordType>((IEnumerable<RecordType>)entities);
+        return new DictionaryRepository<RecordType>(records.Select(r => (RecordType)r));
     }
 
     public void Commit() => CommitCount++;

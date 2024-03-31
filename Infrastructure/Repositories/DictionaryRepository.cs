@@ -6,59 +6,38 @@ namespace Infrastructure.Repositories;
 [Obsolete("Only use for tests!")]
 public class DictionaryRepository<RecordType> : IRepository<RecordType> where RecordType : notnull, BaseEntity
 {
-    // private Dictionary<ulong, RecordType> recordsById;
-    private Dictionary<Guid, RecordType> recordsByGuid;
+    private Dictionary<Guid, BaseEntity> table;
 
-    public DictionaryRepository(IEnumerable<RecordType> records)
+    public DictionaryRepository(Dictionary<Guid, BaseEntity> table)
     {
-        // recordsById = records.ToDictionary(r => r.Id);
-        recordsByGuid = records.ToDictionary(r => r.Guid);
+        this.table = table;
     }
 
     public void Add(RecordType record)
     {
-        // recordsById.Add(record.Id, record);
-        recordsByGuid.Add(record.Guid, record);
+        table.Add(record.Guid, record);
     }
 
-    //public RecordType? Get(ulong id)
-    //{
-    //    recordsById.TryGetValue(id, out RecordType? record);
-    //    return record;
-    //}
     public RecordType? Get(Guid guid)
     {
-        recordsByGuid.TryGetValue(guid, out RecordType? record);
-        return record;
+        table.TryGetValue(guid, out BaseEntity? record);
+        return (RecordType?)record;
     }
-    public IEnumerable<RecordType> GetAll() => recordsByGuid.Values;
+    public IEnumerable<RecordType> GetAll() => table.Values.Select(r => (RecordType)r);
 
-    //public bool TryDelete(ulong id)
-    //{
-    //    var record = Get(id);
-    //    if (record is null)
-    //        return false;
-    //    recordsById.Remove(record.Id);
-    //    recordsByGuid.Remove(record.Guid);
-    //    return true;
-    //}
     public bool TryDelete(Guid guid)
     {
         var record = Get(guid);
         if (record is null)
             return false;
-        //recordsById.Remove(record.Id);
-        recordsByGuid.Remove(record.Guid);
+        table.Remove(record.Guid);
         return true;
     }
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
-        var selected = recordsByGuid.Values.Where(predicate);
+        var selected = GetAll().Where(predicate);
         foreach (var record in selected)
-        {
-            //recordsById.Remove(record.Id);
-            recordsByGuid.Remove(record.Guid);
-        }
+            table.Remove(record.Guid);
         return selected.Count();
     }
 }

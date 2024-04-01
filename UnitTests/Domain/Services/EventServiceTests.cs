@@ -3,6 +3,7 @@ using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
+using Moq;
 
 namespace UnitTests.Domain.Services;
 
@@ -58,6 +59,21 @@ public class EventServiceTests
 
         // Assert
         Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void CreateEvent_CorrectEvent_ShouldAddEventToDB()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        DateTime now = DateTime.Now;
+        Event newEvent = new Event(students.Last(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
+
+        // Act
+        sut.CreateEvent(newEvent);
+
+        // Assert 
+        Assert.IsNotNull(uow.Repository<Event>().Get(newEvent.Guid));
     }
 
     //[TestMethod]

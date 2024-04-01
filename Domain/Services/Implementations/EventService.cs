@@ -3,7 +3,7 @@ using Domain.DataModel;
 
 namespace Domain.Services;
 
-public class EventService
+public class EventService : IEventService
 {
     private IUnitOfWork uow;
 
@@ -13,4 +13,11 @@ public class EventService
     }
 
     public Event? GetEvent(Guid guid) => uow.Repository<Event>().Get(guid);
+
+    public void CreateEvent(Event newEvent)
+    {
+        uow.Repository<Event>().Add(newEvent);
+        uow.Commit();
+    }
+    
 }

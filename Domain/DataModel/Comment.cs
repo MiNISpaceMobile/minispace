@@ -1,6 +1,8 @@
-﻿namespace Domain.DataModel;
+﻿using Domain.BaseTypes;
 
-public class Comment
+namespace Domain.DataModel;
+
+public class Comment : BaseEntity
 {
     public Student Author { get; set; }
     public Post Post { get; set; }

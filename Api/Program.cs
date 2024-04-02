@@ -1,4 +1,6 @@
 using Domain.Abstractions;
+using Domain.Services;
+using Infrastructure.DatabaseContexts;
 using Infrastructure.PingResponders;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +9,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<SqliteDbContext>();
 
 /* Add things to dependency injection below!
  * 
@@ -23,7 +27,7 @@ builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 
 /* Warning! Important! Will help you later!
  * 
- * Try commenting line above and then try executing 'ping' via swagger.
+ * Try commenting the line with IPingResponder and then try executing 'ping' via swagger.
  * The app will compile, it will even run, but when you try 'ping'...
  * You will get an ugly Error 500 - Internal Server Error.
  * This is because the app tries to run 'Ping' method in the cotroller,

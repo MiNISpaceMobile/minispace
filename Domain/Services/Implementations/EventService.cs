@@ -19,5 +19,22 @@ public class EventService : IEventService
         uow.Repository<Event>().Add(newEvent);
         uow.Commit();
     }
-    
+
+    public void UpdateEvent(Event newEvent)
+    {
+        var currEvent = uow.Repository<Event>().Get(newEvent.Guid);
+        if (currEvent is null)
+            throw new ArgumentException();
+
+        currEvent.Title = newEvent.Title;
+        currEvent.Description = newEvent.Description;
+        currEvent.Location = newEvent.Location;
+        currEvent.StartDate = newEvent.StartDate;
+        currEvent.EndDate = newEvent.EndDate;
+        currEvent.Category = newEvent.Category;
+        currEvent.Capacity = newEvent.Capacity;
+        currEvent.Fee = newEvent.Fee;
+
+        uow.Commit();
+    }
 }

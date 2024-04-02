@@ -11,5 +11,5 @@ public interface IEventService
 {
     public Event? GetEvent(Guid guid);
     public void CreateEvent(Event newEvent);
-    //public void UpdateEvent();
+    public void UpdateEvent(Event newEvent);
 }

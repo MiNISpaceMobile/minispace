@@ -73,14 +73,45 @@ public class EventServiceTests
         sut.CreateEvent(newEvent);
 
         // Assert 
-        Assert.IsNotNull(uow.Repository<Event>().Get(newEvent.Guid));
+        Assert.AreEqual(newEvent, uow.Repository<Event>().Get(newEvent.Guid));
+    }
+
+    [TestMethod]
+    public void UpdateEvent_NonexistentEvent_ShouldThrowArgumentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        DateTime now = DateTime.Now;
+        Event newEvent = new Event(students.Last(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
+
+        // Act
+        var action = () => sut.UpdateEvent(newEvent);
+
+        // Assert
+        Assert.ThrowsException<ArgumentException>(action);
+    }
+
+    [TestMethod]
+    public void UpdateEvent_CorrectEvent_ShouldUpdateEvent()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event toUpdate = events.Last();
+        string newTitle = "a";
+
+        // Act
+        toUpdate.Title = newTitle;
+        sut.UpdateEvent(toUpdate);
+
+        // Assert
+        Assert.AreEqual(toUpdate, uow.Repository<Event>().Get(toUpdate.Guid));
     }
 
     //[TestMethod]
     //public void ChangeTest()
     //{
     //    Event e = uow.Repository<Event>().Get(events.First().Guid)!;
-        
+
     //    e.Capacity = 30;
 
     //    Assert.AreEqual(30, events.First().Capacity);

@@ -1,4 +1,5 @@
 {
+  "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
       "commandName": "Project",
@@ -12,7 +13,6 @@
     },
     "https": {
       "commandName": "Project",
-      "workingDirectory": "./..",
       "launchBrowser": true,
       "launchUrl": "https://localhost:7067/swagger",
       "environmentVariables": {
@@ -30,7 +30,6 @@
       }
     }
   },
-  "$schema": "http://json.schemastore.org/launchsettings.json",
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,

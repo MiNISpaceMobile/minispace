@@ -15,8 +15,12 @@ public class SqliteDbContext : DbContext
     static SqliteDbContext()
     {
         DbFolderPath = Path.Join(Directory.GetCurrentDirectory(), DbFolderName);
+        if (!Directory.Exists(DbFolderPath))
+            Directory.CreateDirectory(DbFolderPath);
         DbFilePath = Path.Join(DbFolderPath, DbFileName);
     }
+
+    public void CreateOrUpdate() => Database.Migrate();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlite($"Data Source={DbFilePath}");

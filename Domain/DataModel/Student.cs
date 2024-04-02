@@ -1,10 +1,11 @@
-using Domain.BaseTypes;
-
 namespace Domain.DataModel;
 
 public class Student : User
 {
     public List<Student> Friends { get; }
+    // The property below is required by EF to model self-referencing many-to-many
+    public List<Student> FriendsInverse { get; }
+
     public List<Event> SubscribedEvents { get; }
 
     public string Description { get; set; }
@@ -36,6 +37,7 @@ public class Student : User
         : base(username, email, password, creationDate)
     {
         Friends = new List<Student>();
+        FriendsInverse = new List<Student>();
         SubscribedEvents = new List<Event>();
 
         Description = "";

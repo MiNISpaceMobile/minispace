@@ -24,7 +24,9 @@ public class Report : BaseEntity
 {
     public User Author { get; set; }
     public Administrator? Responder { get; set; }
-    
+
+    public ulong TargetId { get; set; }
+
     public string Title { get; set; }
     public string Details { get; set; }
     public ReportCategory Category { get; set; }

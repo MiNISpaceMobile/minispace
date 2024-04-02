@@ -46,4 +46,15 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 
+/* 3 lines of code below automatically create and/or update development database.
+ * You can find it in a subfolder 'MinispaceDb' of app's working directory,
+ * which defaults to Api project directory. If something (like migrations) breaks horribly,
+ * you can always recreate from scratch it - just delete it.
+ */
+{
+    using var scope = app.Services.CreateScope();
+    using var sqlite = scope.ServiceProvider.GetService<SqliteDbContext>();
+    sqlite?.CreateOrUpdate();
+}
+
 app.Run();

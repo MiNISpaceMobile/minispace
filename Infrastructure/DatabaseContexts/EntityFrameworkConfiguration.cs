@@ -8,26 +8,32 @@ namespace Infrastructure.DatabaseContexts;
 
 public static class EntityFrameworkConfiguration
 {
-    // TODO: Configure research lazy-loading and configure loading behaviour
+    /* Lazy-loading may introduce some performance issues
+     * and we may want to think about it in the future.
+     * 
+     * For more details see https://www.reddit.com/r/csharp/comments/wxjsd7/how_do_you_manage_nonloaded_navigation_properties/
+     */
+    public static void Configure(DbContextOptionsBuilder options)
+        => options.UseLazyLoadingProxies();
 
-    public static void Configure(ModelBuilder modelBuilder)
+    public static void Configure(ModelBuilder model)
     {
-        Configure(modelBuilder.Entity<User>());
-        Configure(modelBuilder.Entity<Administrator>());
-        Configure(modelBuilder.Entity<Student>());
+        Configure(model.Entity<User>());
+        Configure(model.Entity<Administrator>());
+        Configure(model.Entity<Student>());
 
-        Configure(modelBuilder.Entity<Comment>());
-        Configure(modelBuilder.Entity<Event>());
-        Configure(modelBuilder.Entity<Post>());
+        Configure(model.Entity<Comment>());
+        Configure(model.Entity<Event>());
+        Configure(model.Entity<Post>());
 
-        Configure(modelBuilder.Entity<Report>());
-        Configure(modelBuilder.Entity<CommentReport>());
-        Configure(modelBuilder.Entity<EventReport>());
-        Configure(modelBuilder.Entity<PostReport>());
+        Configure(model.Entity<Report>());
+        Configure(model.Entity<CommentReport>());
+        Configure(model.Entity<EventReport>());
+        Configure(model.Entity<PostReport>());
 
-        using var conventionBlock = modelBuilder.Model.DelayConventions();
+        using var conventionBlock = model.Model.DelayConventions();
 
-        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        foreach (var entity in model.Model.GetEntityTypes())
         {
             foreach (var property in entity.GetProperties())
             {
@@ -68,25 +74,22 @@ public static class EntityFrameworkConfiguration
         }
     }
 
-    private static void Configure(EntityTypeBuilder<Administrator> builder)
+    private static void Configure(EntityTypeBuilder<Administrator> type)
     {
-        builder.HasBaseType<User>();
+        type.HasBaseType<User>();
     }
 
-    private static void Configure(EntityTypeBuilder<Comment> builder)
+    private static void Configure(EntityTypeBuilder<Comment> type)
     {
-        builder
-            .HasOne(x => x.Author)
+        type.HasOne(x => x.Author)
             .WithMany()
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder
-            .HasOne(x => x.Post)
+        type.HasOne(x => x.Post)
             .WithMany(x => x.Comments)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder
-            .HasMany(x => x.Likers)
+        type.HasMany(x => x.Likers)
             .WithMany();
 
         /* This one is important!
@@ -95,46 +98,40 @@ public static class EntityFrameworkConfiguration
          * and instead would become direct Comments on the parent Post.
          * Here we configure the OnDelete behaviour to also delete responses.
          */
-        builder
-            .HasOne(x => x.InResponseTo)
+        type.HasOne(x => x.InResponseTo)
             .WithMany(x => x.Responses)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
-    private static void Configure(EntityTypeBuilder<Event> builder)
+    private static void Configure(EntityTypeBuilder<Event> type)
     {
-        builder
-            .HasOne(x => x.Organizer)
+        type.HasOne(x => x.Organizer)
             .WithMany(x => x.OrganizedEvents)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder
-            .HasMany(x => x.Interested)
+        type.HasMany(x => x.Interested)
             .WithMany(x => x.SubscribedEvents);
 
-        builder
-            .HasMany(x => x.Participants)
+        type.HasMany(x => x.Participants)
             .WithMany();
 
         // Relationship with Post is configured in Post
     }
 
-    private static void Configure(EntityTypeBuilder<Post> builder)
+    private static void Configure(EntityTypeBuilder<Post> type)
     {
-        builder
-            .HasOne(x => x.Author)
+        type.HasOne(x => x.Author)
             .WithMany()
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder
-            .HasOne(x => x.Event)
+        type.HasOne(x => x.Event)
             .WithMany(x => x.Posts)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Relationship with Comment is configured in Comment
     }
 
-    private static void Configure(EntityTypeBuilder<Report> builder)
+    private static void Configure(EntityTypeBuilder<Report> type)
     {
         /* TPH Mapping Strategy stands for Table per Hierarchy
          * 
@@ -144,64 +141,58 @@ public static class EntityFrameworkConfiguration
          * 
          * Docs here: https://learn.microsoft.com/en-us/ef/core/modeling/inheritance
          */
-        builder.UseTphMappingStrategy();
+        type.UseTphMappingStrategy();
 
-        builder
-            .HasOne(x => x.Author)
+        type.HasOne(x => x.Author)
             .WithMany()
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder
-            .HasOne(x => x.Responder)
+        type.HasOne(x => x.Responder)
             .WithMany()
             .OnDelete(DeleteBehavior.SetNull);
     }
 
-    private static void Configure(EntityTypeBuilder<CommentReport> builder)
+    private static void Configure(EntityTypeBuilder<CommentReport> type)
     {
-        builder.HasBaseType<Report>();
+        type.HasBaseType<Report>();
 
-        builder
-            .HasOne(x => x.ReportedComment)
+        type.HasOne(x => x.ReportedComment)
             .WithMany()
             .HasForeignKey(x => x.TargetId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
-    private static void Configure(EntityTypeBuilder<EventReport> builder)
+    private static void Configure(EntityTypeBuilder<EventReport> type)
     {
-        builder.HasBaseType<Report>();
+        type.HasBaseType<Report>();
 
-        builder
-            .HasOne(x => x.ReportedEvent)
+        type.HasOne(x => x.ReportedEvent)
             .WithMany()
             .HasForeignKey(x => x.TargetId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
-    private static void Configure(EntityTypeBuilder<PostReport> builder)
+    private static void Configure(EntityTypeBuilder<PostReport> type)
     {
-        builder.HasBaseType<Report>();
+        type.HasBaseType<Report>();
 
-        builder
-            .HasOne(x => x.ReportedPost)
+        type.HasOne(x => x.ReportedPost)
             .WithMany()
             .HasForeignKey(x => x.TargetId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
-    private static void Configure(EntityTypeBuilder<Student> builder)
+    private static void Configure(EntityTypeBuilder<Student> type)
     {
-        builder.HasBaseType<User>();
+        type.HasBaseType<User>();
 
-        builder
-            .HasMany(x => x.Friends)
+        type.HasMany(x => x.Friends)
             .WithMany();
 
         // All relationship with Event, Post and Comment are configured in their respective classes
     }
 
-    private static void Configure(EntityTypeBuilder<User> builder)
+    private static void Configure(EntityTypeBuilder<User> type)
     {
         /* See Configure(Report) above for detailed explanation what line below does
          * 
@@ -211,17 +202,15 @@ public static class EntityFrameworkConfiguration
          * then the fact that for Administrator these columns will be null.
          * Especially since there will be much more normal users than admins using this app.
          */
-        builder.UseTphMappingStrategy();
+        type.UseTphMappingStrategy();
 
-        builder
-            .Property(x => x.Username)
-            .HasMaxLength(64);
-        builder
-            .Property(x => x.Email)
+        type.Property(x => x.Username)
             .HasMaxLength(64);
 
-        builder
-            .Property(x => x.SaltedPasswordHash)
+        type.Property(x => x.Email)
+            .HasMaxLength(64);
+
+        type.Property(x => x.SaltedPasswordHash)
             .HasMaxLength(64)
             .IsFixedLength(true);
     }

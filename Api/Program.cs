@@ -2,6 +2,8 @@ using Domain.Abstractions;
 using Domain.Services;
 using Infrastructure.DatabaseContexts;
 using Infrastructure.PingResponders;
+using Infrastructure.UnitOfWorks;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +12,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<SqliteDbContext>();
+builder.Services.AddDbContext<DbContext, SqliteDbContext>(EntityFrameworkConfiguration.Configure);
 
 /* Add things to dependency injection below!
  * 
@@ -24,6 +26,8 @@ builder.Services.AddDbContext<SqliteDbContext>();
  */
 
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+
+builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
 
 /* Warning! Important! Will help you later!
  * 

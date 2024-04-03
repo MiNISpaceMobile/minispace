@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    [Migration("20240402234500_InitialCreate")]
+    [Migration("20240403093141_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -41,7 +41,7 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("AuthorId")
+                    b.Property<ulong?>("AuthorId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Content")
@@ -52,6 +52,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<ulong?>("InResponseToId")
@@ -100,13 +101,14 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<ulong>("OrganizerId")
+                    b.Property<ulong?>("OrganizerId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("PublicationDate")
@@ -137,7 +139,7 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("AuthorId")
+                    b.Property<ulong?>("AuthorId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Content")
@@ -151,6 +153,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -170,7 +173,7 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("AuthorId")
+                    b.Property<ulong?>("AuthorId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Category")
@@ -192,6 +195,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<ulong?>("ResponderId")
@@ -242,6 +246,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProfilePicture")
@@ -304,12 +309,12 @@ namespace Infrastructure.Migrations
                     b.Property<ulong>("FriendsId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("FriendsInverseId")
+                    b.Property<ulong>("StudentId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("FriendsId", "FriendsInverseId");
+                    b.HasKey("FriendsId", "StudentId");
 
-                    b.HasIndex("FriendsInverseId");
+                    b.HasIndex("StudentId");
 
                     b.ToTable("StudentStudent");
                 });
@@ -388,12 +393,12 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Domain.DataModel.Comment", "InResponseTo")
                         .WithMany("Responses")
-                        .HasForeignKey("InResponseToId");
+                        .HasForeignKey("InResponseToId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Domain.DataModel.Post", "Post")
                         .WithMany("Comments")
@@ -413,8 +418,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.DataModel.Student", "Organizer")
                         .WithMany("OrganizedEvents")
                         .HasForeignKey("OrganizerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Organizer");
                 });
@@ -424,8 +428,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Domain.DataModel.Event", "Event")
                         .WithMany("Posts")
@@ -443,12 +446,12 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.DataModel.User", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Domain.DataModel.Administrator", "Responder")
                         .WithMany()
-                        .HasForeignKey("ResponderId");
+                        .HasForeignKey("ResponderId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Author");
 
@@ -495,7 +498,7 @@ namespace Infrastructure.Migrations
 
                     b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
-                        .HasForeignKey("FriendsInverseId")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

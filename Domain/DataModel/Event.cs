@@ -11,7 +11,7 @@ public enum EventCategory
 
 public class Event : BaseEntity
 {
-    public Student? Organizer { get; set; }
+    public virtual Student? Organizer { get; set; }
 
     public string Title { get; set; }
     public string Description { get; set; }
@@ -25,10 +25,10 @@ public class Event : BaseEntity
     public int? Capacity { get; set; }
     public decimal? Fee { get; set; }
 
-    public ICollection<Student> Interested { get; set; }
-    public ICollection<Student> Participants { get; set; }
+    public virtual ICollection<Student> Interested { get; set; }
+    public virtual ICollection<Student> Participants { get; set; }
 
-    public ICollection<Post> Posts { get; set; }
+    public virtual ICollection<Post> Posts { get; set; }
     public ICollection<string> Feedback { get; set; }
 
     public int ViewCount { get; set; }

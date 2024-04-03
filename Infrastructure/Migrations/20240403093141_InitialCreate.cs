@@ -40,7 +40,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<ulong>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    OrganizerId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    OrganizerId = table.Column<ulong>(type: "INTEGER", nullable: true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
                     Category = table.Column<int>(type: "INTEGER", nullable: false),
@@ -63,7 +63,7 @@ namespace Infrastructure.Migrations
                         column: x => x.OrganizerId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,11 +71,11 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     FriendsId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    FriendsInverseId = table.Column<ulong>(type: "INTEGER", nullable: false)
+                    StudentId = table.Column<ulong>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StudentStudent", x => new { x.FriendsId, x.FriendsInverseId });
+                    table.PrimaryKey("PK_StudentStudent", x => new { x.FriendsId, x.StudentId });
                     table.ForeignKey(
                         name: "FK_StudentStudent_User_FriendsId",
                         column: x => x.FriendsId,
@@ -83,8 +83,8 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_StudentStudent_User_FriendsInverseId",
-                        column: x => x.FriendsInverseId,
+                        name: "FK_StudentStudent_User_StudentId",
+                        column: x => x.StudentId,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -144,7 +144,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<ulong>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: true),
                     EventId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -165,7 +165,7 @@ namespace Infrastructure.Migrations
                         column: x => x.AuthorId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -174,7 +174,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<ulong>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: true),
                     PostId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -189,7 +189,8 @@ namespace Infrastructure.Migrations
                         name: "FK_Comment_Comment_InResponseToId",
                         column: x => x.InResponseToId,
                         principalTable: "Comment",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Comment_Post_PostId",
                         column: x => x.PostId,
@@ -201,7 +202,7 @@ namespace Infrastructure.Migrations
                         column: x => x.AuthorId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -234,7 +235,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<ulong>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: true),
                     ResponderId = table.Column<ulong>(type: "INTEGER", nullable: true),
                     TargetId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
@@ -272,12 +273,13 @@ namespace Infrastructure.Migrations
                         column: x => x.AuthorId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Report_User_ResponderId",
                         column: x => x.ResponderId,
                         principalTable: "User",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateIndex(
@@ -341,9 +343,9 @@ namespace Infrastructure.Migrations
                 column: "TargetId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StudentStudent_FriendsInverseId",
+                name: "IX_StudentStudent_StudentId",
                 table: "StudentStudent",
-                column: "FriendsInverseId");
+                column: "StudentId");
         }
 
         /// <inheritdoc />

@@ -4,15 +4,15 @@ namespace Domain.DataModel;
 
 public class Post : BaseEntity
 {
-    public Student? Author { get; set; }
-    public Event Event { get; set; }
+    public virtual Student? Author { get; set; }
+    public virtual Event Event { get; set; }
 
     public string Content { get; set; }
     // public ICollection<string> Pictures { get; set; }
 
     public DateTime CreationDate { get; set; }
 
-    public ICollection<Comment> Comments { get; set; }
+    public virtual ICollection<Comment> Comments { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected Post() { }

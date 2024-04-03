@@ -22,9 +22,9 @@ public class SqliteDbContext : DbContext
 
     public void CreateOrUpdate() => Database.Migrate();
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlite($"Data Source={DbFilePath}");
+    protected override void OnConfiguring(DbContextOptionsBuilder options)
+        => options.UseSqlite($"Data Source={DbFilePath}");
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => EntityFrameworkConfiguration.Configure(modelBuilder);
+    protected override void OnModelCreating(ModelBuilder model)
+        => EntityFrameworkConfiguration.Configure(model);
 }

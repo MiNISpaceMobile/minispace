@@ -25,11 +25,11 @@ public class Event : BaseEntity
     public int? Capacity { get; set; }
     public decimal? Fee { get; set; }
 
-    public List<Student> Interested { get; set; }
-    public List<Student> Participants { get; set; }
+    public ICollection<Student> Interested { get; set; }
+    public ICollection<Student> Participants { get; set; }
 
-    public List<Post> Posts { get; set; }
-    public List<string> Feedback { get; set; }
+    public ICollection<Post> Posts { get; set; }
+    public ICollection<string> Feedback { get; set; }
 
     public int ViewCount { get; set; }
     public int AverageAge

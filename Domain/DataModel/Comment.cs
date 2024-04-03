@@ -11,10 +11,10 @@ public class Comment : BaseEntity
 
     public DateTime CreationDate { get; set; }
 
-    public List<Student> Likers { get; set; }
+    public ICollection<Student> Likers { get; set; }
 
     public Comment? InResponseTo { get; set; }
-    public List<Comment> Responses { get; set; }
+    public ICollection<Comment> Responses { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected Comment() { }

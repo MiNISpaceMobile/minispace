@@ -8,7 +8,6 @@ namespace Infrastructure.DatabaseContexts;
 
 public static class EntityFrameworkConfiguration
 {
-    // TODO: Replace List<> properties in data model with ICollection<>
     // TODO: Configure research lazy-loading and configure loading behaviour
 
     public static void Configure(ModelBuilder modelBuilder)

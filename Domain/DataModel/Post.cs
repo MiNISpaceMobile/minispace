@@ -8,11 +8,11 @@ public class Post : BaseEntity
     public Event Event { get; set; }
 
     public string Content { get; set; }
-    // public List<string> Pictures { get; set; }
+    // public ICollection<string> Pictures { get; set; }
 
     public DateTime CreationDate { get; set; }
 
-    public List<Comment> Comments { get; set; }
+    public ICollection<Comment> Comments { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected Post() { }

@@ -5,9 +5,9 @@ public class Student : User
     /* When adding A as B's friend you also need to add B as A's friend!
      * It does NOT happened automatically!
      */
-    public List<Student> Friends { get; }
+    public ICollection<Student> Friends { get; }
 
-    public List<Event> SubscribedEvents { get; }
+    public ICollection<Event> SubscribedEvents { get; }
 
     public string Description { get; set; }
     public DateTime? DateOfBirth { get; set; }
@@ -28,7 +28,7 @@ public class Student : User
     public bool EmailNotification { get; set; }
 
     public bool IsOrganizer { get; set; }
-    public List<Event> OrganizedEvents { get; set; }
+    public ICollection<Event> OrganizedEvents { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected Student() { }

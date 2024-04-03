@@ -1,3 +1,4 @@
+using Api;
 using Domain.Abstractions;
 using Domain.Services;
 using Infrastructure.DatabaseContexts;
@@ -12,8 +13,6 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<DbContext, SqliteDbContext>(EntityFrameworkConfiguration.Configure);
-
 /* Add things to dependency injection below!
  * 
  * Most of the time use 'AddScoped'.
@@ -24,6 +23,8 @@ builder.Services.AddDbContext<DbContext, SqliteDbContext>(EntityFrameworkConfigu
  * And sometimes you may have to use 'AddSingleton'.
  * It means that only one object of your class will exist for entire program duration.
  */
+
+builder.Services.AddDbContext<DbContext, SqliteDbContext>(EntityFrameworkConfiguration.Configure);
 
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 
@@ -50,15 +51,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 
-/* 3 lines of code below automatically create and/or update development database.
- * You can find it in a subfolder 'MinispaceDb' of app's working directory,
- * which defaults to Api project directory. If something (like migrations) breaks horribly,
- * you can always recreate from scratch it - just delete it.
- */
-{
-    using var scope = app.Services.CreateScope();
-    using var sqlite = scope.ServiceProvider.GetService<SqliteDbContext>();
-    sqlite?.CreateOrUpdate();
-}
+// Our own function that setups a few things
+app.PerformCustomStartupActions();
 
 app.Run();

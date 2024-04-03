@@ -23,7 +23,7 @@ public class DictionaryRepository<RecordType> : IRepository<RecordType> where Re
         table.TryGetValue(guid, out BaseEntity? record);
         return (RecordType?)record;
     }
-    public IEnumerable<RecordType> GetAll() => table.Values.Select(r => (RecordType)r);
+    public IQueryable<RecordType> GetAll() => table.Values.Select(r => (RecordType)r).AsQueryable<RecordType>();
 
     public bool TryDelete(Guid guid)
     {

@@ -9,7 +9,7 @@ public interface IRepository<RecordType> where RecordType : notnull, BaseEntity
 
     RecordType? Get(Guid guid);
     bool TryGet(Guid guid, [MaybeNullWhen(false)] out RecordType record) => (record = Get(guid)) is not null;
-    IEnumerable<RecordType> GetAll();
+    IQueryable<RecordType> GetAll();
 
     bool TryDelete(Guid guid);
     int DeleteAll(Func<RecordType, bool> predicate);

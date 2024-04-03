@@ -16,7 +16,7 @@ public class DatabaseRepository<RecordType> : IRepository<RecordType> where Reco
     public void Add(RecordType record) => records.Add(record);
 
     public RecordType? Get(Guid guid) => records.FirstOrDefault(r => r.Guid == guid);
-    public IEnumerable<RecordType> GetAll() => records;
+    public IQueryable<RecordType> GetAll() => records;
 
     public bool TryDelete(Guid guid)
     {

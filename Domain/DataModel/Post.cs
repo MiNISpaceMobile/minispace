@@ -4,7 +4,7 @@ namespace Domain.DataModel;
 
 public class Post : BaseEntity
 {
-    public Student Author { get; set; }
+    public Student? Author { get; set; }
     public Event Event { get; set; }
 
     public string Content { get; set; }

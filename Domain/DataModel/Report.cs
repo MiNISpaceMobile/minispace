@@ -22,7 +22,7 @@ public enum ReportState
 
 public class Report : BaseEntity
 {
-    public User Author { get; set; }
+    public User? Author { get; set; }
     public Administrator? Responder { get; set; }
 
     public ulong TargetId { get; set; }

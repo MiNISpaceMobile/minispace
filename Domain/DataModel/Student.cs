@@ -2,9 +2,10 @@ namespace Domain.DataModel;
 
 public class Student : User
 {
+    /* When adding A as B's friend you also need to add B as A's friend!
+     * It does NOT happened automatically!
+     */
     public List<Student> Friends { get; }
-    // The property below is required by EF to model self-referencing many-to-many
-    public List<Student> FriendsInverse { get; }
 
     public List<Event> SubscribedEvents { get; }
 
@@ -37,7 +38,6 @@ public class Student : User
         : base(username, email, password, creationDate)
     {
         Friends = new List<Student>();
-        FriendsInverse = new List<Student>();
         SubscribedEvents = new List<Event>();
 
         Description = "";

@@ -42,11 +42,11 @@ public static class AppCustomStartup
         using var scope = app.Services.CreateScope();
         using var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        if (uow.Repository<Comment>().GetAll().Count() > 0 ||
-            uow.Repository<Event>().GetAll().Count() > 0 ||
-            uow.Repository<Post>().GetAll().Count() > 0 ||
-            uow.Repository<Report>().GetAll().Count() > 0 ||
-            uow.Repository<User>().GetAll().Count() > 0)
+        if (uow.Repository<Comment>().GetAll().Any() ||
+            uow.Repository<Event>().GetAll().Any() ||
+            uow.Repository<Post>().GetAll().Any() ||
+            uow.Repository<Report>().GetAll().Any() ||
+            uow.Repository<User>().GetAll().Any())
         {
             app.Logger.LogInformation("Skipped database seeding since it was not empty");
             return;
@@ -102,6 +102,8 @@ public static class AppCustomStartup
         uow.Repository<Post>().AddMany(posts);
         uow.Repository<Report>().AddMany(reports);
         uow.Repository<Student>().AddMany(students);
+
+        uow.Commit();
 
         app.Logger.LogInformation("Database was seeded with test data");
     }

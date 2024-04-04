@@ -1,7 +1,6 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Infrastructure.Repositories;
-using System.Collections.Generic;
 
 namespace Infrastructure.UnitOfWorks;
 

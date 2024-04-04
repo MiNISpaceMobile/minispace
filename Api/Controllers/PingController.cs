@@ -1,24 +1,23 @@
 ﻿using Domain.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers
+namespace Api.Controllers;
+
+[Route("ping")]
+[ApiController]
+public class PingController : ControllerBase
 {
-    [Route("ping")]
-    [ApiController]
-    public class PingController : ControllerBase
+    private IPingResponder pingResponder;
+
+    public PingController(IPingResponder pingResponder)
     {
-        private IPingResponder pingResponder;
+        this.pingResponder = pingResponder;
+    }
 
-        public PingController(IPingResponder pingResponder)
-        {
-            this.pingResponder = pingResponder;
-        }
-
-        [HttpGet]
-        [Produces("text/plain")]
-        public ActionResult<string> GetPing()
-        {
-            return Ok(pingResponder.Response());
-        }
+    [HttpGet]
+    [Produces("text/plain")]
+    public ActionResult<string> GetPing()
+    {
+        return Ok(pingResponder.Response());
     }
 }

@@ -47,7 +47,10 @@ public static class AppCustomStartup
             uow.Repository<Post>().GetAll().Count() > 0 ||
             uow.Repository<Report>().GetAll().Count() > 0 ||
             uow.Repository<User>().GetAll().Count() > 0)
+        {
+            app.Logger.LogInformation("Skipped database seeding since it was not empty");
             return;
+        }
 
         var now = DateTime.Now;
         var week_in = now.AddDays(7);
@@ -85,9 +88,13 @@ public static class AppCustomStartup
         var co0 = new Comment(st1, po0, "Co0", null);
         var co1 = new Comment(st0, po0, "Co1", co0);
         var co2 = new Comment(st2, po2, "Co2", null);
+        co1.Likers.Add(st1);
         Comment[] comments = [co0, co1, co2];
 
-        Report[] reports = [];
+        var re0 = new CommentReport(co2, st1, "Re0", "Test0", ReportCategory.Behaviour);
+        var re1 = new EventReport(ev0, st0, "Re1", "Test1", ReportCategory.Bug);
+        var re2 = new PostReport(po2, st2, "Re2", "Test2", ReportCategory.Behaviour);
+        Report[] reports = [re0, re1, re2];
 
         uow.Repository<Administrator>().AddMany(administrators);
         uow.Repository<Comment>().AddMany(comments);
@@ -95,5 +102,7 @@ public static class AppCustomStartup
         uow.Repository<Post>().AddMany(posts);
         uow.Repository<Report>().AddMany(reports);
         uow.Repository<Student>().AddMany(students);
+
+        app.Logger.LogInformation("Database was seeded with test data");
     }
 }

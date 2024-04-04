@@ -8,23 +8,52 @@ namespace Infrastructure.UnitOfWorks;
 [Obsolete("Only use for tests!")]
 public class DictionaryUnitOfWork : IUnitOfWork
 {
-    public Dictionary<Type, Dictionary<Guid, BaseEntity>> tables;
-
+    public Dictionary<Type, Dictionary<Guid, BaseEntity>> Tables { get; }
     public int CommitCount { get; private set; }
     public bool Disposed { get; private set; }
 
     public DictionaryUnitOfWork(IEnumerable<BaseEntity> records)
     {
-        tables = new Dictionary<Type, Dictionary<Guid, BaseEntity>>();
+        Tables = new Dictionary<Type, Dictionary<Guid, BaseEntity>>();
+
         foreach (BaseEntity record in records)
         {
-            if (!tables.TryGetValue(record.GetType(), out Dictionary<Guid, BaseEntity>? table))
-                tables.Add(record.GetType(), table = new Dictionary<Guid, BaseEntity>());
-            table.Add(record.Guid, record);
+            foreach (Type type in record.GetType().InheritancePathUpTo<BaseEntity>())
+                if (!Tables.TryAdd(type, new Dictionary<Guid, BaseEntity>()))
+                    break;
+            Add(record);
         }
 
         CommitCount = 0;
         Disposed = false;
+    }
+
+    public void Add(BaseEntity record)
+    {
+        if (record.Guid == Guid.Empty)
+            record.Guid = Guid.NewGuid();
+        while (!TryAdd(record))
+            record.Guid = Guid.NewGuid();
+    }
+    public bool TryAdd(BaseEntity record)
+    {
+        if (Tables[record.GetType().InheritancePathUpTo<BaseEntity>().Last()].ContainsKey(record.Guid))
+            return false;
+
+        foreach (Type type in record.GetType().InheritancePathUpTo<BaseEntity>())
+            Tables[type].Add(record.Guid, record);
+
+        return true;
+    }
+    public bool TryDelete<RecordType>(Guid guid)
+    {
+        if (!Tables[typeof(RecordType)].ContainsKey(guid))
+            return false;
+
+        foreach (Type type in typeof(RecordType).InheritancePathUpTo<BaseEntity>())
+            Tables[type].Remove(guid);
+
+        return true;
     }
 
     public IRepository<RecordType> Repository<RecordType>() where RecordType : notnull, BaseEntity
@@ -32,7 +61,9 @@ public class DictionaryUnitOfWork : IUnitOfWork
         if (Disposed)
             throw new InvalidOperationException("UnitOfWork was disposed");
 
-        tables.TryAdd(typeof(RecordType), new Dictionary<Guid, BaseEntity>());
+        foreach (Type type in typeof(RecordType).InheritancePathUpTo<BaseEntity>())
+            if (!Tables.TryAdd(type, new Dictionary<Guid, BaseEntity>()))
+                break;
 
         return new DictionaryRepository<RecordType>(this);
     }

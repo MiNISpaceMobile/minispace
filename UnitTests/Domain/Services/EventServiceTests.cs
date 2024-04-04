@@ -7,11 +7,13 @@ using Infrastructure.UnitOfWorks;
 namespace UnitTests.Domain.Services;
 
 [TestClass]
-public class EventServicetTests
+public class EventServiceTests
 {
+#pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork uow;
     private List<Event> events;
     private List<Student> students;
+#pragma warning restore CS8618 // Unassigned non-nullables
 
     [TestInitialize]
     public void PreTest()

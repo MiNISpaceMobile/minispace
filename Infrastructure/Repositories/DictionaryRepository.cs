@@ -8,14 +8,13 @@ namespace Infrastructure.Repositories;
 public class DictionaryRepository<RecordType> : IRepository<RecordType> where RecordType : notnull, BaseEntity
 {
     private DictionaryUnitOfWork uow;
-    private Dictionary<Guid, BaseEntity> Table
+    private DictionaryUnitOfWork UnitOfWork
     {
         get
         {
             if (uow.Disposed)
                 throw new InvalidOperationException("UnitOfWork was disposed");
-
-            return uow.tables[typeof(RecordType)];
+            return uow;
         }
     }
 
@@ -24,31 +23,33 @@ public class DictionaryRepository<RecordType> : IRepository<RecordType> where Re
         this.uow = uow;
     }
 
-    public void Add(RecordType record)
+    public void Add(RecordType record) => UnitOfWork.Add(record);
+    public void AddMany(IEnumerable<RecordType> records)
     {
-        Table.Add(record.Guid, record);
+        foreach (var record in records)
+            Add(record);
     }
 
     public RecordType? Get(Guid guid)
     {
-        Table.TryGetValue(guid, out BaseEntity? record);
+        UnitOfWork.Tables[typeof(RecordType)].TryGetValue(guid, out BaseEntity? record);
         return (RecordType?)record;
     }
-    public IQueryable<RecordType> GetAll() => Table.Values.Select(r => (RecordType)r).AsQueryable<RecordType>();
+    public IQueryable<RecordType> GetAll() => UnitOfWork.Tables[typeof(RecordType)].Values.Select(r => (RecordType)r).AsQueryable();
 
     public bool TryDelete(Guid guid)
     {
         var record = Get(guid);
         if (record is null)
             return false;
-        Table.Remove(record.Guid);
+        UnitOfWork.TryDelete<RecordType>(record.Guid);
         return true;
     }
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
         var selected = GetAll().Where(predicate);
         foreach (var record in selected)
-            Table.Remove(record.Guid);
+            UnitOfWork.TryDelete<RecordType>(record.Guid);
         return selected.Count();
     }
 }

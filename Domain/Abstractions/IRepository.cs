@@ -6,6 +6,7 @@ namespace Domain.Abstractions;
 public interface IRepository<RecordType> where RecordType : notnull, BaseEntity
 {
     void Add(RecordType record);
+    void AddMany(IEnumerable<RecordType> records);
 
     RecordType? Get(Guid guid);
     bool TryGet(Guid guid, [MaybeNullWhen(false)] out RecordType record) => (record = Get(guid)) is not null;

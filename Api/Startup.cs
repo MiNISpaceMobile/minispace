@@ -1,6 +1,5 @@
 ﻿using Domain.Abstractions;
 using Domain.DataModel;
-using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api;
@@ -41,7 +40,7 @@ public static class AppCustomStartup
     private static void SeedDatabaseIfEmpty(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();
-        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        using var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         if (uow.Repository<Comment>().GetAll().Count() > 0 ||
             uow.Repository<Event>().GetAll().Count() > 0 ||
@@ -50,20 +49,51 @@ public static class AppCustomStartup
             uow.Repository<User>().GetAll().Count() > 0)
             return;
 
-        Administrator[] administrators = new[]
-        {
-            new Administrator("Adminiak1", "ad1@pw.edu.pl", "ad1"),
-            new Administrator("Adminiak2", "ad2@pw.edu.pl", "ad2"),
-            new Administrator("Adminiak3", "ad3@pw.edu.pl", "ad3"),
-        };
+        var now = DateTime.Now;
+        var week_in = now.AddDays(7);
+        var weeks_in = now.AddDays(14);
+        var week_ago = now.AddDays(-7);
+        var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
 
-        Student[] students = new[]
-        {
-            new Student("Studenciak1", "st1@pw.edu.pl", "st1"),
-            new Student("Studenciak2", "st2@pw.edu.pl", "st2"),
-            new Student("Studenciak3", "st3@pw.edu.pl", "st3"),
-        };
+        var ad0 = new Administrator("Ad0", "ad0@pw.edu.pl", "ad0");
+        var ad1 = new Administrator("Ad1", "ad1@pw.edu.pl", "ad1");
+        var ad2 = new Administrator("Ad2", "ad2@pw.edu.pl", "ad2");
+        Administrator[] administrators = [ad0, ad1, ad2];
 
+        var st0 = new Student("St0", "st0@pw.edu.pl", "st0") { IsOrganizer = true };
+        var st1 = new Student("St1", "st1@pw.edu.pl", "st1") { DateOfBirth = years_ago };
+        var st2 = new Student("St2", "st2@pw.edu.pl", "st2") { EmailNotification = false };
+        st0.Friends.Add(st2); st2.Friends.Add(st0);
+        Student[] students = [st0, st1, st2];
 
+        var ev0 = new Event(st0, "Ev0", "Test0", EventCategory.Uncategorized, week_ago, now, week_in, "Loc1", null, null) { ViewCount = 2 };
+        var ev1 = new Event(st0, "Ev1", "Test1", EventCategory.Uncategorized, now, week_in, weeks_in, "Loc2", 10, null) { ViewCount = 3 };
+        var ev2 = new Event(st1, "Ev2", "Test2", EventCategory.Uncategorized, week_ago, now, weeks_in, "Loc3", null, 10) { ViewCount = 2 };
+        ev0.Participants.Add(st0); ev0.Participants.Add(st1);
+        ev0.Interested.Add(st0);
+        ev1.Participants.Add(st0);
+        ev1.Interested.Add(st0); ev1.Interested.Add(st2);
+        ev2.Participants.Add(st1);
+        ev2.Interested.Add(st1); ev2.Interested.Add(st2);
+        Event[] events = [ev0, ev1, ev2];
+
+        var po0 = new Post(st0, ev0, "Po0");
+        var po1 = new Post(st0, ev0, "Po1");
+        var po2 = new Post(st1, ev2, "Po2");
+        Post[] posts = [po0, po1, po2];
+
+        var co0 = new Comment(st1, po0, "Co0", null);
+        var co1 = new Comment(st0, po0, "Co1", co0);
+        var co2 = new Comment(st2, po2, "Co2", null);
+        Comment[] comments = [co0, co1, co2];
+
+        Report[] reports = [];
+
+        uow.Repository<Administrator>().AddMany(administrators);
+        uow.Repository<Comment>().AddMany(comments);
+        uow.Repository<Event>().AddMany(events);
+        uow.Repository<Post>().AddMany(posts);
+        uow.Repository<Report>().AddMany(reports);
+        uow.Repository<Student>().AddMany(students);
     }
 }

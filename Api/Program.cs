@@ -52,6 +52,6 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 // Our own function that setups a few things
-app.PerformCustomStartupActions();
+app.PerformCustomStartupActions(resetDb: true);
 
 app.Run();

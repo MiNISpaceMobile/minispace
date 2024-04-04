@@ -21,8 +21,7 @@ public class User : BaseEntity
     // You *don't* store user passwords. You just store their hashes
     // I suggest we add salt to these hashes as it is an easy technique
     // which additionally increases security in case of a breach
-    // We can use User Guid or CreationDate as salt
-    // I suggest we use the first one
+    // We can use CreationDate as salt, because it never changes
     public byte[] SaltedPasswordHash { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
@@ -40,7 +39,7 @@ public class User : BaseEntity
         SaltedPasswordHash = CalculatePasswordHash(password);
     }
 
-    public byte[] CalculatePasswordHash(string password) => CalculatePasswordHash(password, Guid.ToString()); // CreationDate.ToString("s"));
+    public byte[] CalculatePasswordHash(string password) => CalculatePasswordHash(password, CreationDate.ToString("s"));
 
     public bool UpdatePassword(string password)
     {

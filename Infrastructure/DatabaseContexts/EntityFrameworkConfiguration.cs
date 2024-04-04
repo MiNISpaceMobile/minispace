@@ -8,8 +8,6 @@ namespace Infrastructure.DatabaseContexts;
 
 public static class EntityFrameworkConfiguration
 {
-    // TODO: Change repository return types to IQueryable if possible
-
     /* Lazy-loading may introduce some performance issues
      * and we may want to think about it in the future.
      * 

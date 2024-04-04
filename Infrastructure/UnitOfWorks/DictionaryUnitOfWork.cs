@@ -8,9 +8,10 @@ namespace Infrastructure.UnitOfWorks;
 [Obsolete("Only use for tests!")]
 public class DictionaryUnitOfWork : IUnitOfWork
 {
-    private Dictionary<Type, Dictionary<Guid, BaseEntity>> tables;
+    public Dictionary<Type, Dictionary<Guid, BaseEntity>> tables;
 
     public int CommitCount { get; private set; }
+    public bool Disposed { get; private set; }
 
     public DictionaryUnitOfWork(IEnumerable<BaseEntity> records)
     {
@@ -18,21 +19,25 @@ public class DictionaryUnitOfWork : IUnitOfWork
         foreach (BaseEntity record in records)
         {
             if (!tables.TryGetValue(record.GetType(), out Dictionary<Guid, BaseEntity>? table))
-            {
-                table = new Dictionary<Guid, BaseEntity>();
-                tables.Add(record.GetType(), table);
-            }
+                tables.Add(record.GetType(), table = new Dictionary<Guid, BaseEntity>());
             table.Add(record.Guid, record);
         }
+
+        CommitCount = 0;
+        Disposed = false;
     }
 
     public IRepository<RecordType> Repository<RecordType>() where RecordType : notnull, BaseEntity
     {
-        if (!tables.TryGetValue(typeof(RecordType), out Dictionary<Guid, BaseEntity>? records))
-            records = new Dictionary<Guid, BaseEntity>(0);
+        if (Disposed)
+            throw new InvalidOperationException("UnitOfWork was disposed");
 
-        return new DictionaryRepository<RecordType>(records);
+        tables.TryAdd(typeof(RecordType), new Dictionary<Guid, BaseEntity>());
+
+        return new DictionaryRepository<RecordType>(this);
     }
 
     public void Commit() => CommitCount++;
+
+    public void Dispose() => Disposed = true;
 }

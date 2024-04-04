@@ -42,14 +42,14 @@ public class DictionaryRepository<RecordType> : IRepository<RecordType> where Re
         var record = Get(guid);
         if (record is null)
             return false;
-        UnitOfWork.TryDelete<RecordType>(record.Guid);
+        UnitOfWork.TryDelete(record);
         return true;
     }
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
         var selected = GetAll().Where(predicate);
         foreach (var record in selected)
-            UnitOfWork.TryDelete<RecordType>(record.Guid);
+            UnitOfWork.TryDelete(record);
         return selected.Count();
     }
 }

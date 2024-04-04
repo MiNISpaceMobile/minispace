@@ -45,13 +45,14 @@ public class DictionaryUnitOfWork : IUnitOfWork
 
         return true;
     }
-    public bool TryDelete<RecordType>(Guid guid)
+
+    public bool TryDelete(BaseEntity record)
     {
-        if (!Tables[typeof(RecordType)].ContainsKey(guid))
+        if (!Tables[record.GetType()].ContainsKey(record.Guid))
             return false;
 
-        foreach (Type type in typeof(RecordType).InheritancePathUpTo<BaseEntity>())
-            Tables[type].Remove(guid);
+        foreach (Type type in record.GetType().InheritancePathUpTo<BaseEntity>())
+            Tables[type].Remove(record.Guid);
 
         return true;
     }

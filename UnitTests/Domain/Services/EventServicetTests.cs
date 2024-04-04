@@ -7,7 +7,7 @@ using Infrastructure.UnitOfWorks;
 namespace UnitTests.Domain.Services;
 
 [TestClass]
-public class EventServicetTests
+public class EventServiceTests
 {
     private IUnitOfWork uow;
     private List<Event> events;

@@ -3,7 +3,6 @@ using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
-using Moq;
 
 namespace UnitTests.Domain.Services;
 

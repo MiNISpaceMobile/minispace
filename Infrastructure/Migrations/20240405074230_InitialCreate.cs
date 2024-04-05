@@ -346,6 +346,16 @@ namespace Infrastructure.Migrations
                 name: "IX_StudentStudent_StudentId",
                 table: "StudentStudent",
                 column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_User_Email",
+                table: "User",
+                column: "Email");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_User_Username",
+                table: "User",
+                column: "Username");
         }
 
         /// <inheritdoc />

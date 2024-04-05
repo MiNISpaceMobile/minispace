@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    [Migration("20240403093141_InitialCreate")]
+    [Migration("20240405074230_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -266,6 +266,10 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasAlternateKey("Guid");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("Username");
 
                     b.ToTable("User");
 

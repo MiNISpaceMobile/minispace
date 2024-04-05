@@ -264,6 +264,10 @@ namespace Infrastructure.Migrations
 
                     b.HasAlternateKey("Guid");
 
+                    b.HasIndex("Email");
+
+                    b.HasIndex("Username");
+
                     b.ToTable("User");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("User");

@@ -24,7 +24,7 @@ builder.Services.AddControllers();
  * It means that only one object of your class will exist for entire program duration.
  */
 
-builder.Services.AddDbContext<DbContext, SqliteDbContext>(EntityFrameworkConfiguration.Configure);
+builder.Services.AddDbContext<DbContext, SqliteDbContext>(options => options.Configure());
 
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 
@@ -43,11 +43,8 @@ builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapControllers();
 

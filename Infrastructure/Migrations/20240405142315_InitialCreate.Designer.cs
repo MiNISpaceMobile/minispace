@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    [Migration("20240405074230_InitialCreate")]
+    [Migration("20240405142315_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -22,27 +22,27 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("CommentStudent", b =>
                 {
-                    b.Property<ulong>("CommentId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("CommentGuid")
+                        .HasColumnType("TEXT");
 
-                    b.Property<ulong>("LikersId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("LikersGuid")
+                        .HasColumnType("TEXT");
 
-                    b.HasKey("CommentId", "LikersId");
+                    b.HasKey("CommentGuid", "LikersGuid");
 
-                    b.HasIndex("LikersId");
+                    b.HasIndex("LikersGuid");
 
                     b.ToTable("CommentStudent");
                 });
 
             modelBuilder.Entity("Domain.DataModel.Comment", b =>
                 {
-                    b.Property<ulong>("Id")
+                    b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<ulong?>("AuthorId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -51,23 +51,17 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("Guid")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid?>("InResponeseToId")
                         .HasColumnType("TEXT");
 
-                    b.Property<ulong?>("InResponseToId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("TEXT");
 
-                    b.Property<ulong>("PostId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("Guid");
+                    b.HasKey("Guid");
 
                     b.HasIndex("AuthorId");
 
-                    b.HasIndex("InResponseToId");
+                    b.HasIndex("InResponeseToId");
 
                     b.HasIndex("PostId");
 
@@ -76,15 +70,18 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Event", b =>
                 {
-                    b.Property<ulong>("Id")
+                    b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("Capacity")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Category")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -100,16 +97,12 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("Guid")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<ulong?>("OrganizerId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid?>("OrganizerId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("PublicationDate")
                         .HasColumnType("TEXT");
@@ -124,9 +117,7 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ViewCount")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("Guid");
+                    b.HasKey("Guid");
 
                     b.HasIndex("OrganizerId");
 
@@ -135,12 +126,12 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Post", b =>
                 {
-                    b.Property<ulong>("Id")
+                    b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<ulong?>("AuthorId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -149,16 +140,10 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<ulong>("EventId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("Guid")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("EventId")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("Guid");
+                    b.HasKey("Guid");
 
                     b.HasIndex("AuthorId");
 
@@ -169,12 +154,12 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Report", b =>
                 {
-                    b.Property<ulong>("Id")
+                    b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<ulong?>("AuthorId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -194,12 +179,8 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Feedback")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("Guid")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid?>("ResponderId")
                         .HasColumnType("TEXT");
-
-                    b.Property<ulong?>("ResponderId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("State")
                         .IsRequired()
@@ -207,16 +188,11 @@ namespace Infrastructure.Migrations
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
-                    b.Property<ulong>("TargetId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("Guid");
+                    b.HasKey("Guid");
 
                     b.HasIndex("AuthorId");
 
@@ -231,9 +207,12 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.User", b =>
                 {
-                    b.Property<ulong>("Id")
+                    b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
@@ -243,10 +222,6 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("Guid")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProfilePicture")
@@ -263,9 +238,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("Guid");
+                    b.HasKey("Guid");
 
                     b.HasIndex("Email");
 
@@ -280,45 +253,45 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("EventStudent", b =>
                 {
-                    b.Property<ulong>("InterestedId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("InterestedGuid")
+                        .HasColumnType("TEXT");
 
-                    b.Property<ulong>("SubscribedEventsId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("SubscribedEventsGuid")
+                        .HasColumnType("TEXT");
 
-                    b.HasKey("InterestedId", "SubscribedEventsId");
+                    b.HasKey("InterestedGuid", "SubscribedEventsGuid");
 
-                    b.HasIndex("SubscribedEventsId");
+                    b.HasIndex("SubscribedEventsGuid");
 
                     b.ToTable("EventStudent");
                 });
 
             modelBuilder.Entity("EventStudent1", b =>
                 {
-                    b.Property<ulong>("EventId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("EventGuid")
+                        .HasColumnType("TEXT");
 
-                    b.Property<ulong>("ParticipantsId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("ParticipantsGuid")
+                        .HasColumnType("TEXT");
 
-                    b.HasKey("EventId", "ParticipantsId");
+                    b.HasKey("EventGuid", "ParticipantsGuid");
 
-                    b.HasIndex("ParticipantsId");
+                    b.HasIndex("ParticipantsGuid");
 
                     b.ToTable("EventStudent1");
                 });
 
             modelBuilder.Entity("StudentStudent", b =>
                 {
-                    b.Property<ulong>("FriendsId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("FriendsGuid")
+                        .HasColumnType("TEXT");
 
-                    b.Property<ulong>("StudentId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("StudentGuid")
+                        .HasColumnType("TEXT");
 
-                    b.HasKey("FriendsId", "StudentId");
+                    b.HasKey("FriendsGuid", "StudentGuid");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("StudentGuid");
 
                     b.ToTable("StudentStudent");
                 });
@@ -327,7 +300,10 @@ namespace Infrastructure.Migrations
                 {
                     b.HasBaseType("Domain.DataModel.Report");
 
-                    b.HasIndex("TargetId");
+                    b.Property<Guid>("ReportedCommentId")
+                        .HasColumnType("TEXT");
+
+                    b.HasIndex("ReportedCommentId");
 
                     b.HasDiscriminator().HasValue("CommentReport");
                 });
@@ -336,7 +312,10 @@ namespace Infrastructure.Migrations
                 {
                     b.HasBaseType("Domain.DataModel.Report");
 
-                    b.HasIndex("TargetId");
+                    b.Property<Guid>("ReportedEventId")
+                        .HasColumnType("TEXT");
+
+                    b.HasIndex("ReportedEventId");
 
                     b.HasDiscriminator().HasValue("EventReport");
                 });
@@ -345,7 +324,10 @@ namespace Infrastructure.Migrations
                 {
                     b.HasBaseType("Domain.DataModel.Report");
 
-                    b.HasIndex("TargetId");
+                    b.Property<Guid>("ReportedPostId")
+                        .HasColumnType("TEXT");
+
+                    b.HasIndex("ReportedPostId");
 
                     b.HasDiscriminator().HasValue("PostReport");
                 });
@@ -381,13 +363,13 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.DataModel.Comment", null)
                         .WithMany()
-                        .HasForeignKey("CommentId")
+                        .HasForeignKey("CommentGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
-                        .HasForeignKey("LikersId")
+                        .HasForeignKey("LikersGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -401,7 +383,7 @@ namespace Infrastructure.Migrations
 
                     b.HasOne("Domain.DataModel.Comment", "InResponseTo")
                         .WithMany("Responses")
-                        .HasForeignKey("InResponseToId")
+                        .HasForeignKey("InResponeseToId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Domain.DataModel.Post", "Post")
@@ -466,13 +448,13 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
-                        .HasForeignKey("InterestedId")
+                        .HasForeignKey("InterestedGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.DataModel.Event", null)
                         .WithMany()
-                        .HasForeignKey("SubscribedEventsId")
+                        .HasForeignKey("SubscribedEventsGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -481,13 +463,13 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.DataModel.Event", null)
                         .WithMany()
-                        .HasForeignKey("EventId")
+                        .HasForeignKey("EventGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
-                        .HasForeignKey("ParticipantsId")
+                        .HasForeignKey("ParticipantsGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -496,13 +478,13 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
-                        .HasForeignKey("FriendsId")
+                        .HasForeignKey("FriendsGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("StudentGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -511,7 +493,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.DataModel.Comment", "ReportedComment")
                         .WithMany()
-                        .HasForeignKey("TargetId")
+                        .HasForeignKey("ReportedCommentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -522,7 +504,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.DataModel.Event", "ReportedEvent")
                         .WithMany()
-                        .HasForeignKey("TargetId")
+                        .HasForeignKey("ReportedEventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -533,7 +515,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.DataModel.Post", "ReportedPost")
                         .WithMany()
-                        .HasForeignKey("TargetId")
+                        .HasForeignKey("ReportedPostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

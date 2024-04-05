@@ -4,7 +4,9 @@ namespace Domain.DataModel;
 
 public class Comment : BaseEntity
 {
+    public Guid? AuthorId { get; private set; }
     public virtual Student? Author { get; set; }
+    public Guid PostId { get; private set; }
     public virtual Post Post { get; set; }
 
     public string Content { get; set; }
@@ -13,6 +15,7 @@ public class Comment : BaseEntity
 
     public virtual ICollection<Student> Likers { get; set; }
 
+    public Guid? InResponeseToId { get; private set; }
     public virtual Comment? InResponseTo { get; set; }
     public virtual ICollection<Comment> Responses { get; set; }
 

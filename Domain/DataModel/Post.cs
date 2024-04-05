@@ -4,7 +4,9 @@ namespace Domain.DataModel;
 
 public class Post : BaseEntity
 {
+    public Guid? AuthorId { get; private set; }
     public virtual Student? Author { get; set; }
+    public Guid EventId { get; private set; }
     public virtual Event Event { get; set; }
 
     public string Content { get; set; }

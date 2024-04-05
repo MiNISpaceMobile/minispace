@@ -15,8 +15,8 @@ namespace Infrastructure.Migrations
                 name: "User",
                 columns: table => new
                 {
-                    Id = table.Column<ulong>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                    Guid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Username = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
                     Email = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
                     ProfilePicture = table.Column<string>(type: "TEXT", nullable: true),
@@ -25,25 +25,22 @@ namespace Infrastructure.Migrations
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "TEXT", nullable: true),
                     EmailNotification = table.Column<bool>(type: "INTEGER", nullable: true),
-                    IsOrganizer = table.Column<bool>(type: "INTEGER", nullable: true),
-                    Guid = table.Column<Guid>(type: "TEXT", nullable: false)
+                    IsOrganizer = table.Column<bool>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_User", x => x.Id);
-                    table.UniqueConstraint("AK_User_Guid", x => x.Guid);
+                    table.PrimaryKey("PK_User", x => x.Guid);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Event",
                 columns: table => new
                 {
-                    Id = table.Column<ulong>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    OrganizerId = table.Column<ulong>(type: "INTEGER", nullable: true),
+                    Guid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    OrganizerId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
-                    Category = table.Column<int>(type: "INTEGER", nullable: false),
+                    Category = table.Column<string>(type: "TEXT", unicode: false, maxLength: 32, nullable: false),
                     PublicationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     StartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -51,18 +48,16 @@ namespace Infrastructure.Migrations
                     Capacity = table.Column<int>(type: "INTEGER", nullable: true),
                     Fee = table.Column<decimal>(type: "TEXT", nullable: true),
                     Feedback = table.Column<string>(type: "TEXT", nullable: false),
-                    ViewCount = table.Column<int>(type: "INTEGER", nullable: false),
-                    Guid = table.Column<Guid>(type: "TEXT", nullable: false)
+                    ViewCount = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Event", x => x.Id);
-                    table.UniqueConstraint("AK_Event_Guid", x => x.Guid);
+                    table.PrimaryKey("PK_Event", x => x.Guid);
                     table.ForeignKey(
                         name: "FK_Event_User_OrganizerId",
                         column: x => x.OrganizerId,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.SetNull);
                 });
 
@@ -70,23 +65,23 @@ namespace Infrastructure.Migrations
                 name: "StudentStudent",
                 columns: table => new
                 {
-                    FriendsId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    StudentId = table.Column<ulong>(type: "INTEGER", nullable: false)
+                    FriendsGuid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    StudentGuid = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StudentStudent", x => new { x.FriendsId, x.StudentId });
+                    table.PrimaryKey("PK_StudentStudent", x => new { x.FriendsGuid, x.StudentGuid });
                     table.ForeignKey(
-                        name: "FK_StudentStudent_User_FriendsId",
-                        column: x => x.FriendsId,
+                        name: "FK_StudentStudent_User_FriendsGuid",
+                        column: x => x.FriendsGuid,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_StudentStudent_User_StudentId",
-                        column: x => x.StudentId,
+                        name: "FK_StudentStudent_User_StudentGuid",
+                        column: x => x.StudentGuid,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -94,23 +89,23 @@ namespace Infrastructure.Migrations
                 name: "EventStudent",
                 columns: table => new
                 {
-                    InterestedId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    SubscribedEventsId = table.Column<ulong>(type: "INTEGER", nullable: false)
+                    InterestedGuid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    SubscribedEventsGuid = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EventStudent", x => new { x.InterestedId, x.SubscribedEventsId });
+                    table.PrimaryKey("PK_EventStudent", x => new { x.InterestedGuid, x.SubscribedEventsGuid });
                     table.ForeignKey(
-                        name: "FK_EventStudent_Event_SubscribedEventsId",
-                        column: x => x.SubscribedEventsId,
+                        name: "FK_EventStudent_Event_SubscribedEventsGuid",
+                        column: x => x.SubscribedEventsGuid,
                         principalTable: "Event",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_EventStudent_User_InterestedId",
-                        column: x => x.InterestedId,
+                        name: "FK_EventStudent_User_InterestedGuid",
+                        column: x => x.InterestedGuid,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -118,23 +113,23 @@ namespace Infrastructure.Migrations
                 name: "EventStudent1",
                 columns: table => new
                 {
-                    EventId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    ParticipantsId = table.Column<ulong>(type: "INTEGER", nullable: false)
+                    EventGuid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ParticipantsGuid = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EventStudent1", x => new { x.EventId, x.ParticipantsId });
+                    table.PrimaryKey("PK_EventStudent1", x => new { x.EventGuid, x.ParticipantsGuid });
                     table.ForeignKey(
-                        name: "FK_EventStudent1_Event_EventId",
-                        column: x => x.EventId,
+                        name: "FK_EventStudent1_Event_EventGuid",
+                        column: x => x.EventGuid,
                         principalTable: "Event",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_EventStudent1_User_ParticipantsId",
-                        column: x => x.ParticipantsId,
+                        name: "FK_EventStudent1_User_ParticipantsGuid",
+                        column: x => x.ParticipantsGuid,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -142,29 +137,26 @@ namespace Infrastructure.Migrations
                 name: "Post",
                 columns: table => new
                 {
-                    Id = table.Column<ulong>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: true),
-                    EventId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Guid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    AuthorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    EventId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Guid = table.Column<Guid>(type: "TEXT", nullable: false)
+                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Post", x => x.Id);
-                    table.UniqueConstraint("AK_Post_Guid", x => x.Guid);
+                    table.PrimaryKey("PK_Post", x => x.Guid);
                     table.ForeignKey(
                         name: "FK_Post_Event_EventId",
                         column: x => x.EventId,
                         principalTable: "Event",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Post_User_AuthorId",
                         column: x => x.AuthorId,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.SetNull);
                 });
 
@@ -172,36 +164,33 @@ namespace Infrastructure.Migrations
                 name: "Comment",
                 columns: table => new
                 {
-                    Id = table.Column<ulong>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: true),
-                    PostId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Guid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    AuthorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    PostId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    InResponseToId = table.Column<ulong>(type: "INTEGER", nullable: true),
-                    Guid = table.Column<Guid>(type: "TEXT", nullable: false)
+                    InResponeseToId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Comment", x => x.Id);
-                    table.UniqueConstraint("AK_Comment_Guid", x => x.Guid);
+                    table.PrimaryKey("PK_Comment", x => x.Guid);
                     table.ForeignKey(
-                        name: "FK_Comment_Comment_InResponseToId",
-                        column: x => x.InResponseToId,
+                        name: "FK_Comment_Comment_InResponeseToId",
+                        column: x => x.InResponeseToId,
                         principalTable: "Comment",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Comment_Post_PostId",
                         column: x => x.PostId,
                         principalTable: "Post",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Comment_User_AuthorId",
                         column: x => x.AuthorId,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.SetNull);
                 });
 
@@ -209,23 +198,23 @@ namespace Infrastructure.Migrations
                 name: "CommentStudent",
                 columns: table => new
                 {
-                    CommentId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    LikersId = table.Column<ulong>(type: "INTEGER", nullable: false)
+                    CommentGuid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LikersGuid = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CommentStudent", x => new { x.CommentId, x.LikersId });
+                    table.PrimaryKey("PK_CommentStudent", x => new { x.CommentGuid, x.LikersGuid });
                     table.ForeignKey(
-                        name: "FK_CommentStudent_Comment_CommentId",
-                        column: x => x.CommentId,
+                        name: "FK_CommentStudent_Comment_CommentGuid",
+                        column: x => x.CommentGuid,
                         principalTable: "Comment",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CommentStudent_User_LikersId",
-                        column: x => x.LikersId,
+                        name: "FK_CommentStudent_User_LikersGuid",
+                        column: x => x.LikersGuid,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -233,52 +222,51 @@ namespace Infrastructure.Migrations
                 name: "Report",
                 columns: table => new
                 {
-                    Id = table.Column<ulong>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: true),
-                    ResponderId = table.Column<ulong>(type: "INTEGER", nullable: true),
-                    TargetId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Guid = table.Column<Guid>(type: "TEXT", nullable: false),
+                    AuthorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ResponderId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Details = table.Column<string>(type: "TEXT", nullable: false),
                     Category = table.Column<string>(type: "TEXT", unicode: false, maxLength: 32, nullable: false),
                     Feedback = table.Column<string>(type: "TEXT", nullable: true),
                     State = table.Column<string>(type: "TEXT", unicode: false, maxLength: 32, nullable: false),
                     Discriminator = table.Column<string>(type: "TEXT", maxLength: 13, nullable: false),
-                    Guid = table.Column<Guid>(type: "TEXT", nullable: false)
+                    ReportedCommentId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ReportedEventId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ReportedPostId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Report", x => x.Id);
-                    table.UniqueConstraint("AK_Report_Guid", x => x.Guid);
+                    table.PrimaryKey("PK_Report", x => x.Guid);
                     table.ForeignKey(
-                        name: "FK_Report_Comment_TargetId",
-                        column: x => x.TargetId,
+                        name: "FK_Report_Comment_ReportedCommentId",
+                        column: x => x.ReportedCommentId,
                         principalTable: "Comment",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Report_Event_TargetId",
-                        column: x => x.TargetId,
+                        name: "FK_Report_Event_ReportedEventId",
+                        column: x => x.ReportedEventId,
                         principalTable: "Event",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Report_Post_TargetId",
-                        column: x => x.TargetId,
+                        name: "FK_Report_Post_ReportedPostId",
+                        column: x => x.ReportedPostId,
                         principalTable: "Post",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Report_User_AuthorId",
                         column: x => x.AuthorId,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Report_User_ResponderId",
                         column: x => x.ResponderId,
                         principalTable: "User",
-                        principalColumn: "Id",
+                        principalColumn: "Guid",
                         onDelete: ReferentialAction.SetNull);
                 });
 
@@ -288,9 +276,9 @@ namespace Infrastructure.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Comment_InResponseToId",
+                name: "IX_Comment_InResponeseToId",
                 table: "Comment",
-                column: "InResponseToId");
+                column: "InResponeseToId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Comment_PostId",
@@ -298,9 +286,9 @@ namespace Infrastructure.Migrations
                 column: "PostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CommentStudent_LikersId",
+                name: "IX_CommentStudent_LikersGuid",
                 table: "CommentStudent",
-                column: "LikersId");
+                column: "LikersGuid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Event_OrganizerId",
@@ -308,14 +296,14 @@ namespace Infrastructure.Migrations
                 column: "OrganizerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EventStudent_SubscribedEventsId",
+                name: "IX_EventStudent_SubscribedEventsGuid",
                 table: "EventStudent",
-                column: "SubscribedEventsId");
+                column: "SubscribedEventsGuid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EventStudent1_ParticipantsId",
+                name: "IX_EventStudent1_ParticipantsGuid",
                 table: "EventStudent1",
-                column: "ParticipantsId");
+                column: "ParticipantsGuid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Post_AuthorId",
@@ -333,19 +321,29 @@ namespace Infrastructure.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Report_ReportedCommentId",
+                table: "Report",
+                column: "ReportedCommentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Report_ReportedEventId",
+                table: "Report",
+                column: "ReportedEventId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Report_ReportedPostId",
+                table: "Report",
+                column: "ReportedPostId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Report_ResponderId",
                 table: "Report",
                 column: "ResponderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Report_TargetId",
-                table: "Report",
-                column: "TargetId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StudentStudent_StudentId",
+                name: "IX_StudentStudent_StudentGuid",
                 table: "StudentStudent",
-                column: "StudentId");
+                column: "StudentGuid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_Email",

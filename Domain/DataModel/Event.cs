@@ -11,6 +11,7 @@ public enum EventCategory
 
 public class Event : BaseEntity
 {
+    public Guid? OrganizerId { get; private set; }
     public virtual Student? Organizer { get; set; }
 
     public string Title { get; set; }

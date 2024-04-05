@@ -25,6 +25,5 @@ public class SqliteDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseSqlite($"Data Source={DbFilePath}");
 
-    protected override void OnModelCreating(ModelBuilder model)
-        => EntityFrameworkConfiguration.Configure(model);
+    protected override void OnModelCreating(ModelBuilder model) => model.Configure();
 }

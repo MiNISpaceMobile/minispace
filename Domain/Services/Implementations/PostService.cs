@@ -29,4 +29,13 @@ public class PostService : IPostService
         uow.Commit();
         return post;
     }
+
+    public Post GetPost(Guid guid)
+    {
+        Post post = uow.Repository<Post>().Get(guid);
+        if (post is null)
+            throw new ArgumentException("Nonexistent post");
+
+        return post;
+    }
 }

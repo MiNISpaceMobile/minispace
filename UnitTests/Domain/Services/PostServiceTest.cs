@@ -62,7 +62,41 @@ public class PostServicetTests
         Post post = sut.CreatePost(author, @event, content);
 
         // Assert
-        Assert.IsTrue(@event.Posts.Contains(post) && AreEqual(post, author, @event, content));
+        Assert.IsTrue(@event.Posts.Contains(post));
+        Assert.IsTrue(uow.Repository<Post>().Get(post.Guid) is not null);
+        Assert.IsTrue(AreEqual(post, author, @event, content));
+    }
+
+    [TestMethod]
+    public void GetPost_NonexistentPost_ShouldThrowArgumentException()
+    {
+        // Arrange
+        PostService sut = new PostService(uow);
+
+        // Act
+        var action = () => sut.GetPost(new Guid());
+
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual(ex.Message, "Nonexistent post");
+    }
+
+    [TestMethod]
+    public void GetPost_CorrectInput_ShouldReturnCorrectPost()
+    {
+        // Arrange
+        PostService sut = new PostService(uow);
+        Event @event = events.Last();
+        Student author = students.Last();
+        string content = "a";
+        Post post = new Post(author, @event, content);
+        uow.Repository<Post>().Add(post);
+
+        // Act
+        Post result = sut.GetPost(post.Guid);
+
+        // Assert
+        Assert.AreEqual(post, result);
     }
 
 

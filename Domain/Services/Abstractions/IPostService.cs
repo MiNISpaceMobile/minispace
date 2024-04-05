@@ -10,4 +10,5 @@ namespace Domain.Services;
 public interface IPostService
 {
     public Post CreatePost(Student author, Event @event, string content);
+    public Post GetPost(Guid guid);
 }

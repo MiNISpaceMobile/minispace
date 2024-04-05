@@ -64,6 +64,8 @@ public class DictionaryUnitOfWork : IUnitOfWork
         foreach (Type type in typeof(RecordType).InheritancePathUpTo<BaseEntity>())
             if (!Tables.TryAdd(type, new Dictionary<Guid, BaseEntity>()))
                 break;
+            tables.Add(typeof(RecordType), records);
+        }
 
         return new DictionaryRepository<RecordType>(this);
     }

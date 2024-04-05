@@ -8,6 +8,17 @@ namespace Infrastructure.DatabaseContexts;
 
 public static class EntityFrameworkConfiguration
 {
+    /* TODO: Add custom wrapper around IQueryable
+     * that exposes Include and ThenInclude methods
+     * and return it from IRepository's Get and GetAll methods
+     */
+
+    /* TODO: Add target Guids of navigations as members of entities
+     * so that they are accessible without loading the related entity
+     */
+
+    // TODO: Add warnings when navigations are lazy-loaded
+
     /* Lazy-loading may introduce some performance issues
      * and we may want to think about it in the future.
      * 
@@ -204,9 +215,11 @@ public static class EntityFrameworkConfiguration
          */
         type.UseTphMappingStrategy();
 
+        type.HasIndex(x => x.Username);
         type.Property(x => x.Username)
             .HasMaxLength(64);
 
+        type.HasIndex(x => x.Email);
         type.Property(x => x.Email)
             .HasMaxLength(64);
 

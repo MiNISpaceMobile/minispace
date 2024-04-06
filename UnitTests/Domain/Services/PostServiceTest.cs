@@ -4,6 +4,7 @@ using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
 using System.Net;
+using Moq;
 
 namespace UnitTests.Domain.Services;
 
@@ -42,7 +43,7 @@ public class PostServicetTests
         string content = string.Empty;
 
         // Act
-        var action = () => sut.CreatePost(author, @event, content);
+        var action = () => sut.CreatePost(author.Guid, @event.Guid, content);
 
         // Assert
         var ex = Assert.ThrowsException<ArgumentException>(action);
@@ -59,7 +60,7 @@ public class PostServicetTests
         string content = "a";
 
         // Act
-        Post post = sut.CreatePost(author, @event, content);
+        Post post = sut.CreatePost(author.Guid, @event.Guid, content);
 
         // Assert
         Assert.IsTrue(@event.Posts.Contains(post));
@@ -97,6 +98,40 @@ public class PostServicetTests
 
         // Assert
         Assert.AreEqual(post, result);
+    }
+
+    [TestMethod]
+    public void DeletePost_NonexistentPost_ShouldThrowArgumentException()
+    {
+        // Arrange
+        PostService sut = new PostService(uow);
+
+        // Act
+        var action = () => sut.DeletePost(new Guid());
+
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual(ex.Message, "Nonexistent post");
+    }
+
+    [TestMethod]
+    public void DeletePost_CorrectInput_ShouldDeleteCorrectPost()
+    {
+        // Arrange
+        PostService sut = new PostService(uow);
+        Event @event = events.Last();
+        Student author = students.Last();
+        string content = "a";
+        Post post = new Post(author, @event, content);
+        uow.Repository<Post>().Add(post);
+        @event.Posts.Add(post);
+
+        // Act
+        sut.DeletePost(post.Guid);
+
+        // Assert
+        Assert.IsFalse(@event.Posts.Contains(post));
+        Assert.IsNull(uow.Repository<Post>().Get(post.Guid));
     }
 
 

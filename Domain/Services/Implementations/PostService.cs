@@ -17,8 +17,10 @@ public class PostService : IPostService
         this.uow = uow;
     }
 
-    public Post CreatePost(Student author, Event @event, string content)
+    public Post CreatePost(Guid authorGuid, Guid eventGuid, string content)
     {
+        Student author = uow.Repository<Student>().Get(authorGuid);
+        Event @event = uow.Repository<Event>().Get(eventGuid);
         if (author is null || @event is null || content == string.Empty)
             throw new ArgumentException("Arguments must not be empty");
 
@@ -28,6 +30,18 @@ public class PostService : IPostService
 
         uow.Commit();
         return post;
+    }
+
+    public void DeletePost(Guid guid)
+    {
+        Post post = uow.Repository<Post>().Get(guid);
+        if (post is null)
+            throw new ArgumentException("Nonexistent post");
+
+        uow.Repository<Post>().TryDelete(guid);
+        post.Event.Posts.Remove(post);
+
+        uow.Commit();
     }
 
     public Post GetPost(Guid guid)

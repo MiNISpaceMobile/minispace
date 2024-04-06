@@ -9,6 +9,7 @@ namespace Domain.Services;
 
 public interface IPostService
 {
-    public Post CreatePost(Student author, Event @event, string content);
+    public Post CreatePost(Guid authorGuid, Guid eventGuid, string content);
     public Post GetPost(Guid guid);
+    public void DeletePost(Guid guid);
 }

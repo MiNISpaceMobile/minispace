@@ -34,4 +34,25 @@ public class CommentService : ICommentService
         uow.Commit();
         return comment;
     }
+
+    public void DeleteComment(Guid guid)
+    {
+        Comment comment = uow.Repository<Comment>().Get(guid);
+        if (comment is null)
+            throw new ArgumentException("Nonexistent comment");
+
+        uow.Repository<Comment>().TryDelete(guid);
+        comment.Post.Comments.Remove(comment);
+
+        uow.Commit();
+    }
+
+    public Comment GetComment(Guid guid)
+    {
+        Comment comment = uow.Repository<Comment>().Get(guid);
+        if (comment is null)
+            throw new ArgumentException("Nonexistent comment");
+
+        return comment;
+    }
 }

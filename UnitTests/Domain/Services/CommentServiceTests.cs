@@ -68,71 +68,71 @@ public class CommentServiceTests
         Assert.IsTrue(AreEqual(comment, author, post, content));
     }
 
-    //[TestMethod]
-    //public void GetPost_NonexistentPost_ShouldThrowArgumentException()
-    //{
-    //    // Arrange
-    //    PostService sut = new PostService(uow);
+    [TestMethod]
+    public void GetComment_NonexistentComment_ShouldThrowArgumentException()
+    {
+        // Arrange
+        CommentService sut = new CommentService(uow);
 
-    //    // Act
-    //    var action = () => sut.GetPost(new Guid());
+        // Act
+        var action = () => sut.GetComment(new Guid());
 
-    //    // Assert
-    //    var ex = Assert.ThrowsException<ArgumentException>(action);
-    //    Assert.AreEqual(ex.Message, "Nonexistent post");
-    //}
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual(ex.Message, "Nonexistent comment");
+    }
 
-    //[TestMethod]
-    //public void GetPost_CorrectInput_ShouldReturnCorrectPost()
-    //{
-    //    // Arrange
-    //    PostService sut = new PostService(uow);
-    //    Event @event = events.Last();
-    //    Student author = students.Last();
-    //    string content = "a";
-    //    Post post = new Post(author, @event, content);
-    //    uow.Repository<Post>().Add(post);
+    [TestMethod]
+    public void GetComment_CorrectInput_ShouldReturnCorrectComment()
+    {
+        // Arrange
+        CommentService sut = new CommentService(uow);
+        Post post = posts.Last();
+        Student author = students.Last();
+        string content = "a";
+        Comment comment = new Comment(author, post, content, null);
+        uow.Repository<Comment>().Add(comment);
 
-    //    // Act
-    //    Post result = sut.GetPost(post.Guid);
+        // Act
+        Comment result = sut.GetComment(comment.Guid);
 
-    //    // Assert
-    //    Assert.AreEqual(post, result);
-    //}
+        // Assert
+        Assert.AreEqual(comment, result);
+    }
 
-    //[TestMethod]
-    //public void DeletePost_NonexistentPost_ShouldThrowArgumentException()
-    //{
-    //    // Arrange
-    //    PostService sut = new PostService(uow);
+    [TestMethod]
+    public void DeleteComment_NonexistentComment_ShouldThrowArgumentException()
+    {
+        // Arrange
+        CommentService sut = new CommentService(uow);
 
-    //    // Act
-    //    var action = () => sut.DeletePost(new Guid());
+        // Act
+        var action = () => sut.DeleteComment(new Guid());
 
-    //    // Assert
-    //    var ex = Assert.ThrowsException<ArgumentException>(action);
-    //    Assert.AreEqual(ex.Message, "Nonexistent post");
-    //}
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual(ex.Message, "Nonexistent comment");
+    }
 
-    //[TestMethod]
-    //public void DeletePost_CorrectInput_ShouldDeleteCorrectPost()
-    //{
-    //    // Arrange
-    //    PostService sut = new PostService(uow);
-    //    Event @event = events.Last();
-    //    Student author = students.Last();
-    //    string content = "a";
-    //    Post post = new Post(author, @event, content);
-    //    uow.Repository<Post>().Add(post);
-    //    @event.Posts.Add(post);
+    [TestMethod]
+    public void DeleteComment_CorrectInput_ShouldDeleteCorrectComment()
+    {
+        // Arrange
+        CommentService sut = new CommentService(uow);
+        Post post = posts.Last();
+        Student author = students.Last();
+        string content = "a";
+        Comment comment = new Comment(author, post, content, null);
+        uow.Repository<Comment>().Add(comment);
+        post.Comments.Add(comment);
 
-    //    // Act
-    //    sut.DeletePost(post.Guid);
+        // Act
+        sut.DeleteComment(comment.Guid);
 
-    //    // Assert
-    //    Assert.IsFalse(@event.Posts.Contains(post));
-    //    Assert.IsNull(uow.Repository<Post>().Get(post.Guid));
-    //}
+        // Assert
+        Assert.IsFalse(post.Comments.Contains(comment));
+        Assert.IsNull(uow.Repository<Comment>().Get(comment.Guid));
+    }
 
 
     bool AreEqual(Comment c, Student author, Post post, string content)

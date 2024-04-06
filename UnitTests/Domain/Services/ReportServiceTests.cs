@@ -11,6 +11,10 @@ public class ReportServiceTests
 #pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork unitOfWork;
 #pragma warning restore CS8618 // Unassigned non-nullables
+    static readonly Guid g1 = Guid.Parse(new('1', 32));
+    static readonly Guid g2 = Guid.Parse(new('2', 32));
+    static readonly Guid g3 = Guid.Parse(new('3', 32));
+    static readonly Guid g4 = Guid.Parse(new('4', 32));
 
     [TestInitialize]
     public void Setup()
@@ -24,11 +28,14 @@ public class ReportServiceTests
         var c0 = new Comment(st0, p0, "first comment", null);
         var c1 = new Comment(st1, p0, "second comment", null);
 
-
-        var re0 = new EventReport(ev0, st0, "event report", "report details", ReportCategory.Unknown);
-        var re1 = new PostReport(p0, st0, "post report", "report details", ReportCategory.Behaviour);
-        var re2 = new CommentReport(c0, st1, "comment report", "report details", ReportCategory.Behaviour);
-        var re3 = new CommentReport(c1, st0, "comment report", "report details", ReportCategory.Unknown);
+        var re0 = new EventReport(ev0, st0, "event report", "report details", ReportCategory.Unknown)
+        { Guid = g1 };
+        var re1 = new PostReport(p0, st0, "post report", "report details", ReportCategory.Behaviour)
+        { Guid = g2 };
+        var re2 = new CommentReport(c0, st1, "comment report", "report details", ReportCategory.Behaviour)
+        { Guid = g3 };
+        var re3 = new CommentReport(c1, st0, "comment report", "report details", ReportCategory.Unknown)
+        { Guid = g4 };
 
         unitOfWork = new DictionaryUnitOfWork([st0, st1, ev0, p0, c0, c1, re0, re1, re2, re3]);
     }
@@ -48,7 +55,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void GetAll_GivenSpecificType_ReturnsAllReportsOnlyOfGivenType()
+    public void GetAll_GivenSpecificReportType_ReturnsReportsOnlyOfGivenType()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -60,5 +67,61 @@ public class ReportServiceTests
         Assert.IsNotNull(result);
         Assert.AreEqual(2, result.Count());
         Assert.IsTrue(result.All(x => x is CommentReport));
+    }
+
+    [TestMethod]
+    public void GetByGuid_GivenInvalidGuid_ThrowsError()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        Action act = () => service.GetByGuid<Report>(Guid.Empty);
+
+        // Assert
+        var exception = Assert.ThrowsException<Exception>(act);
+        Assert.AreEqual("Invalid guid", exception.Message);
+    }
+
+    [TestMethod]
+    public void GetByGuid_GivenValidGuid_ReturnsReport()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        var result = service.GetByGuid<Report>(g1);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(g1, result.Guid);
+    }
+
+    [TestMethod]
+    public void GetByGuid_GivenValidGuidOfSpecificType_ReturnsReportOfSpecificType()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        Report result = service.GetByGuid<CommentReport>(g3);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result is CommentReport);
+    }
+
+    [TestMethod]
+    public void GetByGuid_GivenValidGuidOfSpecificType_ThrowsIfTypeIsDifferent()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        Action act = () => service.GetByGuid<CommentReport>(g1); // g1 is guid of EventReport
+
+        // Assert
+        var exception = Assert.ThrowsException<Exception>(act);
+        Assert.AreEqual("Invalid guid", exception.Message);
     }
 }

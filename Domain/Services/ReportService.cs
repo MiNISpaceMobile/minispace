@@ -10,4 +10,11 @@ public class ReportService(IUnitOfWork unitOfWork)
     {
         return unitOfWork.Repository<ReportType>().GetAll();
     }
+    public ReportType GetByGuid<ReportType>(Guid guid) where ReportType : Report
+    {
+        var report = unitOfWork.Repository<ReportType>().Get(guid);
+        // TODO: Throw custom exception
+        return report is not null ? report : throw new Exception("Invalid guid");
+    }
+
 }

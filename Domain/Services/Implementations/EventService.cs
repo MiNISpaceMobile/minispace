@@ -1,5 +1,6 @@
 ﻿using Domain.Abstractions;
 using Domain.DataModel;
+using System;
 
 namespace Domain.Services;
 
@@ -14,17 +15,25 @@ public class EventService : IEventService
 
     public Event? GetEvent(Guid guid) => uow.Repository<Event>().Get(guid);
 
-    public void CreateEvent(Event newEvent)
+    public Event CreateEvent(Guid studentGuid, string title, string description, EventCategory category, DateTime publicationDate,
+                 DateTime startDate, DateTime endDate, string location, int? capacity, decimal? fee)
     {
-        uow.Repository<Event>().Add(newEvent);
+        Student student = uow.Repository<Student>().Get(studentGuid);
+        if (student is null)
+            throw new ArgumentException("Nonexistent student");
+
+        Event @event = new Event(student, title, description, category, publicationDate,
+            startDate, endDate, location, capacity, fee);
+        uow.Repository<Event>().Add(@event);
         uow.Commit();
+        return @event;
     }
 
     public void UpdateEvent(Event newEvent)
     {
         var currEvent = uow.Repository<Event>().Get(newEvent.Guid);
         if (currEvent is null)
-            throw new ArgumentException();
+            throw new ArgumentException("Nonexistent event");
 
         currEvent.Title = newEvent.Title;
         currEvent.Description = newEvent.Description;

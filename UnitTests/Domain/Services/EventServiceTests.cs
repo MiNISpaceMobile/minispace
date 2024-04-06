@@ -62,15 +62,29 @@ public class EventServiceTests
     }
 
     [TestMethod]
+    public void CreateEvent_NonexistentStudent_ShouldThrowArgumentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        DateTime now = DateTime.Now;
+
+        // Act
+        var action = () => sut.CreateEvent(new Guid(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
+
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual("Nonexistent student", ex.Message);
+    }
+
+    [TestMethod]
     public void CreateEvent_CorrectEvent_ShouldAddEventToDB()
     {
         // Arrange
         EventService sut = new EventService(uow);
         DateTime now = DateTime.Now;
-        Event newEvent = new Event(students.Last(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
         // Act
-        sut.CreateEvent(newEvent);
+        Event newEvent = sut.CreateEvent(students.Last().Guid, "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
         // Assert 
         Assert.AreEqual(newEvent, uow.Repository<Event>().Get(newEvent.Guid));
@@ -88,7 +102,8 @@ public class EventServiceTests
         var action = () => sut.UpdateEvent(newEvent);
 
         // Assert
-        Assert.ThrowsException<ArgumentException>(action);
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual("Nonexistent event", ex.Message);
     }
 
     [TestMethod]

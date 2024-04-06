@@ -10,6 +10,7 @@ namespace Domain.Services;
 public interface IEventService
 {
     public Event? GetEvent(Guid guid);
-    public void CreateEvent(Event newEvent);
+    public Event CreateEvent(Guid studentGuid, string title, string description, EventCategory category, DateTime publicationDate,
+                 DateTime startDate, DateTime endDate, string location, int? capacity, decimal? fee);
     public void UpdateEvent(Event newEvent);
 }

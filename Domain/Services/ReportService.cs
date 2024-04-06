@@ -7,6 +7,7 @@ namespace Domain.Services;
 
 public class ReportService(IUnitOfWork unitOfWork)
 {
+    // TODO: Change all exception to custom exceptions with proper error information
     public IEnumerable<ReportType> GetAll<ReportType>() 
         where ReportType : Report
     {
@@ -17,7 +18,6 @@ public class ReportService(IUnitOfWork unitOfWork)
         where ReportType : Report
     {
         var report = unitOfWork.Repository<ReportType>().Get(guid);
-        // TODO: Throw custom exception
         return report is not null ? report : throw new Exception("Invalid report guid");
     }
 
@@ -34,6 +34,25 @@ public class ReportService(IUnitOfWork unitOfWork)
         var report = (ReportType)CreateSpecificReport(target, author, title, details, category);
 
         unitOfWork.Repository<ReportType>().Add(report);
+
+        unitOfWork.Commit();
+
+        return report;
+    }
+
+    public Report UpdateReport(Guid responderId, Guid reportId, string feedback, ReportState reportState)
+    {
+        var responder = unitOfWork.Repository<Administrator>().Get(responderId) ??
+            throw new Exception("Invalid responder guid");
+        var report = unitOfWork.Repository<Report>().Get(reportId) ??
+            throw new Exception("Invalid report guid");
+        if (!report.IsOpen)
+            throw new Exception("Report is closed");
+        
+        report.Responder = responder;
+        report.Feedback = feedback;
+        report.State = reportState;
+
         unitOfWork.Commit();
 
         return report;

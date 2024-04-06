@@ -29,6 +29,11 @@ public class EventService : IEventService
         return @event;
     }
 
+    /// <summary>
+    /// Assignes values of given event to event with the same guid existing in db 
+    /// </summary>
+    /// <param name="newEvent"></param>
+    /// <exception cref="ArgumentException"></exception>
     public void UpdateEvent(Event newEvent)
     {
         var currEvent = uow.Repository<Event>().Get(newEvent.Guid);
@@ -45,5 +50,35 @@ public class EventService : IEventService
         currEvent.Fee = newEvent.Fee;
 
         uow.Commit();
+    }
+
+    /// <summary>
+    /// Tries to add student to participants of event. Removes from Interested list.
+    /// </summary>
+    /// <param name="eventGuid"></param>
+    /// <param name="studentGuid"></param>
+    /// <returns>
+    /// true if operation was successfull, false if participants number reached maximum or student is already participating
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public bool TryAddParticipant(Guid eventGuid, Guid studentGuid)
+    {
+        Event @event = uow.Repository<Event>().Get(eventGuid);
+        Student student = uow.Repository<Student>().Get(studentGuid);
+        if (student is null || @event is null)
+            throw new ArgumentException("Nonexistent object");
+
+        // Full event
+        if (@event.Capacity is not null && @event.Participants.Count == @event.Capacity)
+            return false;
+        // Already participating
+        if (@event.Participants.Contains(student))
+            return false;
+
+        @event.Interested.Remove(student);
+        if (!student.SubscribedEvents.Contains(@event))
+            student.SubscribedEvents.Add(@event);
+        @event.Participants.Add(student);
+        return true;
     }
 }

@@ -33,6 +33,7 @@ public class EventServiceTests
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
     }
 
+    #region GetEvent
     [TestMethod]
     public void GetEvent_Nonexistent_Null()
     {
@@ -60,7 +61,9 @@ public class EventServiceTests
         // Assert
         Assert.IsNotNull(result);
     }
+    #endregion
 
+    #region CreateEvent
     [TestMethod]
     public void CreateEvent_NonexistentStudent_ShouldThrowArgumentException()
     {
@@ -89,7 +92,9 @@ public class EventServiceTests
         // Assert 
         Assert.AreEqual(newEvent, uow.Repository<Event>().Get(newEvent.Guid));
     }
+    #endregion
 
+    #region UpdateEvent
     [TestMethod]
     public void UpdateEvent_NonexistentEvent_ShouldThrowArgumentException()
     {
@@ -121,6 +126,88 @@ public class EventServiceTests
         // Assert
         Assert.AreEqual(toUpdate, uow.Repository<Event>().Get(toUpdate.Guid));
     }
+    #endregion
+
+    #region TryAddParticipant
+    [TestMethod]
+    public void TryAddParticipant_NonexistentEvent_ShouldThrowArgumentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.TryAddParticipant(Guid.Empty, students.Last().Guid);
+
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual("Nonexistent object", ex.Message);
+    }
+
+    [TestMethod]
+    public void TryAddParticipant_FullEvent_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        @event.Capacity = 0;
+
+        // Act
+        var result = sut.TryAddParticipant(@event.Guid, students.Last().Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void TryAddParticipant_AlreadyParticipating_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Participants.Add(student);
+
+        // Act
+        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+        Assert.IsTrue(@event.Participants.Contains(student));
+    }
+
+    [TestMethod]
+    public void TryParticipate_NoGivenCapacity_ShouldAddParticipant()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+
+        // Act
+        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsTrue(@event.Participants.Contains(student));
+    }
+
+    [TestMethod]
+    public void TryAddParticipant_AvailablePlace_ShouldAddParticipant()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Capacity = 100;
+
+        // Act
+        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsTrue(@event.Participants.Contains(student));
+    }
+    #endregion
 
     //[TestMethod]
     //public void ChangeTest()

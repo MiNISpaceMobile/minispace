@@ -1,5 +1,3 @@
-using Domain.BaseTypes;
-
 namespace Domain.DataModel;
 
 public class Administrator : User

@@ -1,5 +1,10 @@
+using Api;
 using Domain.Abstractions;
+using Domain.Services;
+using Infrastructure.DatabaseContexts;
 using Infrastructure.PingResponders;
+using Infrastructure.UnitOfWorks;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,11 +24,15 @@ builder.Services.AddControllers();
  * It means that only one object of your class will exist for entire program duration.
  */
 
+builder.Services.AddDbContext<DbContext, SqliteDbContext>(options => options.Configure());
+
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+
+builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
 
 /* Warning! Important! Will help you later!
  * 
- * Try commenting line above and then try executing 'ping' via swagger.
+ * Try commenting the line with IPingResponder and then try executing 'ping' via swagger.
  * The app will compile, it will even run, but when you try 'ping'...
  * You will get an ugly Error 500 - Internal Server Error.
  * This is because the app tries to run 'Ping' method in the cotroller,
@@ -34,12 +43,12 @@ builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapControllers();
+
+// Our own function that setups a few things
+app.PerformCustomStartupActions(resetDb: true);
 
 app.Run();

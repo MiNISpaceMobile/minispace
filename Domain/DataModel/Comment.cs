@@ -1,18 +1,23 @@
-﻿namespace Domain.DataModel;
+﻿using Domain.BaseTypes;
 
-public class Comment
+namespace Domain.DataModel;
+
+public class Comment : BaseEntity
 {
-    public Student Author { get; set; }
-    public Post Post { get; set; }
+    public Guid? AuthorId { get; private set; }
+    public virtual Student? Author { get; set; }
+    public Guid PostId { get; private set; }
+    public virtual Post Post { get; set; }
 
     public string Content { get; set; }
 
     public DateTime CreationDate { get; set; }
 
-    public List<Student> Likers { get; set; }
+    public virtual ICollection<Student> Likers { get; set; }
 
-    public Comment? InResponseTo { get; set; }
-    public List<Comment> Responses { get; set; }
+    public Guid? InResponeseToId { get; private set; }
+    public virtual Comment? InResponseTo { get; set; }
+    public virtual ICollection<Comment> Responses { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected Comment() { }

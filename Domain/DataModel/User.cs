@@ -4,12 +4,12 @@ using System.Text;
 
 namespace Domain.DataModel;
 
-public class User : BaseEntity
+public abstract class User : BaseEntity
 {
     public static byte[] CalculatePasswordHash(string password, string salt)
         => SHA512.HashData(Encoding.UTF8.GetBytes($"{password}{salt}"));
 
-    public DateTime CreationDate { get; }
+    public DateTime CreationDate { get; private set; }
 
     public string Username { get; set; }
     public string Email { get; set; }
@@ -40,14 +40,18 @@ public class User : BaseEntity
         SaltedPasswordHash = CalculatePasswordHash(password);
     }
 
-    public byte[] CalculatePasswordHash(string password) => CalculatePasswordHash(password, Guid.ToString()); // CreationDate.ToString("s"));
+    public byte[] CalculatePasswordHash(string password)
+        => CalculatePasswordHash(password, Guid.ToString()); // CreationDate.ToString("s"));
 
     public bool UpdatePassword(string password)
     {
         var newHash = CalculatePasswordHash(password);
+
         if (SaltedPasswordHash.SequenceEqual(newHash))
             return false;
+
         SaltedPasswordHash = newHash;
+
         return true;
     }
 

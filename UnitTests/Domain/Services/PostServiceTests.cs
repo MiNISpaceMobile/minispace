@@ -9,7 +9,7 @@ using Moq;
 namespace UnitTests.Domain.Services;
 
 [TestClass]
-public class PostServicetTests
+public class PostServiceTests
 {
     private IUnitOfWork uow;
     private List<Event> events;

@@ -21,7 +21,9 @@ public class PostService : IPostService
     {
         Student author = uow.Repository<Student>().Get(authorGuid);
         Event @event = uow.Repository<Event>().Get(eventGuid);
-        if (author is null || @event is null || content == string.Empty)
+        if (author is null || @event is null)
+            throw new ArgumentException("Nonexistent object");
+        if (content == string.Empty)
             throw new ArgumentException("Arguments must not be empty");
 
         var post = new Post(author, @event, content, DateTime.Now);

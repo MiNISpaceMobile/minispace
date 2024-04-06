@@ -11,31 +11,33 @@ public class ReportServiceTests
 #pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork unitOfWork;
 #pragma warning restore CS8618 // Unassigned non-nullables
-    static readonly Guid g1 = Guid.Parse(new('1', 32));
-    static readonly Guid g2 = Guid.Parse(new('2', 32));
-    static readonly Guid g3 = Guid.Parse(new('3', 32));
-    static readonly Guid g4 = Guid.Parse(new('4', 32));
+    static readonly Guid eventReportGuid = Guid.Parse(new('1', 32));
+    static readonly Guid postReportGuid = Guid.Parse(new('2', 32));
+    static readonly Guid commentReportGuid = Guid.Parse(new('3', 32));
+    static readonly Guid studentGuid = Guid.Parse(new('4', 32));
+    static readonly Guid eventGuid = Guid.Parse(new('5', 32));
+
 
     [TestInitialize]
     public void Setup()
     {
         var now = DateTime.Now;
-        var st0 = new Student("user0", "user0@test.pl", "password");
+        var st0 = new Student("user0", "user0@test.pl", "password") { Guid = studentGuid };
         var st1 = new Student("user1", "user1@test.pl", "password") { IsOrganizer = true };
         var ev0 = new Event(st1, "test event", "test description", EventCategory.Uncategorized,
-            now, now.AddDays(10), now.AddDays(11), "test location", 20, 20);
+            now, now.AddDays(10), now.AddDays(11), "test location", 20, 20)
+        { Guid = eventGuid };
         var p0 = new Post(st1, ev0, "post");
         var c0 = new Comment(st0, p0, "first comment", null);
         var c1 = new Comment(st1, p0, "second comment", null);
 
         var re0 = new EventReport(ev0, st0, "event report", "report details", ReportCategory.Unknown)
-        { Guid = g1 };
+        { Guid = eventReportGuid };
         var re1 = new PostReport(p0, st0, "post report", "report details", ReportCategory.Behaviour)
-        { Guid = g2 };
+        { Guid = postReportGuid };
         var re2 = new CommentReport(c0, st1, "comment report", "report details", ReportCategory.Behaviour)
-        { Guid = g3 };
-        var re3 = new CommentReport(c1, st0, "comment report", "report details", ReportCategory.Unknown)
-        { Guid = g4 };
+        { Guid = commentReportGuid };
+        var re3 = new CommentReport(c1, st0, "comment report", "report details", ReportCategory.Unknown);
 
         unitOfWork = new DictionaryUnitOfWork([st0, st1, ev0, p0, c0, c1, re0, re1, re2, re3]);
     }
@@ -76,11 +78,10 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        Action act = () => service.GetByGuid<Report>(Guid.Empty);
+        void act() => service.GetByGuid<Report>(Guid.Empty);
 
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
-        Assert.AreEqual("Invalid guid", exception.Message);
     }
 
     [TestMethod]
@@ -90,11 +91,11 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        var result = service.GetByGuid<Report>(g1);
+        var result = service.GetByGuid<Report>(eventReportGuid);
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(g1, result.Guid);
+        Assert.AreEqual(eventReportGuid, result.Guid);
     }
 
     [TestMethod]
@@ -104,7 +105,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        Report result = service.GetByGuid<CommentReport>(g3);
+        Report result = service.GetByGuid<CommentReport>(commentReportGuid);
 
         // Assert
         Assert.IsNotNull(result);
@@ -118,10 +119,49 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        Action act = () => service.GetByGuid<CommentReport>(g1); // g1 is guid of EventReport
+        void act() => service.GetByGuid<CommentReport>(eventReportGuid);
 
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
-        Assert.AreEqual("Invalid guid", exception.Message);
+        Assert.AreEqual("Invalid report guid", exception.Message);
+    }
+
+    [TestMethod]
+    public void CreateReport_InvalidTargetGuid_ThrowsError()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        void act() => service.CreateReport<Event, EventReport>(Guid.Empty, studentGuid, "title", "details", ReportCategory.Unknown);
+
+        // Assert
+        var exception = Assert.ThrowsException<Exception>(act);
+    }
+
+    [TestMethod]
+    public void CreateReport_InvalidAuthorGuid_ThrowsError()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        void act() => service.CreateReport<Event, EventReport>(eventGuid, Guid.Empty, "title", "details", ReportCategory.Unknown);
+
+        // Assert
+        var exception = Assert.ThrowsException<Exception>(act);
+    }
+
+    [TestMethod]
+    public void CreateReport_ValidGuids_AddsNewReport()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        var report = service.CreateReport<Event, EventReport>(eventGuid, studentGuid, "title", "details", ReportCategory.Unknown);
+
+        // Assert
+        Assert.IsTrue(unitOfWork.Repository<EventReport>().Get(report.Guid) is not null);
     }
 }

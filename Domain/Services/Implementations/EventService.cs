@@ -81,4 +81,31 @@ public class EventService : IEventService
         @event.Participants.Add(student);
         return true;
     }
+
+    /// <summary>
+    /// Tries to add student to interested of event. Removes from Participants list.
+    /// </summary>
+    /// <param name="eventGuid"></param>
+    /// <param name="studentGuid"></param>
+    /// <returns>
+    /// true if operation was successfull, false if student is already interested
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public bool TryAddInterested(Guid eventGuid, Guid studentGuid)
+    {
+        Event @event = uow.Repository<Event>().Get(eventGuid);
+        Student student = uow.Repository<Student>().Get(studentGuid);
+        if (student is null || @event is null)
+            throw new ArgumentException("Nonexistent object");
+        
+        // Already interested
+        if (@event.Interested.Contains(student))
+            return false;
+
+        @event.Participants.Remove(student);
+        if (!student.SubscribedEvents.Contains(@event))
+            student.SubscribedEvents.Add(@event);
+        @event.Interested.Add(student);
+        return true;
+    }
 }

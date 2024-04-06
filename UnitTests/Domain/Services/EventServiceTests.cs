@@ -209,6 +209,56 @@ public class EventServiceTests
     }
     #endregion
 
+    #region TryAddInterested
+    [TestMethod]
+    public void TryAddInterested_NonexistentEvent_ShouldThrowArgumentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.TryAddInterested(Guid.Empty, students.Last().Guid);
+
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual("Nonexistent object", ex.Message);
+    }
+
+    [TestMethod]
+    public void TryAddParticipant_AlreadyInterested_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Interested.Add(student);
+
+        // Act
+        var result = sut.TryAddInterested(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+        Assert.IsTrue(@event.Interested.Contains(student));
+    }
+
+    [TestMethod]
+    public void TryAddInterested_CorrectRequest_ShouldAddInterested()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+
+        // Act
+        var result = sut.TryAddInterested(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsTrue(@event.Interested.Contains(student));
+        Assert.IsTrue(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
+
     //[TestMethod]
     //public void ChangeTest()
     //{

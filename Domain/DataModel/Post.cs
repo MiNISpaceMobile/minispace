@@ -20,9 +20,11 @@ public class Post : BaseEntity
     protected Post() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Post(Student author, string content, DateTime? creationDate = null)
+    public Post(Student author, Event @event, string content, DateTime? creationDate = null)
     {
         Author = author;
+
+        Event = @event;
 
         Content = content;
 

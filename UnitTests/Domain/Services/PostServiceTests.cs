@@ -4,17 +4,17 @@ using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
 using System.Net;
-using Moq;
 
 namespace UnitTests.Domain.Services;
 
 [TestClass]
 public class PostServiceTests
 {
+#pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork uow;
     private List<Event> events;
     private List<Student> students;
-    private List<Post> posts;
+#pragma warning restore CS8618 // Unassigned non-nullables
 
     [TestInitialize]
     public void PreTest()

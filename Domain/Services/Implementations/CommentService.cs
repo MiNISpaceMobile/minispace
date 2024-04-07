@@ -19,9 +19,9 @@ public class CommentService : ICommentService
 
     public Comment CreateComment(Guid authorGuid, Guid postGuid, string content, Guid inResponseToGuid = new Guid(), DateTime? creationDate = null)
     {
-        Student author = uow.Repository<Student>().Get(authorGuid);
-        Post post = uow.Repository<Post>().Get(postGuid);
-        Comment inResponseTo = uow.Repository<Comment>().Get(inResponseToGuid);
+        Student? author = uow.Repository<Student>().Get(authorGuid);
+        Post? post = uow.Repository<Post>().Get(postGuid);
+        Comment? inResponseTo = uow.Repository<Comment>().Get(inResponseToGuid);
         if (author is null || post is null || (inResponseToGuid != Guid.Empty && inResponseTo is null))
             throw new ArgumentException("Nonexistent object");
         if (content == string.Empty)
@@ -37,7 +37,7 @@ public class CommentService : ICommentService
 
     public void DeleteComment(Guid guid)
     {
-        Comment comment = uow.Repository<Comment>().Get(guid);
+        Comment? comment = uow.Repository<Comment>().Get(guid);
         if (comment is null)
             throw new ArgumentException("Nonexistent comment");
 
@@ -49,7 +49,7 @@ public class CommentService : ICommentService
 
     public Comment GetComment(Guid guid)
     {
-        Comment comment = uow.Repository<Comment>().Get(guid);
+        Comment? comment = uow.Repository<Comment>().Get(guid);
         if (comment is null)
             throw new ArgumentException("Nonexistent comment");
 

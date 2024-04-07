@@ -19,8 +19,8 @@ public class PostService : IPostService
 
     public Post CreatePost(Guid authorGuid, Guid eventGuid, string content)
     {
-        Student author = uow.Repository<Student>().Get(authorGuid);
-        Event @event = uow.Repository<Event>().Get(eventGuid);
+        Student? author = uow.Repository<Student>().Get(authorGuid);
+        Event? @event = uow.Repository<Event>().Get(eventGuid);
         if (author is null || @event is null)
             throw new ArgumentException("Nonexistent object");
         if (content == string.Empty)
@@ -36,7 +36,7 @@ public class PostService : IPostService
 
     public void DeletePost(Guid guid)
     {
-        Post post = uow.Repository<Post>().Get(guid);
+        Post? post = uow.Repository<Post>().Get(guid);
         if (post is null)
             throw new ArgumentException("Nonexistent post");
 
@@ -48,7 +48,7 @@ public class PostService : IPostService
 
     public Post GetPost(Guid guid)
     {
-        Post post = uow.Repository<Post>().Get(guid);
+        Post? post = uow.Repository<Post>().Get(guid);
         if (post is null)
             throw new ArgumentException("Nonexistent post");
 

@@ -23,6 +23,7 @@ public class Post : BaseEntity
     public Post(Student author, Event @event, string content, DateTime? creationDate = null)
     {
         Author = author;
+
         Event = @event;
 
         Content = content;

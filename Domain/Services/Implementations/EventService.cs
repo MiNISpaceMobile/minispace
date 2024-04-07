@@ -13,12 +13,19 @@ public class EventService : IEventService
         this.uow = uow;
     }
 
-    public Event? GetEvent(Guid guid) => uow.Repository<Event>().Get(guid);
+    public Event GetEvent(Guid guid)
+    {
+        Event? @event = uow.Repository<Event>().Get(guid);
+        if (@event is null)
+            throw new ArgumentException("Nonexistent event");
+
+        return @event;
+    }
 
     public Event CreateEvent(Guid studentGuid, string title, string description, EventCategory category, DateTime publicationDate,
                  DateTime startDate, DateTime endDate, string location, int? capacity, decimal? fee)
     {
-        Student student = uow.Repository<Student>().Get(studentGuid);
+        Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null)
             throw new ArgumentException("Nonexistent student");
 
@@ -36,7 +43,7 @@ public class EventService : IEventService
     /// <exception cref="ArgumentException"></exception>
     public void UpdateEvent(Event newEvent)
     {
-        var currEvent = uow.Repository<Event>().Get(newEvent.Guid);
+        Event? currEvent = uow.Repository<Event>().Get(newEvent.Guid);
         if (currEvent is null)
             throw new ArgumentException("Nonexistent event");
 
@@ -63,8 +70,8 @@ public class EventService : IEventService
     /// <exception cref="ArgumentException"></exception>
     public bool TryAddParticipant(Guid eventGuid, Guid studentGuid)
     {
-        Event @event = uow.Repository<Event>().Get(eventGuid);
-        Student student = uow.Repository<Student>().Get(studentGuid);
+        Event? @event = uow.Repository<Event>().Get(eventGuid);
+        Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null || @event is null)
             throw new ArgumentException("Nonexistent object");
 
@@ -93,8 +100,8 @@ public class EventService : IEventService
     /// <exception cref="ArgumentException"></exception>
     public bool TryAddInterested(Guid eventGuid, Guid studentGuid)
     {
-        Event @event = uow.Repository<Event>().Get(eventGuid);
-        Student student = uow.Repository<Student>().Get(studentGuid);
+        Event? @event = uow.Repository<Event>().Get(eventGuid);
+        Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null || @event is null)
             throw new ArgumentException("Nonexistent object");
         

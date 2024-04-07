@@ -35,17 +35,17 @@ public class EventServiceTests
 
     #region GetEvent
     [TestMethod]
-    public void GetEvent_Nonexistent_Null()
+    public void GetEvent_Nonexistent_ShouldThrowArgumentException()
     {
         // Arrange
         EventService service = new EventService(uow);
         Guid guid = Guid.Parse("a0403bb2-3db8-4142-9270-959f962c01be");
 
         // Act
-        Event? result = service.GetEvent(guid);
+        Action action = () => service.GetEvent(guid);
 
         // Assert
-        Assert.IsNull(result);
+        Assert.ThrowsException<ArgumentException>(action);
     }
 
     [TestMethod]
@@ -56,7 +56,7 @@ public class EventServiceTests
         Guid guid = events.Last().Guid;
 
         // Act
-        Event? result = service.GetEvent(guid);
+        Event result = service.GetEvent(guid);
 
         // Assert
         Assert.IsNotNull(result);
@@ -258,25 +258,4 @@ public class EventServiceTests
         Assert.IsTrue(student.SubscribedEvents.Contains(@event));
     }
     #endregion
-
-    //[TestMethod]
-    //public void ChangeTest()
-    //{
-    //    Event e = uow.Repository<Event>().Get(events.First().Guid)!;
-
-    //    e.Capacity = 30;
-
-    //    Assert.AreEqual(30, events.First().Capacity);
-    //}
-
-    //[TestMethod]
-    //public void AddTest()
-    //{
-    //    Event e = new Event(students.First(), "aaa", "bbb", EventCategory.Uncategorized, DateTime.Now, DateTime.Now, DateTime.Now, "ccc", 1, null)
-    //    { Guid = Guid.NewGuid() };
-
-    //    uow.Repository<Event>().Add(e);
-
-    //    Assert.IsNotNull(uow.Repository<Event>().Get(e.Guid));
-    //}
 }

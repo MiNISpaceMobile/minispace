@@ -9,9 +9,11 @@ namespace UnitTests.Domain.Services;
 [TestClass]
 public class EventServiceTests
 {
+#pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork uow;
     private List<Event> events;
     private List<Student> students;
+#pragma warning restore CS8618 // Unassigned non-nullables
 
     [TestInitialize]
     public void PreTest()
@@ -57,25 +59,4 @@ public class EventServiceTests
         // Assert
         Assert.IsNotNull(result);
     }
-
-    //[TestMethod]
-    //public void ChangeTest()
-    //{
-    //    Event e = uow.Repository<Event>().Get(events.First().Guid)!;
-        
-    //    e.Capacity = 30;
-
-    //    Assert.AreEqual(30, events.First().Capacity);
-    //}
-
-    //[TestMethod]
-    //public void AddTest()
-    //{
-    //    Event e = new Event(students.First(), "aaa", "bbb", EventCategory.Uncategorized, DateTime.Now, DateTime.Now, DateTime.Now, "ccc", 1, null)
-    //    { Guid = Guid.NewGuid() };
-
-    //    uow.Repository<Event>().Add(e);
-
-    //    Assert.IsNotNull(uow.Repository<Event>().Get(e.Guid));
-    //}
 }

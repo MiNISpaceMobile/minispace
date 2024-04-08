@@ -6,30 +6,31 @@ namespace Infrastructure.Repositories;
 
 public class DatabaseRepository<RecordType> : IRepository<RecordType> where RecordType : notnull, BaseEntity
 {
-    private DbSet<RecordType> records;
+    private DbSet<RecordType> table;
 
-    public DatabaseRepository(DbSet<RecordType> records)
+    public DatabaseRepository(DbSet<RecordType> table)
     {
-        this.records = records;
+        this.table = table;
     }
 
-    public void Add(RecordType record) => records.Add(record);
+    public void Add(RecordType record) => table.Add(record);
+    public void AddMany(IEnumerable<RecordType> records) => table.AddRange(records);
 
-    public RecordType? Get(Guid guid) => records.FirstOrDefault(r => r.Guid == guid);
-    public IEnumerable<RecordType> GetAll() => records;
+    public RecordType? Get(Guid guid) => table.FirstOrDefault(r => r.Guid == guid);
+    public IQueryable<RecordType> GetAll() => table;
 
     public bool TryDelete(Guid guid)
     {
         var record = Get(guid);
         if (record is null)
             return false;
-        records.Remove(record);
+        table.Remove(record);
         return true;
     }
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
-        var selected = records.Where(predicate);
-        records.RemoveRange(selected);
+        var selected = table.Where(predicate);
+        table.RemoveRange(selected);
         return selected.Count();
     }
 }

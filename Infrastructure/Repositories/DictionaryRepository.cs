@@ -1,43 +1,55 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
+using Infrastructure.UnitOfWorks;
 
 namespace Infrastructure.Repositories;
 
 [Obsolete("Only use for tests!")]
 public class DictionaryRepository<RecordType> : IRepository<RecordType> where RecordType : notnull, BaseEntity
 {
-    private Dictionary<Guid, BaseEntity> table;
-
-    public DictionaryRepository(Dictionary<Guid, BaseEntity> table)
+    private DictionaryUnitOfWork uow;
+    private DictionaryUnitOfWork UnitOfWork
     {
-        this.table = table;
+        get
+        {
+            if (uow.Disposed)
+                throw new InvalidOperationException("UnitOfWork was disposed");
+            return uow;
+        }
     }
 
-    public void Add(RecordType record)
+    public DictionaryRepository(DictionaryUnitOfWork uow)
     {
-        table.Add(record.Guid, record);
+        this.uow = uow;
+    }
+
+    public void Add(RecordType record) => UnitOfWork.Add(record);
+    public void AddMany(IEnumerable<RecordType> records)
+    {
+        foreach (var record in records)
+            Add(record);
     }
 
     public RecordType? Get(Guid guid)
     {
-        table.TryGetValue(guid, out BaseEntity? record);
+        UnitOfWork.Tables[typeof(RecordType)].TryGetValue(guid, out BaseEntity? record);
         return (RecordType?)record;
     }
-    public IEnumerable<RecordType> GetAll() => table.Values.Select(r => (RecordType)r);
+    public IQueryable<RecordType> GetAll() => UnitOfWork.Tables[typeof(RecordType)].Values.Select(r => (RecordType)r).AsQueryable();
 
     public bool TryDelete(Guid guid)
     {
         var record = Get(guid);
         if (record is null)
             return false;
-        table.Remove(record.Guid);
+        UnitOfWork.TryDelete(record);
         return true;
     }
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
         var selected = GetAll().Where(predicate);
         foreach (var record in selected)
-            table.Remove(record.Guid);
+            UnitOfWork.TryDelete(record);
         return selected.Count();
     }
 }

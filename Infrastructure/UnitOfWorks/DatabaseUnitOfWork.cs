@@ -18,4 +18,6 @@ public class DatabaseUnitOfWork : IUnitOfWork
         => new DatabaseRepository<RecordType>(dbContext.Set<RecordType>());
 
     public void Commit() => dbContext.SaveChanges();
+
+    public void Dispose() => dbContext.Dispose();
 }

@@ -20,11 +20,15 @@ public enum ReportState
     Failure, // An Admin has failed to deal with it (Responder and Feedback)
 }
 
-public class Report : BaseEntity
+public abstract class Report : BaseEntity
 {
-    public User Author { get; set; }
-    public Administrator? Responder { get; set; }
-    
+    public Guid? AuthorId { get; private set; }
+    public virtual User? Author { get; set; }
+    public Guid? ResponderId { get; private set; }
+    public virtual Administrator? Responder { get; set; }
+
+    public abstract Guid TargetId { get; }
+
     public string Title { get; set; }
     public string Details { get; set; }
     public ReportCategory Category { get; set; }
@@ -52,7 +56,10 @@ public class Report : BaseEntity
 
 public class EventReport : Report
 {
-    public Event ReportedEvent { get; set; }
+    public Guid ReportedEventId { get; private set; }
+    public virtual Event ReportedEvent { get; set; }
+
+    public override Guid TargetId => ReportedEventId;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected EventReport() { }
@@ -67,7 +74,10 @@ public class EventReport : Report
 
 public class PostReport : Report
 {
-    public Post ReportedPost { get; set; }
+    public Guid ReportedPostId { get; private set; }
+    public virtual Post ReportedPost { get; set; }
+
+    public override Guid TargetId => ReportedPostId;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected PostReport() { }
@@ -82,7 +92,10 @@ public class PostReport : Report
 
 public class CommentReport : Report
 {
-    public Comment ReportedComment { get; set; }
+    public Guid ReportedCommentId { get; private set; }
+    public virtual Comment ReportedComment { get; set; }
+
+    public override Guid TargetId => ReportedCommentId;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected CommentReport() { }

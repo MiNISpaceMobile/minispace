@@ -58,20 +58,20 @@ public static class AppCustomStartup
         var week_ago = now.AddDays(-7);
         var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
 
-        var ad0 = new Administrator("Ad0", "ad0@pw.edu.pl", "ad0");
-        var ad1 = new Administrator("Ad1", "ad1@pw.edu.pl", "ad1");
-        var ad2 = new Administrator("Ad2", "ad2@pw.edu.pl", "ad2");
+        var ad0 = new Administrator("AdFirst0", "AdLast0", "ad0@pw.edu.pl");
+        var ad1 = new Administrator("AdFirst1", "AdLast1", "ad1@pw.edu.pl");
+        var ad2 = new Administrator("AdFirst2", "AdLast2", "ad2@pw.edu.pl");
         Administrator[] administrators = [ad0, ad1, ad2];
 
-        var st0 = new Student("St0", "st0@pw.edu.pl", "st0") { IsOrganizer = true };
-        var st1 = new Student("St1", "st1@pw.edu.pl", "st1") { DateOfBirth = years_ago };
-        var st2 = new Student("St2", "st2@pw.edu.pl", "st2") { EmailNotification = false };
+        var st0 = new Student("StFirst0", "StLast0", "st0@pw.edu.pl") { IsOrganizer = true };
+        var st1 = new Student("StFirst1", "StLast1", "st1@pw.edu.pl") { DateOfBirth = years_ago };
+        var st2 = new Student("StFirst2", "StLast2", "st2@pw.edu.pl") { EmailNotification = false };
         st0.Friends.Add(st2); st2.Friends.Add(st0);
         Student[] students = [st0, st1, st2];
 
-        var ev0 = new Event(st0, "Ev0", "Test0", EventCategory.Uncategorized, week_ago, now, week_in, "Loc1", null, null) { ViewCount = 2 };
-        var ev1 = new Event(st0, "Ev1", "Test1", EventCategory.Uncategorized, now, week_in, weeks_in, "Loc2", 10, null) { ViewCount = 3 };
-        var ev2 = new Event(st1, "Ev2", "Test2", EventCategory.Uncategorized, week_ago, now, weeks_in, "Loc3", null, 10) { ViewCount = 2 };
+        var ev0 = new Event(st0, "Ev0", "Des0", EventCategory.Uncategorized, week_ago, now, week_in, "Loc1", null, null) { ViewCount = 2 };
+        var ev1 = new Event(st0, "Ev1", "Des1", EventCategory.Uncategorized, now, week_in, weeks_in, "Loc2", 10, null) { ViewCount = 3 };
+        var ev2 = new Event(st1, "Ev2", "Des2", EventCategory.Uncategorized, week_ago, now, weeks_in, "Loc3", null, 10) { ViewCount = 2 };
         ev0.Participants.Add(st0); ev0.Participants.Add(st1);
         ev0.Interested.Add(st0);
         ev1.Participants.Add(st0);
@@ -91,9 +91,9 @@ public static class AppCustomStartup
         co1.Likers.Add(st1);
         Comment[] comments = [co0, co1, co2];
 
-        var re0 = new CommentReport(co2, st1, "Re0", "Test0", ReportCategory.Behaviour);
-        var re1 = new EventReport(ev0, st0, "Re1", "Test1", ReportCategory.Bug);
-        var re2 = new PostReport(po2, st2, "Re2", "Test2", ReportCategory.Behaviour);
+        var re0 = new CommentReport(co2, st1, "Re0", "Des0", ReportCategory.Behaviour);
+        var re1 = new EventReport(ev0, st0, "Re1", "Des1", ReportCategory.Bug);
+        var re2 = new PostReport(po2, st2, "Re2", "Des2", ReportCategory.Behaviour);
         Report[] reports = [re0, re1, re2];
 
         uow.Repository<Administrator>().AddMany(administrators);

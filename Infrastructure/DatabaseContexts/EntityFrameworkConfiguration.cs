@@ -218,18 +218,17 @@ public static class EntityFrameworkConfiguration
          */
         type.UseTphMappingStrategy();
 
-        type.HasIndex(x => x.Username)
-            .IsUnique(true);
-        type.Property(x => x.Username)
+        type.Property(x => x.FirstName)
+            .HasMaxLength(32);
+
+        type.Property(x => x.LastName)
             .HasMaxLength(64);
 
-        type.HasIndex(x => x.Email)
-            .IsUnique(true);
         type.Property(x => x.Email)
-            .HasMaxLength(64);
+            .HasMaxLength(128);
 
-        type.Property(x => x.SaltedPasswordHash)
-            .HasMaxLength(64)
-            .IsFixedLength(true);
+        //type.Property(x => x.SaltedPasswordHash)
+        //    .HasMaxLength(64)
+        //    .IsFixedLength(true);
     }
 }

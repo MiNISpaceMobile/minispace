@@ -86,6 +86,9 @@ public class EventService : IEventService
         if (!student.SubscribedEvents.Contains(@event))
             student.SubscribedEvents.Add(@event);
         @event.Participants.Add(student);
+
+        uow.Commit();
+
         return true;
     }
 
@@ -113,6 +116,9 @@ public class EventService : IEventService
         if (!student.SubscribedEvents.Contains(@event))
             student.SubscribedEvents.Add(@event);
         @event.Interested.Add(student);
+
+        uow.Commit();
+
         return true;
     }
 }

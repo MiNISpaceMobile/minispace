@@ -32,18 +32,19 @@ public class EventServiceTests
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
     }
 
+    #region GetEvent
     [TestMethod]
-    public void GetEvent_Nonexistent_Null()
+    public void GetEvent_Nonexistent_ShouldThrowArgumentException()
     {
         // Arrange
         EventService service = new EventService(uow);
         Guid guid = Guid.Parse("a0403bb2-3db8-4142-9270-959f962c01be");
 
         // Act
-        Event? result = service.GetEvent(guid);
+        Action action = () => service.GetEvent(guid);
 
         // Assert
-        Assert.IsNull(result);
+        Assert.ThrowsException<ArgumentException>(action);
     }
 
     [TestMethod]
@@ -54,30 +55,206 @@ public class EventServiceTests
         Guid guid = events.Last().Guid;
 
         // Act
-        Event? result = service.GetEvent(guid);
+        Event result = service.GetEvent(guid);
 
         // Assert
         Assert.IsNotNull(result);
     }
+    #endregion
 
-    //[TestMethod]
-    //public void ChangeTest()
-    //{
-    //    Event e = uow.Repository<Event>().Get(events.First().Guid)!;
-        
-    //    e.Capacity = 30;
+    #region CreateEvent
+    [TestMethod]
+    public void CreateEvent_NonexistentStudent_ShouldThrowArgumentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        DateTime now = DateTime.Now;
 
-    //    Assert.AreEqual(30, events.First().Capacity);
-    //}
+        // Act
+        var action = () => sut.CreateEvent(new Guid(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
-    //[TestMethod]
-    //public void AddTest()
-    //{
-    //    Event e = new Event(students.First(), "aaa", "bbb", EventCategory.Uncategorized, DateTime.Now, DateTime.Now, DateTime.Now, "ccc", 1, null)
-    //    { Guid = Guid.NewGuid() };
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual("Nonexistent student", ex.Message);
+    }
 
-    //    uow.Repository<Event>().Add(e);
+    [TestMethod]
+    public void CreateEvent_CorrectEvent_ShouldAddEventToDB()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        DateTime now = DateTime.Now;
 
-    //    Assert.IsNotNull(uow.Repository<Event>().Get(e.Guid));
-    //}
+        // Act
+        Event newEvent = sut.CreateEvent(students.Last().Guid, "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
+
+        // Assert 
+        Assert.AreEqual(newEvent, uow.Repository<Event>().Get(newEvent.Guid));
+    }
+    #endregion
+
+    #region UpdateEvent
+    [TestMethod]
+    public void UpdateEvent_NonexistentEvent_ShouldThrowArgumentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        DateTime now = DateTime.Now;
+        Event newEvent = new Event(students.Last(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
+
+        // Act
+        var action = () => sut.UpdateEvent(newEvent);
+
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual("Nonexistent event", ex.Message);
+    }
+
+    [TestMethod]
+    public void UpdateEvent_CorrectEvent_ShouldUpdateEvent()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event toUpdate = events.Last();
+        string newTitle = "a";
+
+        // Act
+        toUpdate.Title = newTitle;
+        sut.UpdateEvent(toUpdate);
+
+        // Assert
+        Assert.AreEqual(toUpdate, uow.Repository<Event>().Get(toUpdate.Guid));
+    }
+    #endregion
+
+    #region TryAddParticipant
+    [TestMethod]
+    public void TryAddParticipant_NonexistentEvent_ShouldThrowArgumentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.TryAddParticipant(Guid.Empty, students.Last().Guid);
+
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual("Nonexistent object", ex.Message);
+    }
+
+    [TestMethod]
+    public void TryAddParticipant_FullEvent_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        @event.Capacity = 0;
+
+        // Act
+        var result = sut.TryAddParticipant(@event.Guid, students.Last().Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void TryAddParticipant_AlreadyParticipating_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Participants.Add(student);
+
+        // Act
+        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+        Assert.IsTrue(@event.Participants.Contains(student));
+    }
+
+    [TestMethod]
+    public void TryParticipate_NoGivenCapacity_ShouldAddParticipant()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+
+        // Act
+        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsTrue(@event.Participants.Contains(student));
+    }
+
+    [TestMethod]
+    public void TryAddParticipant_AvailablePlace_ShouldAddParticipant()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Capacity = 100;
+
+        // Act
+        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsTrue(@event.Participants.Contains(student));
+    }
+    #endregion
+
+    #region TryAddInterested
+    [TestMethod]
+    public void TryAddInterested_NonexistentEvent_ShouldThrowArgumentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.TryAddInterested(Guid.Empty, students.Last().Guid);
+
+        // Assert
+        var ex = Assert.ThrowsException<ArgumentException>(action);
+        Assert.AreEqual("Nonexistent object", ex.Message);
+    }
+
+    [TestMethod]
+    public void TryAddParticipant_AlreadyInterested_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Interested.Add(student);
+
+        // Act
+        var result = sut.TryAddInterested(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+        Assert.IsTrue(@event.Interested.Contains(student));
+    }
+
+    [TestMethod]
+    public void TryAddInterested_CorrectRequest_ShouldAddInterested()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+
+        // Act
+        var result = sut.TryAddInterested(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsTrue(@event.Interested.Contains(student));
+        Assert.IsTrue(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
 }

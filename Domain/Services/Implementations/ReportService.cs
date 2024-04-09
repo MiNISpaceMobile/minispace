@@ -1,20 +1,19 @@
-﻿
-using Domain.Abstractions;
+﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Domain.DataModel;
 
 namespace Domain.Services;
 
-public class ReportService(IUnitOfWork unitOfWork)
+public class ReportService(IUnitOfWork unitOfWork) : IReportService
 {
     // TODO: Change all exception to custom exceptions with proper error information
-    public IEnumerable<ReportType> GetAll<ReportType>() 
+    public IEnumerable<ReportType> GetAll<ReportType>()
         where ReportType : Report
     {
         return unitOfWork.Repository<ReportType>().GetAll();
     }
 
-    public ReportType GetByGuid<ReportType>(Guid guid) 
+    public ReportType GetByGuid<ReportType>(Guid guid)
         where ReportType : Report
     {
         var report = unitOfWork.Repository<ReportType>().Get(guid);
@@ -22,7 +21,7 @@ public class ReportService(IUnitOfWork unitOfWork)
     }
 
     public ReportType CreateReport<TargetType, ReportType>(Guid targetId, Guid authorId, string title,
-        string details, ReportCategory category) 
+        string details, ReportCategory category)
         where TargetType : BaseEntity
         where ReportType : Report
     {
@@ -48,7 +47,7 @@ public class ReportService(IUnitOfWork unitOfWork)
             throw new Exception("Invalid report guid");
         if (!report.IsOpen)
             throw new Exception("Report is closed");
-        
+
         report.Responder = responder;
         report.Feedback = feedback;
         report.State = reportState;
@@ -67,7 +66,7 @@ public class ReportService(IUnitOfWork unitOfWork)
             Event @event => new EventReport(@event, author, title, details, category),
             Post post => new PostReport(post, author, title, details, category),
             Comment comment => new CommentReport(comment, author, title, details, category),
-            _ => throw new NotImplementedException()
+            _ => throw new NotImplementedException("Reporting this entity is not possible")
         };
     }
 }

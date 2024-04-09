@@ -47,8 +47,9 @@ public class ReportServiceTests
         unitOfWork = new DictionaryUnitOfWork([st0, st1, ad0, ev0, p0, c0, c1, re0, re1, re2, re3]);
     }
 
+    #region GetAll
     [TestMethod]
-    public void GetAll_GivenReportType_ReturnsAllReports()
+    public void GetAll_ReportType_ReturnsAllReports()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -62,7 +63,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void GetAll_GivenSpecificReportType_ReturnsReportsOnlyOfGivenType()
+    public void GetAll_ConcreteReportType_ReturnsOnlyConcreteReports()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -75,9 +76,11 @@ public class ReportServiceTests
         Assert.AreEqual(2, result.Count());
         Assert.IsTrue(result.All(x => x is CommentReport));
     }
+    #endregion GetAll
 
+    #region GetByGuid
     [TestMethod]
-    public void GetByGuid_GivenInvalidGuid_ThrowsError()
+    public void GetByGuid_InvalidGuid_ThrowsException()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -90,7 +93,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void GetByGuid_GivenValidGuid_ReturnsReport()
+    public void GetByGuid_ValidGuid_ReturnsReport()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -104,7 +107,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void GetByGuid_GivenValidGuidOfSpecificType_ReturnsReportOfSpecificType()
+    public void GetByGuid_ValidGuidOfConcreteReportType_ReturnsReportOfConcreteType()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -118,7 +121,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void GetByGuid_GivenValidGuidOfSpecificType_ThrowsIfTypeIsDifferent()
+    public void GetByGuid_ValidGuidOfConcreteReportType_ThrowsExceptionIfTypeIsDifferent()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -129,9 +132,11 @@ public class ReportServiceTests
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
     }
+    #endregion GetByGuid
 
+    #region CreateReport
     [TestMethod]
-    public void CreateReport_InvalidTargetGuid_ThrowsError()
+    public void CreateReport_InvalidTargetGuid_ThrowsException()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -144,7 +149,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void CreateReport_InvalidAuthorGuid_ThrowsError()
+    public void CreateReport_InvalidAuthorGuid_ThrowsException()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -157,7 +162,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void CreateReport_InvalidRaportGuid_ThrowsError()
+    public void CreateReport_ValidGuids_CreatesReport()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -166,11 +171,14 @@ public class ReportServiceTests
         var report = service.CreateReport<Event, EventReport>(eventGuid, studentGuid, "title", "details", ReportCategory.Unknown);
 
         // Assert
+        Assert.IsNotNull(report);
         Assert.IsTrue(unitOfWork.Repository<EventReport>().Get(report.Guid) is not null);
     }
+    #endregion CreateReport
 
+    #region UpdateReport
     [TestMethod]
-    public void UpdateReport_InvalidResponderGuid_ThrowsError()
+    public void UpdateReport_InvalidResponderGuid_ThrowsException()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -183,7 +191,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void UpdateReport_InvalidReportGuid_ThrowsError()
+    public void UpdateReport_InvalidReportGuid_ThrowsException()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -196,7 +204,7 @@ public class ReportServiceTests
     }
 
     [TestMethod]
-    public void UpdateReport_ReportIsClosed_ThrowsError()
+    public void UpdateReport_ReportIsClosed_ThrowsException()
     {
         // Arrange
         ReportService service = new(unitOfWork);
@@ -223,5 +231,5 @@ public class ReportServiceTests
         Assert.AreEqual(newFeedback, updatedReport.Feedback);
         Assert.AreEqual(newState, updatedReport.State);
     }
-
+    #endregion UpdateReport
 }

@@ -1,6 +1,7 @@
 ﻿using Domain.BaseTypes;
 using Domain.DataModel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -23,7 +24,8 @@ public static class EntityFrameworkConfiguration
      * For more details see https://www.reddit.com/r/csharp/comments/wxjsd7/how_do_you_manage_nonloaded_navigation_properties/
      */
     public static void Configure(this DbContextOptionsBuilder options)
-        => options.UseLazyLoadingProxies();
+        => options.UseLazyLoadingProxies()
+                  .ConfigureWarnings(warnings => warnings.Log(CoreEventId.NavigationLazyLoading));
 
     public static void Configure(this ModelBuilder model)
     {

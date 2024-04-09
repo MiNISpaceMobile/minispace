@@ -1,6 +1,7 @@
 ﻿using Domain.Abstractions;
 using Domain.DataModel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers;
 
@@ -61,7 +62,9 @@ public class TestController : ControllerBase
     [Produces("application/json")]
     public ActionResult<IEnumerable<Post>> GetPosts()
     {
-        return Ok(uow.Repository<Post>().GetAll());
+        var temp = uow.Repository<Post>().GetAll();
+        Console.WriteLine(temp.First().Author.Email);//Include
+        return Ok(temp);
     }
 
     [HttpGet]
@@ -93,7 +96,9 @@ public class TestController : ControllerBase
     [Produces("application/json")]
     public ActionResult<IEnumerable<PostReport>> GetPostReports()
     {
-        return Ok(uow.Repository<PostReport>().GetAll());
+        var temp = uow.Repository<PostReport>().GetAll();//.Include(p => p.ReportedPost);
+        Console.WriteLine(temp.First().ReportedPost.AuthorId);
+        return Ok(temp);
     }
 
     [HttpGet]

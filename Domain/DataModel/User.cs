@@ -11,50 +11,50 @@ public abstract class User : BaseEntity
 
     public DateTime CreationDate { get; private set; }
 
-    public string Username { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
     public string Email { get; set; }
 
     // Profile Picture should be stored in external storage (Azure Blob?) under User Guid
     // But maybe it will be easier to store it here (i.e. in database) base64-encoded
-    public string? ProfilePicture { get; set; }
+    // public string? ProfilePicture { get; set; }
 
     // You *don't* store user passwords. You just store their hashes
     // I suggest we add salt to these hashes as it is an easy technique
     // which additionally increases security in case of a breach
-    // We can use User Guid or CreationDate as salt
-    // I suggest we use the first one
-    public byte[] SaltedPasswordHash { get; set; }
+    // We can use CreationDate as salt, because it never changes
+    // public byte[] SaltedPasswordHash { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     // Entity Framework likes empty constructors, but we shouldn't use them
     protected User() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public User(string username, string email, string password, DateTime? creationDate = null)
+    public User(string firstName, string lastName, string email, DateTime? creationDate = null)
     {
         CreationDate = creationDate ?? DateTime.Now;
 
-        Username = username;
+        FirstName = firstName;
+        LastName = lastName;
         Email = email;
 
-        SaltedPasswordHash = CalculatePasswordHash(password);
+        // SaltedPasswordHash = CalculatePasswordHash(password);
     }
 
-    public byte[] CalculatePasswordHash(string password)
-        => CalculatePasswordHash(password, Guid.ToString()); // CreationDate.ToString("s"));
+    public byte[] CalculatePasswordHash(string password) => CalculatePasswordHash(password, CreationDate.ToString("s"));
 
-    public bool UpdatePassword(string password)
-    {
-        var newHash = CalculatePasswordHash(password);
+    //public bool UpdatePassword(string password)
+    //{
+    //    var newHash = CalculatePasswordHash(password);
 
-        if (SaltedPasswordHash.SequenceEqual(newHash))
-            return false;
+    //    if (SaltedPasswordHash.SequenceEqual(newHash))
+    //        return false;
 
-        SaltedPasswordHash = newHash;
+    //    SaltedPasswordHash = newHash;
 
-        return true;
-    }
+    //    return true;
+    //}
 
-    public bool CheckPassword(string password)
-        => SaltedPasswordHash.SequenceEqual(CalculatePasswordHash(password));
+    //public bool CheckPassword(string password)
+    //    => SaltedPasswordHash.SequenceEqual(CalculatePasswordHash(password));
 }

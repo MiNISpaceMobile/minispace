@@ -9,6 +9,30 @@ public enum EventCategory
     // Any more we think of
 }
 
+public class Feedback
+{
+    public Guid AuthorId { get; private set; }
+    public virtual Student Author { get; set; }
+
+    public Guid EventId { get; private set; }
+    public virtual Event Event { get; set; }
+
+    public string Content { get; set; }
+
+#pragma warning disable CS8618 // Unassigned non-nullables
+    protected Feedback() { }
+#pragma warning restore CS8618 // Unassigned non-nullables
+
+    public Feedback(Student author, Event @event, string content)
+    {
+        Author = author;
+        Event = @event;
+
+        Content = content;
+    }
+}
+
+
 public class Event : BaseEntity
 {
     public Guid? OrganizerId { get; private set; }
@@ -30,15 +54,15 @@ public class Event : BaseEntity
     public virtual ICollection<Student> Participants { get; set; }
 
     public virtual ICollection<Post> Posts { get; set; }
-    public ICollection<string> Feedback { get; set; }
+    public virtual ICollection<Feedback> Feedback { get; set; }
 
     public int ViewCount { get; set; }
-    public int AverageAge
+    public int? AverageAge
     {
         get
         {
             var ages = Participants.Where(p => p.DateOfBirth is not null).Select(p => (int)p.Age!);
-            return ages.Sum() / ages.Count();
+            return !ages.Any() ? null : ages.Sum() / ages.Count();
         }
     }
 
@@ -67,7 +91,7 @@ public class Event : BaseEntity
         Interested = new List<Student>();
 
         Posts = new List<Post>();
-        Feedback = new List<string>();
+        Feedback = new List<Feedback>();
 
         ViewCount = 0;
     }

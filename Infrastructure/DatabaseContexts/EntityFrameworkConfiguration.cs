@@ -15,8 +15,6 @@ public static class EntityFrameworkConfiguration
      * and return it from IRepository's Get and GetAll methods
      */
 
-    // TODO: Fix EF errors when querying Events
-
     public static IServiceCollection AddEFContext<DbContextType>(this IServiceCollection services) where DbContextType : DbContext
         => services.AddDbContext<DbContext, DbContextType>();
 
@@ -37,6 +35,7 @@ public static class EntityFrameworkConfiguration
 
         model.Entity<Comment>().Configure();
         model.Entity<Event>().Configure();
+        model.Entity<Feedback>().Configure();
         model.Entity<Post>().Configure();
 
         model.Entity<Report>().Configure();
@@ -123,7 +122,22 @@ public static class EntityFrameworkConfiguration
         type.HasMany(x => x.Participants)
             .WithMany();
 
-        // Relationship with Post is configured in Post
+        // All relationships with Feedback and Post are configured in their respective classes
+    }
+
+    private static void Configure(this EntityTypeBuilder<Feedback> type)
+    {
+        type.HasKey(x => new { x.AuthorId, x.EventId });
+
+        type.HasOne(x => x.Author)
+            .WithMany()
+            .HasForeignKey(x => x.AuthorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        type.HasOne(x => x.Event)
+            .WithMany(x => x.Feedback)
+            .HasForeignKey(x => x.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void Configure(this EntityTypeBuilder<Post> type)
@@ -205,7 +219,7 @@ public static class EntityFrameworkConfiguration
         type.HasMany(x => x.Friends)
             .WithMany();
 
-        // All relationship with Event, Post and Comment are configured in their respective classes
+        // All relationships with Event, Feedback, Post and Comment are configured in their respective classes
     }
 
     private static void Configure(this EntityTypeBuilder<User> type)

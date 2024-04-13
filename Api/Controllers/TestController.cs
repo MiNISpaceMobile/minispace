@@ -1,7 +1,6 @@
 ﻿using Domain.Abstractions;
 using Domain.DataModel;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers;
 

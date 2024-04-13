@@ -62,9 +62,7 @@ public class TestController : ControllerBase
     [Produces("application/json")]
     public ActionResult<IEnumerable<Post>> GetPosts()
     {
-        var temp = uow.Repository<Post>().GetAll();
-        Console.WriteLine(temp.First().Author.Email);//Include
-        return Ok(temp);
+        return Ok(uow.Repository<Post>().GetAll());
     }
 
     [HttpGet]
@@ -96,9 +94,7 @@ public class TestController : ControllerBase
     [Produces("application/json")]
     public ActionResult<IEnumerable<PostReport>> GetPostReports()
     {
-        var temp = uow.Repository<PostReport>().GetAll();//.Include(p => p.ReportedPost);
-        Console.WriteLine(temp.First().ReportedPost.AuthorId);
-        return Ok(temp);
+        return Ok(uow.Repository<PostReport>().GetAll());
     }
 
     [HttpGet]

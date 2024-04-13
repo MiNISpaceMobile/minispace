@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.DatabaseContexts;
 
@@ -16,7 +17,8 @@ public static class EntityFrameworkConfiguration
 
     // TODO: Fix EF errors when querying Events
 
-    // TODO: Add warnings when navigations are lazy-loaded
+    public static IServiceCollection AddEFContext<DbContextType>(this IServiceCollection services) where DbContextType : DbContext
+        => services.AddDbContext<DbContext, DbContextType>();
 
     /* Lazy-loading may introduce some performance issues
      * and we may want to think about it in the future.
@@ -24,7 +26,7 @@ public static class EntityFrameworkConfiguration
      * For more details see https://www.reddit.com/r/csharp/comments/wxjsd7/how_do_you_manage_nonloaded_navigation_properties/
      */
     public static void Configure(this DbContextOptionsBuilder options)
-        => options.UseLazyLoadingProxies()
+        => options.UseLazyLoadingProxies(true)
                   .ConfigureWarnings(warnings => warnings.Log(CoreEventId.NavigationLazyLoading));
 
     public static void Configure(this ModelBuilder model)

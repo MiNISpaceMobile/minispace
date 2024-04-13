@@ -4,7 +4,6 @@ using Domain.Services;
 using Infrastructure.DatabaseContexts;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +23,7 @@ builder.Services.AddControllers();
  * It means that only one object of your class will exist for entire program duration.
  */
 
-builder.Services.AddDbContext<DbContext, SqliteDbContext>(options => options.Configure());
+builder.Services.AddEFContext<SqliteDbContext>();
 
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 

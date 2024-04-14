@@ -1,5 +1,4 @@
-﻿using Domain.DataModel;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.DatabaseContexts;
 
@@ -23,7 +22,7 @@ public class SqliteDbContext : DbContext
     public void CreateOrUpdate() => Database.Migrate();
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlite($"Data Source={DbFilePath}");
+        => options.UseSqlite($"Data Source={DbFilePath}").Configure();
 
     protected override void OnModelCreating(ModelBuilder model) => model.Configure();
 }

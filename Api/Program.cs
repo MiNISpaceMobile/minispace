@@ -4,14 +4,15 @@ using Domain.Services;
 using Infrastructure.DatabaseContexts;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
-using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+                .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 
 /* Add things to dependency injection below!
  * 
@@ -24,7 +25,7 @@ builder.Services.AddControllers();
  * It means that only one object of your class will exist for entire program duration.
  */
 
-builder.Services.AddDbContext<DbContext, SqliteDbContext>(options => options.Configure());
+builder.Services.AddEFContext<SqliteDbContext>();
 
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 

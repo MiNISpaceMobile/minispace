@@ -3,6 +3,7 @@ using System;
 using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    partial class SqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240413190814_ReworkFeedback")]
+    partial class ReworkFeedback
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -237,20 +240,30 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(128)
+                        .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("FirstName")
+                    b.Property<string>("ProfilePicture")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("SaltedPasswordHash")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(64)
+                        .HasColumnType("BLOB")
+                        .IsFixedLength();
 
-                    b.Property<string>("LastName")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Guid");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Username")
+                        .IsUnique();
 
                     b.ToTable("User");
 

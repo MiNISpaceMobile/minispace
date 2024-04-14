@@ -110,54 +110,74 @@ public class StudentServiceTests
     }
     #endregion DeleteStudent
 
-    #region TrySetFriendship
+    #region SendFriendRequest
     [TestMethod]
-    public void TrySetFriendship_BothNonexistent_ThrowsInvalidGuid()
+    public void SendFriendRequest_BothNonexistent_ThrowsInvalidGuid()
     {
-        Action act = () => sut.TrySetFriendship(Guid.NewGuid(), Guid.NewGuid(), false);
+        Action act = () => sut.SendFriendRequest(Guid.NewGuid(), Guid.NewGuid());
 
         Assert.ThrowsException<InvalidGuidException>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
-    public void TrySetFriendship_FirstNonexistent_ThrowsInvalidGuid()
+    public void SendFriendRequest_TargetNonexistent_ThrowsInvalidGuid()
     {
-        Action act = () => sut.TrySetFriendship(Guid.NewGuid(), sts[1].Guid, true);
+        Action act = () => sut.SendFriendRequest(Guid.NewGuid(), sts[1].Guid);
 
         Assert.ThrowsException<InvalidGuidException>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
-    public void TrySetFriendship_SecondNonexistent_ThrowsInvalidGuid()
+    public void SendFriendRequest_AuthorNonexistent_ThrowsInvalidGuid()
     {
-        Action act = () => sut.TrySetFriendship(sts[0].Guid, Guid.NewGuid(), false);
+        Action act = () => sut.SendFriendRequest(sts[0].Guid, Guid.NewGuid());
 
         Assert.ThrowsException<InvalidGuidException>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
-    public void TrySetFriendship_MakeFriends_MakesFriends()
+    public void SendFriendRequest_AlreadySent_ThrowsInvalidOperation()
     {
-        sut.TrySetFriendship(sts[0].Guid, sts[1].Guid, true);
+        sut.SendFriendRequest(sts[0].Guid, sts[1].Guid);
 
-        Assert.IsTrue(sts[0].Friends.Contains(sts[1]));
-        Assert.IsTrue(sts[1].Friends.Contains(sts[0]));
-        Assert.AreEqual(3, uow.Repository<Student>().GetAll().Count());
-        Assert.AreEqual(1, uow.CommitCount);
+        var act = () => sut.SendFriendRequest(sts[0].Guid, sts[1].Guid);
+
+        Assert.ThrowsException<InvalidOperationException>(act);
+        Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
-    public void TrySetFriendship_MakeNotFriends_MakesFriends()
+    public void SendFriendRequest_AlreadyFriends_ThrowsInvalidOperation()
     {
-        sut.TrySetFriendship(sts[0].Guid, sts[2].Guid, false);
-
-        Assert.IsFalse(sts[0].Friends.Contains(sts[2]));
-        Assert.IsFalse(sts[2].Friends.Contains(sts[0]));
-        Assert.AreEqual(3, uow.Repository<Student>().GetAll().Count());
-        Assert.AreEqual(1, uow.CommitCount);
+        throw new NotImplementedException();
     }
-    #endregion TrySetFriendship
+
+    [TestMethod]
+    public void SendFriendRequest_OppositeAlreadySent_MakesFriends()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void SendFriendRequest_Correct_FriendRequestCreated()
+    {
+        throw new NotImplementedException();
+    }
+    #endregion SendFriendRequest
+
+    #region RespondFriendRequest
+    // TODO: Tests
+    //[TestMethod]
+    //public void TrySetFriendship_MakeFriends_MakesFriends()
+    //{
+    //    sut.TrySetFriendship(sts[0].Guid, sts[2].Guid, false);
+
+    //    Assert.IsTrue(sts[0].Friends.Contains(sts[2]));
+    //    Assert.IsTrue(sts[2].Friends.Contains(sts[0]));
+    //    Assert.AreEqual(1, uow.CommitCount);
+    //}
+    #endregion RespondFriendRequest
 }

@@ -43,7 +43,10 @@ public static class EntityFrameworkConfiguration
         model.Entity<PostReport>().Configure();
         model.Entity<CommentReport>().Configure();
 
+        model.Entity<BaseNotification>().Configure();
         model.Entity<Notification>().Configure();
+        model.Entity<SocialNotification>().Configure();
+        model.Entity<FriendRequest>().Configure();
 
         using var conventionBlock = model.Model.DelayConventions();
 
@@ -134,7 +137,7 @@ public static class EntityFrameworkConfiguration
             .WithMany(x => x.SubscribedEvents);
 
         type.HasMany(x => x.Participants)
-            .WithMany();
+            .WithMany(x => x.JoinedEvents);
 
         // All relationships with Feedback and Post are configured in their respective classes
     }
@@ -258,8 +261,8 @@ public static class EntityFrameworkConfiguration
     }
     #endregion Reposts
 
-    #region Notification
-    public static void Configure(this EntityTypeBuilder<Notification> type)
+    #region Notifications
+    public static void Configure(this EntityTypeBuilder<BaseNotification> type)
     {
         type.HasKey(x => x.Guid);
 
@@ -267,17 +270,36 @@ public static class EntityFrameworkConfiguration
             .WithMany()
             .HasForeignKey(x => x.TargetId)
             .OnDelete(DeleteBehavior.Cascade);
+    }
 
-        /* This one is important!
-         * 
-         * By default when Friend which triggered the notification would be deleted
-         * it would continue to exist with Friend property set to null.
-         * Here we configure the OnDelete behaviour to instead delete such notifications.
-         */
+    public static void Configure(this EntityTypeBuilder<Notification> type)
+    {
+        type.HasBaseType<BaseNotification>();
+    }
+
+    public static void Configure(this EntityTypeBuilder<SocialNotification> type)
+    {
+        type.HasBaseType<BaseNotification>();
+
         type.HasOne(x => x.Friend)
             .WithMany()
             .HasForeignKey(x => x.FriendId)
             .OnDelete(DeleteBehavior.Cascade);
     }
-    #endregion Notification
+
+    public static void Configure(this EntityTypeBuilder<FriendRequest> type)
+    {
+        type.HasBaseType<BaseNotification>();
+
+        type.HasOne(x => x.Target)
+            .WithMany(x => x.ReceivedFriendRequests)
+            .HasForeignKey(x => x.TargetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        type.HasOne(x => x.Author)
+            .WithMany(x => x.SendFriendRequests)
+            .HasForeignKey(x => x.AuthorId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+    #endregion Notifications
 }

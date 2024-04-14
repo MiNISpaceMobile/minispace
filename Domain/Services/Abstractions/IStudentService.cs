@@ -12,6 +12,8 @@ namespace Domain.Services.Abstractions
 
         public void DeleteStudent(Guid guid);
 
-        public bool TrySetFriendship(Guid guid1, Guid guid2, bool make_friends);
+        public void SendFriendRequest(Guid targetId, Guid sourceId);
+
+        public void RespondFriendRequest(Guid requestId, bool accept);
     }
 }

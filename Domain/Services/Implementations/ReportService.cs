@@ -59,6 +59,14 @@ public class ReportService(IUnitOfWork unitOfWork) : IReportService
         return report;
     }
 
+    public void DeleteReport(Guid guid)
+    {
+        if (!unitOfWork.Repository<Report>().TryDelete(guid))
+            throw new Exception("Invalid guid");
+
+        unitOfWork.Commit();
+    }
+
     private static Report CreateSpecificReport<TargetType>(TargetType target, User author, string title,
         string details, ReportCategory category)
         where TargetType : BaseEntity

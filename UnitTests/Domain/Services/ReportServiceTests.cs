@@ -239,4 +239,32 @@ public class ReportServiceTests
         Assert.AreEqual(newReport.State, updatedReport.State);
     }
     #endregion UpdateReport
+
+    #region DeleteReport
+    [TestMethod]
+    public void DeleteReport_InvalidGuid_ThrowsException()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        void act() => service.DeleteReport(Guid.Empty);
+
+        // Assert
+        var exception = Assert.ThrowsException<Exception>(act);
+    }
+
+    [TestMethod]
+    public void DeleteReport_ValidGuid_DeletesReport()
+    {
+        // Arrange
+        ReportService service = new(unitOfWork);
+
+        // Act
+        service.DeleteReport(evRe0.Guid);
+
+        // Assert
+        Assert.IsFalse(unitOfWork.Repository<Report>().TryGet(evRe0.Guid, out _));
+    }
+    #endregion DeleteReport
 }

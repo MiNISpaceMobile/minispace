@@ -11,4 +11,5 @@ public interface IReportService
     IEnumerable<ReportType> GetAll<ReportType>() where ReportType : Report;
     ReportType GetByGuid<ReportType>(Guid guid) where ReportType : Report;
     Report UpdateReport(Report newReport);
+    void DeleteReport(Guid guid);
 }

@@ -10,41 +10,39 @@ public class ReportServiceTests
 {
 #pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork unitOfWork;
+    private EventReport evRe0;
+    private PostReport pRe0;
+    private CommentReport cRe0;
+    private CommentReport cRe1;
+    private Student st0;
+    private Student st1;
+    private Administrator ad0;
+    private Event ev0;
+    private Post p0;
+    private Comment c0;
+    private Comment c1;
 #pragma warning restore CS8618 // Unassigned non-nullables
-    static readonly Guid eventReportGuid = Guid.Parse(new('1', 32));
-    static readonly Guid postReportGuid = Guid.Parse(new('2', 32));
-    static readonly Guid commentReportGuid = Guid.Parse(new('3', 32));
-    static readonly Guid studentGuid = Guid.Parse(new('4', 32));
-    static readonly Guid eventGuid = Guid.Parse(new('5', 32));
-    static readonly Guid adminGuid = Guid.Parse(new('6', 32));
-
 
     [TestInitialize]
     public void Setup()
     {
         var now = DateTime.Now;
-        var st0 = new Student("user0", "user0@test.pl", "password") { Guid = studentGuid };
-        var st1 = new Student("user1", "user1@test.pl", "password") { IsOrganizer = true };
-        var ad0 = new Administrator("user2", "user2@test.pl", "password") { Guid = adminGuid };
-        var ev0 = new Event(st1, "test event", "test description", EventCategory.Uncategorized,
-            now, now.AddDays(10), now.AddDays(11), "test location", 20, 20)
-        { Guid = eventGuid };
-        var p0 = new Post(st1, ev0, "post");
-        var c0 = new Comment(st0, p0, "first comment", null);
-        var c1 = new Comment(st1, p0, "second comment", null);
+        st0 = new Student("user0", "user0@test.pl", "password");
+        st1 = new Student("user1", "user1@test.pl", "password") { IsOrganizer = true };
+        ad0 = new Administrator("user2", "user2@test.pl", "password");
+        ev0 = new Event(st1, "test event", "test description", EventCategory.Uncategorized,
+            now, now.AddDays(10), now.AddDays(11), "test location", 20, 20);
+        p0 = new Post(st1, ev0, "post");
+        c0 = new Comment(st0, p0, "first comment", null);
+        c1 = new Comment(st1, p0, "second comment", null);
 
-        var re0 = new EventReport(ev0, st0, "event report", "report details", ReportCategory.Unknown)
-        { Guid = eventReportGuid };
-        var re1 = new PostReport(p0, st0, "post report", "report details", ReportCategory.Behaviour)
-        { Guid = postReportGuid };
-        var re2 = new CommentReport(c0, st1, "comment report", "report details", ReportCategory.Behaviour)
-        {
-            Guid = commentReportGuid,
-            State = ReportState.Failure
-        };
-        var re3 = new CommentReport(c1, st0, "comment report", "report details", ReportCategory.Unknown);
+        evRe0 = new EventReport(ev0, st0, "event report", "report details", ReportCategory.Unknown);
+        pRe0 = new PostReport(p0, st0, "post report", "report details", ReportCategory.Behaviour);
+        cRe0 = new CommentReport(c0, st1, "comment report", "report details", ReportCategory.Behaviour)
+        { State = ReportState.Failure };
+        cRe1 = new CommentReport(c1, st0, "comment report", "report details", ReportCategory.Unknown);
 
-        unitOfWork = new DictionaryUnitOfWork([st0, st1, ad0, ev0, p0, c0, c1, re0, re1, re2, re3]);
+        unitOfWork = new DictionaryUnitOfWork([st0, st1, ad0, ev0, p0, c0, c1, evRe0, pRe0, cRe0, cRe1]);
     }
 
     #region GetAll
@@ -99,11 +97,11 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        var result = service.GetByGuid<Report>(eventReportGuid);
+        var result = service.GetByGuid<Report>(evRe0.Guid);
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(eventReportGuid, result.Guid);
+        Assert.AreEqual(evRe0.Guid, result.Guid);
     }
 
     [TestMethod]
@@ -113,7 +111,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        Report result = service.GetByGuid<CommentReport>(commentReportGuid);
+        Report result = service.GetByGuid<CommentReport>(cRe0.Guid);
 
         // Assert
         Assert.IsNotNull(result);
@@ -127,7 +125,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.GetByGuid<CommentReport>(eventReportGuid);
+        void act() => service.GetByGuid<CommentReport>(evRe0.Guid);
 
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
@@ -142,7 +140,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.CreateReport<Event, EventReport>(Guid.Empty, studentGuid, "title", "details", ReportCategory.Unknown);
+        void act() => service.CreateReport<Event, EventReport>(Guid.Empty, st0.Guid, "title", "details", ReportCategory.Unknown);
 
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
@@ -155,7 +153,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.CreateReport<Event, EventReport>(eventGuid, Guid.Empty, "title", "details", ReportCategory.Unknown);
+        void act() => service.CreateReport<Event, EventReport>(ev0.Guid, Guid.Empty, "title", "details", ReportCategory.Unknown);
 
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
@@ -168,7 +166,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        var report = service.CreateReport<Event, EventReport>(eventGuid, studentGuid, "title", "details", ReportCategory.Unknown);
+        var report = service.CreateReport<Event, EventReport>(ev0.Guid, st0.Guid, "title", "details", ReportCategory.Unknown);
 
         // Assert
         Assert.IsNotNull(report);
@@ -182,9 +180,11 @@ public class ReportServiceTests
     {
         // Arrange
         ReportService service = new(unitOfWork);
+        var newStudent = new Student("abc", "abc", "abc", DateTime.Now);
+        var newReport = new CommentReport(c0, newStudent, "title", "details", ReportCategory.Bug);
 
         // Act
-        void act() => service.UpdateReport(Guid.Empty, commentReportGuid, "feedback", ReportState.Success);
+        void act() => service.UpdateReport(newReport);
 
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
@@ -195,9 +195,10 @@ public class ReportServiceTests
     {
         // Arrange
         ReportService service = new(unitOfWork);
+        var newReport = new CommentReport(c0, st0, "title", "details", ReportCategory.Bug);
 
         // Act
-        void act() => service.UpdateReport(adminGuid, Guid.Empty, "feedback", ReportState.Success);
+        void act() => service.UpdateReport(newReport);
 
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
@@ -208,9 +209,10 @@ public class ReportServiceTests
     {
         // Arrange
         ReportService service = new(unitOfWork);
+        var newReport = new CommentReport(c0, st1, "title", "details", ReportCategory.Bug);
 
         // Act
-        void act() => service.UpdateReport(adminGuid, commentReportGuid, "feedback", ReportState.Success);
+        void act() => service.UpdateReport(newReport);
 
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
@@ -221,15 +223,20 @@ public class ReportServiceTests
     {
         // Arrange
         ReportService service = new(unitOfWork);
-        var newFeedback = "feedback";
-        var newState = ReportState.Success;
+        var newReport = new EventReport(ev0, st0, "title", "details", ReportCategory.Bug)
+        {
+            Guid = evRe0.Guid,
+            ResponderId = ad0.Guid,
+            Feedback = "feedback",
+            State = ReportState.Success
+        };
 
         // Act
-        var updatedReport = service.UpdateReport(adminGuid, eventReportGuid, newFeedback, newState);
+        var updatedReport = service.UpdateReport(newReport);
 
         // Assert
-        Assert.AreEqual(newFeedback, updatedReport.Feedback);
-        Assert.AreEqual(newState, updatedReport.State);
+        Assert.AreEqual(newReport.Feedback, updatedReport.Feedback);
+        Assert.AreEqual(newReport.State, updatedReport.State);
     }
     #endregion UpdateReport
 }

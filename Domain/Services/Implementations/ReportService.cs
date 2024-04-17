@@ -39,18 +39,20 @@ public class ReportService(IUnitOfWork unitOfWork) : IReportService
         return report;
     }
 
-    public Report UpdateReport(Guid responderId, Guid reportId, string feedback, ReportState reportState)
+    public Report UpdateReport(Report newReport)
     {
+        var responderId = newReport.ResponderId ??
+            throw new Exception("No responder guid");
         var responder = unitOfWork.Repository<Administrator>().Get(responderId) ??
             throw new Exception("Invalid responder guid");
-        var report = unitOfWork.Repository<Report>().Get(reportId) ??
+        var report = unitOfWork.Repository<Report>().Get(newReport.Guid) ??
             throw new Exception("Invalid report guid");
         if (!report.IsOpen)
             throw new Exception("Report is closed");
 
         report.Responder = responder;
-        report.Feedback = feedback;
-        report.State = reportState;
+        report.Feedback = newReport.Feedback;
+        report.State = newReport.State;
 
         unitOfWork.Commit();
 

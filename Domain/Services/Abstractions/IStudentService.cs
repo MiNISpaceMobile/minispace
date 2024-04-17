@@ -12,7 +12,11 @@ namespace Domain.Services.Abstractions
 
         public void DeleteStudent(Guid guid);
 
-        public void SendFriendRequest(Guid targetId, Guid sourceId);
+        /* Returns newly created FriendRequest
+         * unless an opposite FriendRequest was already pending
+         * in which case it is accepted, deleted and function returns null
+         */
+        public FriendRequest? SendFriendRequest(Guid targetId, Guid sourceId);
 
         public void RespondFriendRequest(Guid requestId, bool accept);
     }

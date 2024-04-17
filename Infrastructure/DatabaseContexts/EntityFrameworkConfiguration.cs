@@ -297,7 +297,7 @@ public static class EntityFrameworkConfiguration
             .OnDelete(DeleteBehavior.Cascade);
 
         type.HasOne(x => x.Author)
-            .WithMany(x => x.SendFriendRequests)
+            .WithMany(x => x.SentFriendRequests)
             .HasForeignKey(x => x.AuthorId)
             .OnDelete(DeleteBehavior.Cascade);
     }

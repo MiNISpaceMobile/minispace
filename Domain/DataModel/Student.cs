@@ -15,7 +15,7 @@ public class Student : User
     public virtual ICollection<Notification> PersonalNotifications { get; }
     public virtual ICollection<SocialNotification> SocialNotifications { get; }
     public virtual ICollection<FriendRequest> ReceivedFriendRequests { get; }
-    public virtual ICollection<FriendRequest> SendFriendRequests { get; }
+    public virtual ICollection<FriendRequest> SentFriendRequests { get; }
 
     public string Description { get; set; }
     public DateTime? DateOfBirth { get; set; }
@@ -53,6 +53,7 @@ public class Student : User
         PersonalNotifications = new List<Notification>();
         SocialNotifications = new List<SocialNotification>();
         ReceivedFriendRequests = new List<FriendRequest>();
+        SentFriendRequests = new List<FriendRequest>();
 
         Description = "";
 

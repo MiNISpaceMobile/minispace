@@ -50,21 +50,21 @@ public class StudentService : IStudentService
         uow.Commit();
     }
 
-    public void SendFriendRequest(Guid targetId, Guid authorId)
+    public FriendRequest? SendFriendRequest(Guid targetId, Guid authorId)
     {
         Student target = uow.Repository<Student>().GetOrThrow(targetId);
         Student author = uow.Repository<Student>().GetOrThrow(authorId);
 
-        FriendRequest? opposite = target.SendFriendRequests.Where(r => r.Target == author).SingleOrDefault();
+        FriendRequest? opposite = target.SentFriendRequests.Where(r => r.Target == author).SingleOrDefault();
         if (opposite is not null) // Author already received a FriendRequest from target
         {
             target.Friends.Add(author);
             author.Friends.Add(target);
 
-            uow.Repository<Notification>().TryDelete(opposite.Guid);
+            uow.Repository<FriendRequest>().TryDelete(opposite.Guid);
             uow.Commit();
 
-            return;
+            return null;
         }
 
         if (target.Friends.Contains(author))
@@ -73,10 +73,11 @@ public class StudentService : IStudentService
         if (target.ReceivedFriendRequests.Any(r => r.Author == author))
             throw new InvalidOperationException("Already sent a friend request");
 
-        uow.Repository<FriendRequest>().Add(new FriendRequest(target, author));
+        FriendRequest request = new FriendRequest(target, author);
+        uow.Repository<FriendRequest>().Add(request);
         uow.Commit();
 
-        return;
+        return request;
     }
 
     public void RespondFriendRequest(Guid requestId, bool accept)
@@ -88,14 +89,11 @@ public class StudentService : IStudentService
             Student target = request.Target;
             Student author = request.Author;
 
-            if (target.Friends.Contains(author))
-                throw new InvalidOperationException("Already friends");
-
             target.Friends.Add(author);
             author.Friends.Add(target);
         }
 
-        uow.Repository<Notification>().TryDelete(requestId);
+        uow.Repository<FriendRequest>().TryDelete(requestId);
         uow.Commit();
     }
 }

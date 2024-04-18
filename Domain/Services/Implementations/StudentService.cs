@@ -72,7 +72,7 @@ public class StudentService : BaseService<StudentService>, IStudentService
             target.Friends.Add(author);
             author.Friends.Add(target);
 
-            uow.Repository<FriendRequest>().TryDelete(opposite.Guid);
+            uow.Repository<FriendRequest>().Delete(opposite);
             uow.Commit();
 
             return null;
@@ -106,7 +106,7 @@ public class StudentService : BaseService<StudentService>, IStudentService
             author.Friends.Add(target);
         }
 
-        uow.Repository<FriendRequest>().TryDelete(requestId);
+        uow.Repository<FriendRequest>().Delete(request);
         uow.Commit();
     }
 }

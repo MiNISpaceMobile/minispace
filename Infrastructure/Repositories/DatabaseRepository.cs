@@ -19,14 +19,7 @@ public class DatabaseRepository<RecordType> : IRepository<RecordType> where Reco
     public RecordType? Get(Guid guid) => table.FirstOrDefault(r => r.Guid == guid);
     public IQueryable<RecordType> GetAll() => table;
 
-    public bool TryDelete(Guid guid)
-    {
-        var record = Get(guid);
-        if (record is null)
-            return false;
-        table.Remove(record);
-        return true;
-    }
+    public void Delete(RecordType record) => table.Remove(record);
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
         var selected = table.Where(predicate);

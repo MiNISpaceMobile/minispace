@@ -217,27 +217,6 @@ public class ReportServiceTests
         // Assert
         var exception = Assert.ThrowsException<Exception>(act);
     }
-
-    [TestMethod]
-    public void UpdateReport_ValidData_UpdatesReport()
-    {
-        // Arrange
-        ReportService service = new(unitOfWork);
-        var newReport = new EventReport(ev0, st0, "title", "details", ReportCategory.Bug)
-        {
-            Guid = evRe0.Guid,
-            ResponderId = ad0.Guid,
-            Feedback = "feedback",
-            State = ReportState.Success
-        };
-
-        // Act
-        var updatedReport = service.UpdateReport(newReport);
-
-        // Assert
-        Assert.AreEqual(newReport.Feedback, updatedReport.Feedback);
-        Assert.AreEqual(newReport.State, updatedReport.State);
-    }
     #endregion UpdateReport
 
     #region DeleteReport

@@ -5,8 +5,15 @@ public enum UserRole
     ADMIN
 }
 
-public record UserDto(long Id, string FirstName, string LastName, long StudentNumber,
-                      IEnumerable<string> Roles, long UsosId);
+public record UserDto(
+    long Id, 
+    string FirstName, 
+    string LastName, 
+    long StudentNumber,
+    IEnumerable<string> Roles, long UsosId);
 
-public record UserSearchDetails(string Name, long StudentNumber, PageableRequest Pageable);
+public record UserSearchDetails(
+    string Name, 
+    long StudentNumber, 
+    PageableRequest Pageable);
 

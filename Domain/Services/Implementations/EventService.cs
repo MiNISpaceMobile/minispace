@@ -200,4 +200,22 @@ public class EventService : IEventService
 
         return true;
     }
+
+    public Feedback AddFeedback(Guid eventGuid, Guid authorGuid, string content)
+    {
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
+        Student author = uow.Repository<Student>().GetOrThrow(authorGuid);
+        if (content == string.Empty)
+            throw new EmptyContentException();
+
+        if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == authorGuid) is not null)
+            throw new InvalidOperationException("This Student have already given Feedback to this Event");
+
+        Feedback feedback = new Feedback(author, @event, content);
+        //uow.Repository<Feedback>().Add(feedback);
+        @event.Feedback.Add(feedback);
+
+        uow.Commit();
+        return feedback;
+    }
 }

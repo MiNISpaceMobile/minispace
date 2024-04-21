@@ -396,4 +396,64 @@ public class EventServiceTests
         Assert.IsFalse(student.SubscribedEvents.Contains(@event));
     }
     #endregion
+
+    #region AddFeedback
+    [TestMethod]
+    public void AddFeedback_NonexistentEvent_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.AddFeedback(Guid.Empty, Guid.Empty, string.Empty);
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
+    }
+
+    [TestMethod]
+    public void AddFeedback_EmptyContent_ShouldThrowEmptyContentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.AddFeedback(events.Last().Guid, students.Last().Guid, string.Empty);
+
+        // Assert
+        Assert.ThrowsException<EmptyContentException>(action);
+    }
+
+    [TestMethod]
+    public void AddFeedback_AlreadyGivenFeedback_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student author = students.First();
+        Feedback feedback = new Feedback(author, @event, "a");
+        @event.Feedback.Add(feedback);
+
+        // Act
+        Action action = () => sut.AddFeedback(@event.Guid, author.Guid, "b");
+
+        // Assert
+        Assert.ThrowsException<InvalidOperationException>(action);
+    }
+
+    [TestMethod]
+    public void AddFeedback_CorrectInput_ShouldAddFeedback()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student author = students.First();
+
+        // Act
+        Feedback result = sut.AddFeedback(@event.Guid, author.Guid, "a");
+
+        // Assert
+        Assert.IsTrue(@event.Feedback.Count == 1);
+    }
+    #endregion
 }

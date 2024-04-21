@@ -18,4 +18,5 @@ public interface IEventService
     public bool TryRemoveParticipant(Guid eventGuid, Guid studentGuid);
     public bool TryAddInterested(Guid eventGuid, Guid studentGuid);
     public bool TryRemoveInterested(Guid eventGuid, Guid studentGuid);
+    public Feedback AddFeedback(Guid eventGuid, Guid authorGuid, string content);
 }

@@ -253,4 +253,102 @@ public class EventServiceTests
         Assert.IsTrue(student.SubscribedEvents.Contains(@event));
     }
     #endregion
+
+    #region TryRemoveParticipant
+    [TestMethod]
+    public void TryRemoveParticipant_NonexistentEvent_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.TryRemoveParticipant(Guid.Empty, students.Last().Guid);
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException>(action);
+    }
+
+    [TestMethod]
+    public void TryRemoveParticipant_NotParticipating_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+
+        // Act
+        var result = sut.TryRemoveParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void TryRemoveParticipant_Participating_ShouldRemoveParticipant()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Participants.Add(student);
+        student.SubscribedEvents.Add(@event);
+
+        // Act
+        var result = sut.TryRemoveParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsFalse(@event.Participants.Contains(student));
+        Assert.IsFalse(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
+
+    #region TryRemoveInterested
+    [TestMethod]
+    public void TryRemoveInterested_NonexistentEvent_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.TryRemoveInterested(Guid.Empty, students.Last().Guid);
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException>(action);
+    }
+
+    [TestMethod]
+    public void TryRemoveInterested_NotInterested_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+
+        // Act
+        var result = sut.TryRemoveInterested(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void TryRemoveParticipant_Interested_ShouldRemoveInterested()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Interested.Add(student);
+        student.SubscribedEvents.Add(@event);
+
+        // Act
+        var result = sut.TryRemoveInterested(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsFalse(@event.Interested.Contains(student));
+        Assert.IsFalse(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
 }

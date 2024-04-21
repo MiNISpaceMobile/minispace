@@ -14,5 +14,7 @@ public interface IEventService
                  DateTime startDate, DateTime endDate, string location, int? capacity, decimal? fee);
     public void UpdateEvent(Event newEvent);
     public bool TryAddParticipant(Guid eventGuid, Guid studentGuid);
+    public bool TryRemoveParticipant(Guid eventGuid, Guid studentGuid);
     public bool TryAddInterested(Guid eventGuid, Guid studentGuid);
+    public bool TryRemoveInterested(Guid eventGuid, Guid studentGuid);
 }

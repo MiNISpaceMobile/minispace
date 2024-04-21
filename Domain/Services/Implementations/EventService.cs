@@ -122,4 +122,60 @@ public class EventService : IEventService
 
         return true;
     }
+
+    /// <summary>
+    /// Tries to remove student from participants of event.
+    /// </summary>
+    /// <param name="eventGuid"></param>
+    /// <param name="studentGuid"></param>
+    /// <returns>
+    /// true if operation was successfull, false if student is already not participating
+    /// </returns>
+    /// <exception cref="InvalidGuidException"></exception>
+    public bool TryRemoveParticipant(Guid eventGuid, Guid studentGuid)
+    {
+        Event? @event = uow.Repository<Event>().Get(eventGuid);
+        Student? student = uow.Repository<Student>().Get(studentGuid);
+        if (student is null || @event is null)
+            throw new InvalidGuidException();
+
+        // Already not participating
+        if (!@event.Participants.Contains(student))
+            return false;
+
+        @event.Participants.Remove(student);
+        student.SubscribedEvents.Remove(@event);
+
+        uow.Commit();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to remove student from interested of event.
+    /// </summary>
+    /// <param name="eventGuid"></param>
+    /// <param name="studentGuid"></param>
+    /// <returns>
+    /// true if operation was successfull, false if student is already not interested
+    /// </returns>
+    /// <exception cref="InvalidGuidException"></exception>
+    public bool TryRemoveInterested(Guid eventGuid, Guid studentGuid)
+    {
+        Event? @event = uow.Repository<Event>().Get(eventGuid);
+        Student? student = uow.Repository<Student>().Get(studentGuid);
+        if (student is null || @event is null)
+            throw new InvalidGuidException();
+
+        // Already not interested
+        if (!@event.Interested.Contains(student))
+            return false;
+
+        @event.Interested.Remove(student);
+        student.SubscribedEvents.Remove(@event);
+
+        uow.Commit();
+
+        return true;
+    }
 }

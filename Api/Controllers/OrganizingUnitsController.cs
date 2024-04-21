@@ -55,7 +55,7 @@ public class OrganizingUnitsController : ControllerBase
     /// </summary>
     [HttpGet("roots")]
     [ProducesResponseType<IEnumerable<OrganizingUnitSearchResponse>>(StatusCodes.Status200OK)]
-    public IEnumerable<OrganizingUnitSearchResponse> GetRoots()
+    public ActionResult<IEnumerable<OrganizingUnitSearchResponse>> GetRoots()
     {
         throw new NotImplementedException();
     }
@@ -65,7 +65,7 @@ public class OrganizingUnitsController : ControllerBase
     /// </summary>
     [HttpGet("{id}/children")]
     [ProducesResponseType<IEnumerable<OrganizingUnitSearchResponse>>(StatusCodes.Status200OK)]
-    public IEnumerable<OrganizingUnitSearchResponse> GetChildren(int id)
+    public ActionResult<IEnumerable<OrganizingUnitSearchResponse>> GetChildren(int id)
     {
         throw new NotImplementedException();
     }

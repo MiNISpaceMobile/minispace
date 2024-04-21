@@ -21,7 +21,6 @@ public record Pageable(
     bool Paged, 
     bool Unpaged);
 
-// I think there might be something wrong with it but it is identical to the one that is in APISpec.
 public record PagedResponse<T>(
     IEnumerable<T> Content, 
     Pageable Pageable, 

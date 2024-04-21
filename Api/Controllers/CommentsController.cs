@@ -33,7 +33,7 @@ public class CommentsController : ControllerBase
     /// </summary>
     [HttpPost("search")]
     [ProducesResponseType<PagedResponse<CommentDto>>(StatusCodes.Status200OK)]
-    public PagedResponse<CommentDto> SearchComments(EventSearchDetails details)
+    public ActionResult<PagedResponse<CommentDto>> SearchComments(EventSearchDetails details)
     {
         throw new NotImplementedException();
     }

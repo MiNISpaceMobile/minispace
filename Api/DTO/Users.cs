@@ -1,4 +1,5 @@
 ﻿namespace Api.DTO;
+
 public enum UserRole
 {
     ORGANIZER,
@@ -10,10 +11,10 @@ public record UserDto(
     string FirstName, 
     string LastName, 
     long StudentNumber,
-    IEnumerable<string> Roles, long UsosId);
+    IEnumerable<string> Roles, 
+    long UsosId);
 
 public record UserSearchDetails(
     string Name, 
     long StudentNumber, 
     PageableRequest Pageable);
-

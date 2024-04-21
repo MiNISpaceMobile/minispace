@@ -33,7 +33,7 @@ public class EventsController : ControllerBase
     /// </summary>
     [HttpPost("search")]
     [ProducesResponseType<PagedResponse<EventDto>>(StatusCodes.Status200OK)]
-    public PagedResponse<EventDto> SearchEvents(EventSearchDetails details)
+    public ActionResult<PagedResponse<EventDto>> SearchEvents(EventSearchDetails details)
     {
         throw new NotImplementedException();
     }

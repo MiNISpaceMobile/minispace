@@ -34,7 +34,7 @@ public class StudentServiceTests
     {
         var act = () => sut.GetStudent(Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -68,7 +68,7 @@ public class StudentServiceTests
 
         var act = () => sut.UpdateStudent(newStudent);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -96,7 +96,7 @@ public class StudentServiceTests
     {
         var act = () => sut.DeleteStudent(Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -116,7 +116,7 @@ public class StudentServiceTests
     {
         Action act = () => sut.TrySetFriendship(Guid.NewGuid(), Guid.NewGuid(), false);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -125,7 +125,7 @@ public class StudentServiceTests
     {
         Action act = () => sut.TrySetFriendship(Guid.NewGuid(), sts[1].Guid, true);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -134,7 +134,7 @@ public class StudentServiceTests
     {
         Action act = () => sut.TrySetFriendship(sts[0].Guid, Guid.NewGuid(), false);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 

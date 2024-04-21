@@ -1,4 +1,5 @@
 ﻿using Domain.Abstractions;
+using Domain.BaseTypes;
 using Domain.DataModel;
 using System;
 
@@ -17,7 +18,7 @@ public class EventService : IEventService
     {
         Event? @event = uow.Repository<Event>().Get(guid);
         if (@event is null)
-            throw new ArgumentException("Nonexistent event");
+            throw new InvalidGuidException<Event>();
 
         return @event;
     }
@@ -27,7 +28,7 @@ public class EventService : IEventService
     {
         Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null)
-            throw new ArgumentException("Nonexistent student");
+            throw new InvalidGuidException<Event>();
 
         Event @event = new Event(student, title, description, category, publicationDate,
             startDate, endDate, location, capacity, fee);
@@ -40,12 +41,12 @@ public class EventService : IEventService
     /// Assignes values of given event to event with the same guid existing in db 
     /// </summary>
     /// <param name="newEvent"></param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidGuidException"></exception>
     public void UpdateEvent(Event newEvent)
     {
         Event? currEvent = uow.Repository<Event>().Get(newEvent.Guid);
         if (currEvent is null)
-            throw new ArgumentException("Nonexistent event");
+            throw new InvalidGuidException<Event>();
 
         currEvent.Title = newEvent.Title;
         currEvent.Description = newEvent.Description;
@@ -67,13 +68,13 @@ public class EventService : IEventService
     /// <returns>
     /// true if operation was successfull, false if participants number reached maximum or student is already participating
     /// </returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidGuidException"></exception>
     public bool TryAddParticipant(Guid eventGuid, Guid studentGuid)
     {
         Event? @event = uow.Repository<Event>().Get(eventGuid);
         Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null || @event is null)
-            throw new ArgumentException("Nonexistent object");
+            throw new InvalidGuidException();
 
         // Full event
         if (@event.Capacity is not null && @event.Participants.Count == @event.Capacity)
@@ -100,13 +101,13 @@ public class EventService : IEventService
     /// <returns>
     /// true if operation was successfull, false if student is already interested
     /// </returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidGuidException"></exception>
     public bool TryAddInterested(Guid eventGuid, Guid studentGuid)
     {
         Event? @event = uow.Repository<Event>().Get(eventGuid);
         Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null || @event is null)
-            throw new ArgumentException("Nonexistent object");
+            throw new InvalidGuidException();
         
         // Already interested
         if (@event.Interested.Contains(student))

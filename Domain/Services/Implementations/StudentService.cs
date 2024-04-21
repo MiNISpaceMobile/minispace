@@ -45,7 +45,7 @@ public class StudentService : IStudentService
     public void DeleteStudent(Guid guid)
     {
         if (!uow.Repository<Student>().TryDelete(guid))
-            throw new InvalidGuidException();
+            throw new InvalidGuidException<Student>();
         uow.Commit();
     }
 
@@ -55,7 +55,7 @@ public class StudentService : IStudentService
         var students = uow.Repository<Student>().GetAll().Where(s => s.Guid == guid1 || s.Guid == guid2);
 
         if (students.Count() != 2)
-            throw new InvalidGuidException();
+            throw new InvalidGuidException<Student>();
 
         Student student1 = students.First();
         Student student2 = students.Last();

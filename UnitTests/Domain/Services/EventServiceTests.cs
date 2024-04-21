@@ -44,7 +44,7 @@ public class EventServiceTests
         Action action = () => service.GetEvent(guid);
 
         // Assert
-        Assert.ThrowsException<ArgumentException>(action);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
@@ -74,8 +74,7 @@ public class EventServiceTests
         var action = () => sut.CreateEvent(new Guid(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual("Nonexistent student", ex.Message);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
@@ -106,8 +105,7 @@ public class EventServiceTests
         var action = () => sut.UpdateEvent(newEvent);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual("Nonexistent event", ex.Message);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
@@ -138,8 +136,7 @@ public class EventServiceTests
         Action action = () => sut.TryAddParticipant(Guid.Empty, students.Last().Guid);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual("Nonexistent object", ex.Message);
+        Assert.ThrowsException<InvalidGuidException>(action);
     }
 
     [TestMethod]
@@ -219,8 +216,7 @@ public class EventServiceTests
         Action action = () => sut.TryAddInterested(Guid.Empty, students.Last().Guid);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual("Nonexistent object", ex.Message);
+        Assert.ThrowsException<InvalidGuidException>(action);
     }
 
     [TestMethod]

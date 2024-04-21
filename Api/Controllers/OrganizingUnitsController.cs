@@ -13,7 +13,7 @@ public class OrganizingUnitsController : ControllerBase
     /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult GetUnit(OrganizingUnitDto organizingUnit)
+    public IActionResult CreateUnit(OrganizingUnitDto organizingUnit)
     {
         throw new NotImplementedException();
     }

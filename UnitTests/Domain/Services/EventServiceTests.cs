@@ -92,6 +92,51 @@ public class EventServiceTests
     }
     #endregion
 
+    #region DeleteEvent
+    [TestMethod]
+    public void DeleteEvent_NonexistentEvent_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.DeleteEvent(Guid.Empty);
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
+    }
+
+    [TestMethod]
+    public void DeleteEvent_CorrectEvent_ShouldDeleteEvent()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        student.SubscribedEvents.Add(@event);
+        @event.Interested.Add(student);
+        // Event posts
+        uow.Repository<Event>().Add(@event);
+        Post post1 = new Post(student, @event, "a");
+        uow.Repository<Post>().Add(post1);
+        Post post2 = new Post(student, @event, "a");
+        uow.Repository<Post>().Add(post2);
+        @event.Posts.Add(post1);
+        @event.Posts.Add(post2);
+
+        // Act
+        sut.DeleteEvent(@event.Guid);
+
+        // Assert
+        Assert.IsNull(uow.Repository<Event>().Get(@event.Guid));
+        Assert.IsNull(uow.Repository<Post>().Get(post1.Guid));
+        Assert.IsNull(uow.Repository<Post>().Get(post2.Guid));
+        Assert.IsTrue(@event.Interested.Count == 0);
+        Assert.IsTrue(@event.Posts.Count == 0);
+        Assert.IsFalse(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
+
     #region UpdateEvent
     [TestMethod]
     public void UpdateEvent_NonexistentEvent_ShouldThrowArgumentException()

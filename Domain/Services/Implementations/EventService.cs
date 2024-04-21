@@ -8,10 +8,12 @@ namespace Domain.Services;
 public class EventService : IEventService
 {
     private IUnitOfWork uow;
+    private PostService postService;
 
     public EventService(IUnitOfWork uow)
     {
         this.uow = uow;
+        postService = new PostService(uow);
     }
 
     public Event GetEvent(Guid guid)
@@ -35,6 +37,26 @@ public class EventService : IEventService
         uow.Repository<Event>().Add(@event);
         uow.Commit();
         return @event;
+    }
+
+    /// <summary>
+    /// Deletes event and it's posts
+    /// </summary>
+    /// <param name="guid"></param>
+    public void DeleteEvent(Guid guid)
+    {
+        Event @event = uow.Repository<Event>().GetOrThrow(guid);
+
+        while (@event.Posts.Count > 0) 
+            postService.DeletePost(@event.Posts.First().Guid);
+        while (@event.Participants.Count > 0)
+            TryRemoveParticipant(@event.Guid, @event.Participants.First().Guid);
+        while (@event.Interested.Count > 0)
+            TryRemoveInterested(@event.Guid, @event.Interested.First().Guid);
+
+        uow.Repository<Event>().TryDelete(guid);
+
+        uow.Commit();
     }
 
     /// <summary>

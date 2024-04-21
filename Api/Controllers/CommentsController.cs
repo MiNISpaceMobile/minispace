@@ -1,4 +1,6 @@
-﻿using Api.DTO;
+﻿using Api.DTO.Comments;
+using Api.DTO.Events;
+using Api.DTO.Paging;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;

@@ -1,4 +1,4 @@
-﻿using Api.DTO;
+﻿using Api.DTO.Posts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;

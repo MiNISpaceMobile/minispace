@@ -1,4 +1,8 @@
-﻿using Domain.DataModel;
+﻿using Api.DTO.Comments;
+using Api.DTO.Events;
+using Api.DTO.Posts;
+using Api.DTO.Users;
+using Domain.DataModel;
 
 namespace Api.DTO;
 

@@ -1,4 +1,5 @@
-﻿using Api.DTO;
+﻿using Api.DTO.Paging;
+using Api.DTO.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;

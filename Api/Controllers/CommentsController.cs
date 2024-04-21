@@ -1,5 +1,4 @@
 ﻿using Api.DTO.Comments;
-using Api.DTO.Events;
 using Api.DTO.Paging;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,7 +34,7 @@ public class CommentsController : ControllerBase
     /// </summary>
     [HttpPost("search")]
     [ProducesResponseType<PagedResponse<CommentDto>>(StatusCodes.Status200OK)]
-    public ActionResult<PagedResponse<CommentDto>> SearchComments(EventSearchDetails details)
+    public ActionResult<PagedResponse<CommentDto>> SearchComments(CommentSearchDetails details)
     {
         throw new NotImplementedException();
     }

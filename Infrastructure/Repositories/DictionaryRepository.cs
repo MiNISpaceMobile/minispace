@@ -41,8 +41,9 @@ public class DictionaryRepository<RecordType> : IRepository<RecordType> where Re
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
         var selected = GetAll().Where(predicate);
+        int count = selected.Count();
         foreach (var record in selected)
             UnitOfWork.TryDelete(record);
-        return selected.Count();
+        return count;
     }
 }

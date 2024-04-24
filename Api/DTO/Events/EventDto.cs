@@ -1,12 +1,18 @@
-﻿using Api.DTO.OrganizingUnits;
+﻿using Api.DTO.Users;
 
 namespace Api.DTO.Events;
 
 public record EventDto(
-    long Id,
-    Guid Uuid,
-    string Name,
-    OrganizingUnitDto OrganizingUnit,
-    DateTime Date,
+    Guid Guid,
+    UserDto? Organizer,
+    string Title,
     string Description,
-    int ParticipantCount);
+    string EventCategory,
+    DateTime PublicationDate,
+    DateTime StartDate,
+    DateTime EndDate,
+    string Location,
+    int ParticipantCount,
+    int InterestedCount,
+    int ViewCount,
+    int? AverageAge);

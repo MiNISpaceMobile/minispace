@@ -1,11 +1,13 @@
-﻿using Api.DTO.OrganizingUnits;
-
-namespace Api.DTO.Events;
+﻿namespace Api.DTO.Events;
 
 public record CreateEvent(
-    long Id,
-    Guid Uuid,
-    string Name,
-    OrganizingUnitDto OrganizingUnit,
-    DateTime Date,
-    string Description);
+    Guid OrganizerGuid,
+    string Title,
+    string Description,
+    string EventCategory,
+    DateTime PublicationDate,
+    DateTime StartDate,
+    DateTime EndDate,
+    string Location,
+    int? Capacity,
+    int? Fee);

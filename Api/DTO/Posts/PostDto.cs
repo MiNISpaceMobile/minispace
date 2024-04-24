@@ -1,9 +1,9 @@
-﻿namespace Api.DTO.Posts;
+﻿using Api.DTO.Users;
+
+namespace Api.DTO.Posts;
 
 public record PostDto(
-    long Id,
-    Guid Uuid,
-    long EventId,
-    long AuthorId,
-    DateTime DatePosted,
-    string Content);
+    Guid Guid,
+    Guid EventGuid,
+    UserDto? Author,
+    DateTime CreationDate);

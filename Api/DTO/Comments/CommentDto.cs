@@ -3,7 +3,6 @@
 namespace Api.DTO.Comments;
 
 public record CommentDto(
-    long EventId,
-    long PostId,
+    Guid Guid,
     UserDto? Author,
     string Content);

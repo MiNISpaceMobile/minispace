@@ -1,4 +1,5 @@
 using Api;
+using Api.Auth;
 using Domain.Abstractions;
 using Domain.Services;
 using Infrastructure.DatabaseContexts;
@@ -28,8 +29,10 @@ builder.Services.AddControllers()
 builder.Services.AddEFContext<SqliteDbContext>();
 
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+builder.Services.AddSingleton<RSAProvider>();
 
 builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
+builder.Services.AddScoped<UsosAuthentication>();
 
 /* Warning! Important! Will help you later!
  * 

@@ -119,6 +119,9 @@ public static class EntityFrameworkConfiguration
         type.HasMany(x => x.Friends)
             .WithMany();
 
+        // This property simply concatenates results of other properties
+        type.Ignore(x => x.AllNotifications);
+
         // All relationships with Event, Feedback, Post and Comment are configured in their respective classes
     }
     #endregion Users
@@ -266,20 +269,33 @@ public static class EntityFrameworkConfiguration
     {
         type.HasKey(x => x.Guid);
 
-        type.HasOne(x => x.Target)
-            .WithMany()
-            .HasForeignKey(x => x.TargetId)
-            .OnDelete(DeleteBehavior.Cascade);
+        /* The following code is incompatible with navigations configured in BaseNotification subclasses
+         * But it reflects the idea, which AllNotifications property serves
+         */
+        //type.HasOne(x => x.Target)
+        //    .WithMany(x => x.AllNotifications)
+        //    .HasForeignKey(x => x.TargetId)
+        //    .OnDelete(DeleteBehavior.Cascade);
     }
 
     public static void Configure(this EntityTypeBuilder<Notification> type)
     {
         type.HasBaseType<BaseNotification>();
+
+        type.HasOne(x => x.Target)
+            .WithMany(x => x.PersonalNotifications)
+            .HasForeignKey(x => x.TargetId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     public static void Configure(this EntityTypeBuilder<SocialNotification> type)
     {
         type.HasBaseType<BaseNotification>();
+
+        type.HasOne(x => x.Target)
+            .WithMany(x => x.SocialNotifications)
+            .HasForeignKey(x => x.TargetId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         type.HasOne(x => x.Friend)
             .WithMany()

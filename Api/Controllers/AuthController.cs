@@ -11,29 +11,45 @@ namespace Api.Controllers;
 public class AuthController : ControllerBase
 {
     private UsosAuthentication usos;
+    private ILogger logger;
 
-    public AuthController(UsosAuthentication usos)
+    public AuthController(UsosAuthentication usos, ILogger<AuthController> logger)
     {
         this.usos = usos;
+        this.logger = logger;
     }
-
-    // TODO: Proper error/exception handling
 
     [HttpPost]
     [Route("usos/requestToken")]
     [Consumes("application/json")]
-    [Produces("apllication/json")]
+    [Produces("application/json")]
     public ActionResult<DTOLoginResponse> RequestToken([FromBody] DTOLoginRequest request)
     {
-        return Ok(usos.RequestLogin(request));
+        try
+        {
+            return Ok(usos.RequestLogin(request));
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"Login request failed: {e.Message}");
+            return this.FailedDependency();
+        }
     }
 
     [HttpPost]
     [Route("usos/jwt")]
     [Consumes("application/json")]
-    [Produces("apllication/json")]
+    [Produces("application/json")]
     public ActionResult<DTOAccessResponse> RequestJWT([FromBody] DTOAccessRequest request)
     {
-        return Ok(usos.RequestAccess(request));
+        try
+        {
+            return Ok(usos.RequestAccess(request));
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"Access request failed: {e.Message}");
+            return this.FailedDependency();
+        }
     }
 }

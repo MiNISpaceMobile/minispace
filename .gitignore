@@ -6,6 +6,11 @@
 # Development database
 MinispaceDb/
 
+# Secrets
+minispace-secrets.json
+# This file should not be in the repo directory anyway
+# This is here so someone doesn't push them accidentally
+
 # User-specific files
 *.rsuser
 *.suo

@@ -6,6 +6,7 @@ using JWT.Builder;
 using RestSharp;
 using RestSharp.Authenticators;
 using System.Text.Json.Serialization;
+using System.Web;
 
 namespace Api.Auth;
 
@@ -22,22 +23,27 @@ public class UsosAuthentication
     {
         this.uow = uow;
         this.rsa = rsa;
-        client = new RestClient(config["USOS_BASE_URL"]!);
+        client = new RestClient(config["USOS_BASE_URL"]!, options => options.ThrowOnAnyError = true);
         consumerKey = config["USOS_CONSUMER_KEY"]!;
-        // TODO: Actually add above variables to configuration, but not to the repo
         consumerSecret = config["USOS_CONSUMER_SECRET"]!;
     }
 
-    // TODO: Proper error/exception handling
-
-#pragma warning disable CS8618 // Unassigned non-nullables
     private class TokenResponse
     {
-        [JsonPropertyName("oauth_token")]
         public string Token { get; set; }
-
-        [JsonPropertyName("oauth_token_secret")]
         public string Secret { get; set; }
+
+        public TokenResponse(string token, string secret)
+        {
+            Token = token;
+            Secret = secret;
+        }
+        public TokenResponse(RestResponse response)
+        {
+            var query = HttpUtility.ParseQueryString(response.Content!);
+            Token = query.Get("oauth_token")!;
+            Secret = query.Get("oauth_token_secret")!;
+        }
     }
 
     private class UserResponse
@@ -52,19 +58,32 @@ public class UsosAuthentication
         public string LastName { get; set; }
 
         [JsonPropertyName("email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [JsonPropertyName("birth_date")]
         public DateTime? DateOfBirth { get; set; }
+
+        [JsonConstructor]
+        public UserResponse(string id, string firstName, string lastName, string email, DateTime? dateOfBirth)
+        {
+            Id = id;
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email;
+            DateOfBirth = dateOfBirth;
+        }
     }
-#pragma warning restore CS8618 // Unassigned non-nullables
 
     public DTOLoginResponse RequestLogin(DTOLoginRequest dtoRequest)
     {
+        if (!Uri.IsWellFormedUriString(dtoRequest.callbackUrl, UriKind.RelativeOrAbsolute) && !string.Equals(dtoRequest.callbackUrl, "oob"))
+            throw new ArgumentException("callbackUrl is neither a valid Url nor 'oob'");
+
         RestRequest request = new RestRequest("oauth/request_token")
         { Authenticator = OAuth1Authenticator.ForRequestToken(consumerKey, consumerSecret, dtoRequest.callbackUrl) }
             .AddParameter("scopes", "email|personal");
-        TokenResponse response = client.Post<TokenResponse>(request)!;
+        TokenResponse response = new TokenResponse(client.Post(request));
+
         return new DTOLoginResponse(response.Token, response.Secret, $"{client.Options.BaseUrl!.AbsoluteUri}oauth/authorize?oauth_token={response.Token}");
     }
 
@@ -72,27 +91,33 @@ public class UsosAuthentication
     {
         RestRequest accessRequest = new RestRequest("oauth/access_token")
         { Authenticator = OAuth1Authenticator.ForAccessToken(consumerKey, consumerSecret, dtoRequest.loginToken, dtoRequest.loginSecret, dtoRequest.verifier) };
-        TokenResponse accessResponse = client.Get<TokenResponse>(accessRequest)!;
+        TokenResponse accessResponse = new TokenResponse(client.Get(accessRequest)!);
 
         RestRequest userRequest = new RestRequest("users/user")
-        { Authenticator = OAuth1Authenticator.ForProtectedResource(consumerKey, consumerSecret, accessResponse.Token, accessResponse.Secret) };
+        { Authenticator = OAuth1Authenticator.ForProtectedResource(consumerKey, consumerSecret, accessResponse.Token, accessResponse.Secret) }
+            .AddParameter("fields", "id|first_name|last_name|email|birth_date");
         UserResponse userResponse = client.Get<UserResponse>(userRequest)!;
+        if (string.IsNullOrEmpty(userResponse.Id))
+            throw new Exception("Unexpected expection - USOS API request succeeded, but returned ID is invalid, possible deserialization error");
 
         User? user = uow.Repository<User>().GetAll().Where(x => string.Equals(x.ExternalId, userResponse.Id)).SingleOrDefault();
         if (user is null) // first time user
         {
-            user = new Student(userResponse.FirstName, userResponse.LastName, userResponse.Email) { DateOfBirth = userResponse.DateOfBirth };
+            user = new Student(userResponse.FirstName, userResponse.LastName, userResponse.Email ?? "", userResponse.Id) { DateOfBirth = userResponse.DateOfBirth };
             uow.Repository<Student>().Add((Student)user);
             uow.Commit();
         }
 
         string token = JwtBuilder.Create()
-            .WithAlgorithm(new RS256Algorithm(rsa.Certificate))
+            .WithAlgorithm(new RS256Algorithm(rsa.Keys, rsa.Keys))
             .Issuer("PW Minispace")
-            .IssuedAt(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            .Audience("PW Minispace")
+            .IssuedAt(DateTime.UtcNow)
+            .ExpirationTime(DateTime.UtcNow.AddDays(1))
             .Subject(user.Guid.ToString())
-            .AddClaim("usos_access_token", accessResponse.Token)
-            .AddClaim("usos_access_secret", accessResponse.Secret)
+            // I don't think we need those after initial user data request
+            //.AddClaim("usos_access_token", accessResponse.Token)
+            //.AddClaim("usos_access_secret", accessResponse.Secret)
             .Encode();
         return new DTOAccessResponse(token);
     }

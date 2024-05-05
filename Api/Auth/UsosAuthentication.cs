@@ -11,13 +11,13 @@ namespace Api.Auth;
 public class UsosAuthentication
 {
     private IUnitOfWork uow;
-    private JWTService jwtService;
+    private JwtService jwtService;
 
     private RestClient client;
     private string consumerKey;
     private string consumerSecret;
 
-    public UsosAuthentication(IConfiguration config, IUnitOfWork uow, JWTService jwtService)
+    public UsosAuthentication(IConfiguration config, IUnitOfWork uow, JwtService jwtService)
     {
         this.uow = uow;
         this.jwtService = jwtService;

@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile(Path.Join(Directory.GetCurrentDirectory(), "../../minispace-secrets.json"), true);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options => options.AddJwtAuthorization());
 
 builder.Services.AddControllers()
                 .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
@@ -31,10 +31,10 @@ builder.Services.AddControllers()
 // EF Core
 builder.Services.AddEFContext<SqliteDbContext>();
 builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
-// Authorization:
+// Auth:
 builder.Services.AddSingleton<RSAProvider>();
 builder.Services.AddScoped<UsosAuthentication>();
-builder.Services.AddScoped<JWTService>();
+builder.Services.AddScoped<JwtService>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 
@@ -45,16 +45,20 @@ builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
  * You will get an ugly Error 500 - Internal Server Error.
  * This is because the app tries to run 'Ping' method in the cotroller,
  * but can't satisfy all dependencies of the controller - namely IPingResponder.
- * So when you see this error it may mean you forgot to register your implementation here
+ * So when you see this error it may mean you forgot to register your implementation h`ere
  * ... or that you fucked up and got some other exception :)
  */
 
-// TODO: Configure JWT authorization scheme
+builder.Services.AddAuthentication(nameof(JwtAuthScheme))
+                .AddScheme<JwtAuthScheme.Options, JwtAuthScheme.Handler>(nameof(JwtAuthScheme), null);
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

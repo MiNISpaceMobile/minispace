@@ -5,14 +5,14 @@ using System.Security.Cryptography;
 
 namespace Api.Auth;
 
-public class JWTService
+public class JwtService
 {
     public const string Issuer = "PW Minispace";
     public const string Audience = "PW Minispace";
 
     private IJwtAlgorithm algorithm;
 
-    public JWTService(RSAProvider rsaProvider)
+    public JwtService(RSAProvider rsaProvider)
     {
         var rsa = RSA.Create(rsaProvider.Keys);
         algorithm = new RS256Algorithm(rsa, rsa);
@@ -30,6 +30,9 @@ public class JWTService
             .Encode();
     }
 
+    public string StripAuthSchemeName(string token, string authSchemeName)
+        => token.StartsWith(authSchemeName) ? token[authSchemeName.Length..].Trim() : token;
+
     public Guid? Decode(string token)
     {
         try
@@ -38,11 +41,34 @@ public class JWTService
                 .WithAlgorithm(algorithm)
                 .MustVerifySignature()
                 .WithValidationParameters(ValidationParameters.Default)
-                .Decode<Dictionary<string, string>>(token);
-            if (string.Equals(decoded["iss"], Issuer) &&
-                string.Equals(decoded["aud"], Audience) &&
-                Guid.TryParseExact(decoded["sub"], "N", out Guid guid))
+                .Decode<Dictionary<string, object>>(token);
+            if (Equals(decoded["iss"], Issuer) &&
+                Equals(decoded["aud"], Audience) &&
+                Guid.TryParseExact(decoded["sub"].ToString(), "N", out Guid guid))
                 return guid;
+        }
+        catch { }
+        return null;
+    }
+
+    public (Guid guid, bool expired)? DecodeEvenIfExpired(string token)
+    {
+        try
+        {
+            ValidationParameters vp = ValidationParameters.Default
+                .With(options => options.ValidateExpirationTime = false);
+            var decoded = JwtBuilder.Create()
+                .WithAlgorithm(algorithm)
+                .WithValidationParameters(vp)
+                .MustVerifySignature()
+                .Decode<Dictionary<string, object>>(token);
+            double expUnixTime = Convert.ToDouble(decoded["exp"]);
+            double nowUnixTime = UnixEpoch.GetSecondsSince(DateTimeOffset.UtcNow);
+            bool expired = expUnixTime <= nowUnixTime;
+            if (Equals(decoded["iss"], Issuer) &&
+                Equals(decoded["aud"], Audience) &&
+                Guid.TryParseExact(decoded["sub"].ToString(), "N", out Guid guid))
+                return (guid, expired);
         }
         catch { }
         return null;

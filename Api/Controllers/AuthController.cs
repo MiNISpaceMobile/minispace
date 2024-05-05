@@ -11,11 +11,13 @@ namespace Api.Controllers;
 public class AuthController : ControllerBase
 {
     private UsosAuthentication usos;
+    private JwtService jwtService;
     private ILogger logger;
 
-    public AuthController(UsosAuthentication usos, ILogger<AuthController> logger)
+    public AuthController(UsosAuthentication usos, JwtService jwtService, ILogger<AuthController> logger)
     {
         this.usos = usos;
+        this.jwtService = jwtService;
         this.logger = logger;
     }
 
@@ -40,7 +42,7 @@ public class AuthController : ControllerBase
     [Route("usos/jwt")]
     [Consumes("application/json")]
     [Produces("application/json")]
-    public ActionResult<DTOAccessResponse> RequestJWT([FromBody] DTOAccessRequest request)
+    public ActionResult<DTOAccessResponse> RequestJwt([FromBody] DTOAccessRequest request)
     {
         try
         {
@@ -53,5 +55,21 @@ public class AuthController : ControllerBase
         }
     }
 
-    // TODO: Add endpoint for checking JWT validity
+    [HttpGet]
+    [Route("usos/jwt/info")]
+    [Produces("application/json")]
+    public ActionResult<DTOJwtInfo> GetJwtInfo([FromHeader] string authorization)
+    {
+        try
+        {
+            string token = jwtService.StripAuthSchemeName(authorization, JwtAuthScheme.SchemeType);
+            (Guid guid, bool expired) = jwtService.DecodeEvenIfExpired(token)!.Value;
+            DTOJwtInfo info = new DTOJwtInfo(guid, expired);
+            return Ok(info);
+        }
+        catch
+        {
+            return BadRequest("No valid JWT was provided");
+        }
+    }
 }

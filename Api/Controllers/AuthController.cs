@@ -52,4 +52,6 @@ public class AuthController : ControllerBase
             return this.FailedDependency();
         }
     }
+
+    // TODO: Add endpoint for checking JWT validity
 }

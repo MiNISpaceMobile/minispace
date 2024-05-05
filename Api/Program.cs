@@ -28,13 +28,15 @@ builder.Services.AddControllers()
  * It means that only one object of your class will exist for entire program duration.
  */
 
+// EF Core
 builder.Services.AddEFContext<SqliteDbContext>();
-
-builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
-builder.Services.AddSingleton<RSAProvider>();
-
 builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
+// Authorization:
+builder.Services.AddSingleton<RSAProvider>();
 builder.Services.AddScoped<UsosAuthentication>();
+builder.Services.AddScoped<JWTService>();
+// Services:
+builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 
 /* Warning! Important! Will help you later!
  * 
@@ -46,6 +48,8 @@ builder.Services.AddScoped<UsosAuthentication>();
  * So when you see this error it may mean you forgot to register your implementation here
  * ... or that you fucked up and got some other exception :)
  */
+
+// TODO: Configure JWT authorization scheme
 
 var app = builder.Build();
 

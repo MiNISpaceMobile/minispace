@@ -1,8 +1,6 @@
 ﻿using Api.DTO.Auth;
 using Domain.Abstractions;
 using Domain.DataModel;
-using JWT.Algorithms;
-using JWT.Builder;
 using RestSharp;
 using RestSharp.Authenticators;
 using System.Text.Json.Serialization;
@@ -13,16 +11,17 @@ namespace Api.Auth;
 public class UsosAuthentication
 {
     private IUnitOfWork uow;
-    private RSAProvider rsa;
+    private JWTService jwtService;
 
     private RestClient client;
     private string consumerKey;
     private string consumerSecret;
 
-    public UsosAuthentication(IConfiguration config, IUnitOfWork uow, RSAProvider rsa)
+    public UsosAuthentication(IConfiguration config, IUnitOfWork uow, JWTService jwtService)
     {
         this.uow = uow;
-        this.rsa = rsa;
+        this.jwtService = jwtService;
+
         client = new RestClient(config["USOS_BASE_URL"]!, options => options.ThrowOnAnyError = true);
         consumerKey = config["USOS_CONSUMER_KEY"]!;
         consumerSecret = config["USOS_CONSUMER_SECRET"]!;
@@ -45,7 +44,6 @@ public class UsosAuthentication
             Secret = query.Get("oauth_token_secret")!;
         }
     }
-
     private class UserResponse
     {
         [JsonPropertyName("id")]
@@ -108,17 +106,6 @@ public class UsosAuthentication
             uow.Commit();
         }
 
-        string token = JwtBuilder.Create()
-            .WithAlgorithm(new RS256Algorithm(rsa.Keys, rsa.Keys))
-            .Issuer("PW Minispace")
-            .Audience("PW Minispace")
-            .IssuedAt(DateTime.UtcNow)
-            .ExpirationTime(DateTime.UtcNow.AddDays(1))
-            .Subject(user.Guid.ToString())
-            // I don't think we need those after initial user data request
-            //.AddClaim("usos_access_token", accessResponse.Token)
-            //.AddClaim("usos_access_secret", accessResponse.Secret)
-            .Encode();
-        return new DTOAccessResponse(token);
+        return new DTOAccessResponse(jwtService.Encode(user.Guid));
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Api.Auth;
 using Api.DTO.Auth;
+using Domain.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,26 +11,28 @@ namespace Api.Controllers;
 [AllowAnonymous]
 public class AuthController : ControllerBase
 {
-    private UsosAuthentication usos;
-    private JwtService jwtService;
+    private IAuthenticator authenticator;
+    private IJwtHandler jwtHandler;
     private ILogger logger;
 
-    public AuthController(UsosAuthentication usos, JwtService jwtService, ILogger<AuthController> logger)
+    public AuthController(IAuthenticator authenticator, IJwtHandler jwtHandler, ILogger<AuthController> logger)
     {
-        this.usos = usos;
-        this.jwtService = jwtService;
+        this.authenticator = authenticator;
+        this.jwtHandler = jwtHandler;
         this.logger = logger;
     }
 
     [HttpPost]
     [Route("usos/requestToken")]
+    [Route("usos/request_token")]
     [Consumes("application/json")]
     [Produces("application/json")]
-    public ActionResult<DTOLoginResponse> RequestToken([FromBody] DTOLoginRequest request)
+    public ActionResult<DTOTokenResponse> RequestToken([FromBody] DTOTokenRequest request)
     {
         try
         {
-            return Ok(usos.RequestLogin(request));
+            (string token, string secret, string url) = authenticator.RequestAuthenticationToken(request.CallbackUrl);
+            return Ok(new DTOTokenResponse(token, secret, url));
         }
         catch (Exception e)
         {
@@ -42,11 +45,12 @@ public class AuthController : ControllerBase
     [Route("usos/jwt")]
     [Consumes("application/json")]
     [Produces("application/json")]
-    public ActionResult<DTOAccessResponse> RequestJwt([FromBody] DTOAccessRequest request)
+    public ActionResult<DTOJwtResponse> RequestJwt([FromBody] DTOJwtRequest request)
     {
-        try
+        try // TODO
         {
-            return Ok(usos.RequestAccess(request));
+            string jwt = jwtHandler.Encode(authenticator.Authenticate(request.Token, request.Secret, request.Verifier));
+            return Ok(new DTOJwtResponse(jwt));
         }
         catch (Exception e)
         {
@@ -56,14 +60,15 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet]
+    [Route("jwt/info")]
     [Route("usos/jwt/info")]
     [Produces("application/json")]
     public ActionResult<DTOJwtInfo> GetJwtInfo([FromHeader] string authorization)
     {
         try
         {
-            string token = jwtService.StripAuthSchemeName(authorization, JwtAuthScheme.SchemeType);
-            (Guid guid, bool expired) = jwtService.DecodeEvenIfExpired(token)!.Value;
+            string token = IJwtHandler.StripAuthSchemeName(authorization, JwtAuthScheme.SchemeType);
+            (Guid guid, bool expired) = jwtHandler.DecodeEvenIfExpired(token)!.Value;
             DTOJwtInfo info = new DTOJwtInfo(guid, expired);
             return Ok(info);
         }

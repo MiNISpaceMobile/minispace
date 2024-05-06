@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
+using Api.Auth;
 
-namespace Api.Auth;
+namespace Api;
 
 public static class Extentions
 {

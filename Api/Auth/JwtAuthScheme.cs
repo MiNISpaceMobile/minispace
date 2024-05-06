@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Domain.Abstractions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -16,9 +17,9 @@ public class JwtAuthScheme
 
     public class Handler : AuthenticationHandler<Options>
     {
-        private JwtService jwtService;
+        private IJwtHandler jwtService;
 
-        public Handler(JwtService jwtService,
+        public Handler(IJwtHandler jwtService,
                        IOptionsMonitor<Options> options, ILoggerFactory logger, UrlEncoder encoder)
             : base(options, logger, encoder)
         {
@@ -34,7 +35,7 @@ public class JwtAuthScheme
             if (string.IsNullOrEmpty(jwt))
                 return AuthenticateResult.Fail("Missing 'Authenticate' header");
             
-            jwt = jwtService.StripAuthSchemeName(jwt, SchemeType);
+            jwt = IJwtHandler.StripAuthSchemeName(jwt, SchemeType);
             Guid? guid = jwtService.Decode(jwt);
             if (!guid.HasValue)
                 return AuthenticateResult.Fail("Invalid JWT");

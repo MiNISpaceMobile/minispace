@@ -28,6 +28,6 @@ public class PingController : ControllerBase
     [Produces("text/plain")]
     public ActionResult<string> GetAuthorizedPing()
     {
-        return Ok(pingResponder.Response());
+        return Ok(pingResponder.Response(User.GetGuid()));
     }
 }

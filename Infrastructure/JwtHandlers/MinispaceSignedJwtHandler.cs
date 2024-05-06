@@ -1,18 +1,19 @@
-﻿using JWT;
+﻿using Domain.Abstractions;
+using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
 using System.Security.Cryptography;
 
-namespace Api.Auth;
+namespace Infrastructure.JwtHandlers;
 
-public class JwtService
+public class MinispaceSignedJwtHandler : IJwtHandler
 {
     public const string Issuer = "PW Minispace";
     public const string Audience = "PW Minispace";
 
     private IJwtAlgorithm algorithm;
 
-    public JwtService(RSAProvider rsaProvider)
+    public MinispaceSignedJwtHandler(ICryptographyProvider<RSAParameters> rsaProvider)
     {
         var rsa = RSA.Create(rsaProvider.Keys);
         algorithm = new RS256Algorithm(rsa, rsa);
@@ -30,17 +31,14 @@ public class JwtService
             .Encode();
     }
 
-    public string StripAuthSchemeName(string token, string authSchemeName)
-        => token.StartsWith(authSchemeName) ? token[authSchemeName.Length..].Trim() : token;
-
     public Guid? Decode(string token)
     {
         try
         {
             var decoded = JwtBuilder.Create()
                 .WithAlgorithm(algorithm)
-                .MustVerifySignature()
                 .WithValidationParameters(ValidationParameters.Default)
+                .MustVerifySignature()
                 .Decode<Dictionary<string, object>>(token);
             if (Equals(decoded["iss"], Issuer) &&
                 Equals(decoded["aud"], Audience) &&

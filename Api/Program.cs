@@ -1,10 +1,13 @@
 using Api;
 using Api.Auth;
 using Domain.Abstractions;
-using Domain.Services;
+using Infrastructure.Authenticators;
+using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;
+using Infrastructure.JwtHandlers;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,9 +35,9 @@ builder.Services.AddControllers()
 builder.Services.AddEFContext<SqliteDbContext>();
 builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
 // Auth:
-builder.Services.AddSingleton<RSAProvider>();
-builder.Services.AddScoped<UsosAuthentication>();
-builder.Services.AddScoped<JwtService>();
+builder.Services.AddSingleton<ICryptographyProvider<RSAParameters>, RsaConfigCryptographyProvider>();
+builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
+builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 

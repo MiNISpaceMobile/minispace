@@ -8,4 +8,8 @@ public class PongPingResponder : IPingResponder
     {
         return "Pong";
     }
+    public string Response(Guid guid)
+    {
+        return $"Pong to {guid}";
+    }
 }

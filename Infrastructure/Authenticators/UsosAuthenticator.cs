@@ -1,26 +1,24 @@
-﻿using Api.DTO.Auth;
-using Domain.Abstractions;
+﻿using Domain.Abstractions;
 using Domain.DataModel;
-using RestSharp;
 using RestSharp.Authenticators;
+using RestSharp;
 using System.Text.Json.Serialization;
 using System.Web;
+using Microsoft.Extensions.Configuration;
 
-namespace Api.Auth;
+namespace Infrastructure.Authenticators;
 
-public class UsosAuthentication
+public class UsosAuthenticator : Domain.Abstractions.IAuthenticator
 {
     private IUnitOfWork uow;
-    private JwtService jwtService;
 
     private RestClient client;
     private string consumerKey;
     private string consumerSecret;
 
-    public UsosAuthentication(IConfiguration config, IUnitOfWork uow, JwtService jwtService)
+    public UsosAuthenticator(IConfiguration config, IUnitOfWork uow)
     {
         this.uow = uow;
-        this.jwtService = jwtService;
 
         client = new RestClient(config["USOS_BASE_URL"]!, options => options.ThrowOnAnyError = true);
         consumerKey = config["USOS_CONSUMER_KEY"]!;
@@ -72,31 +70,40 @@ public class UsosAuthentication
         }
     }
 
-    public DTOLoginResponse RequestLogin(DTOLoginRequest dtoRequest)
+    public (string token, string secret, string url) RequestAuthenticationToken(string callbackUrl)
     {
-        if (!Uri.IsWellFormedUriString(dtoRequest.callbackUrl, UriKind.RelativeOrAbsolute) && !string.Equals(dtoRequest.callbackUrl, "oob"))
+        if (!Uri.IsWellFormedUriString(callbackUrl, UriKind.RelativeOrAbsolute) && !string.Equals(callbackUrl, "oob"))
             throw new ArgumentException("callbackUrl is neither a valid Url nor 'oob'");
 
         RestRequest request = new RestRequest("oauth/request_token")
-        { Authenticator = OAuth1Authenticator.ForRequestToken(consumerKey, consumerSecret, dtoRequest.callbackUrl) }
+        { Authenticator = OAuth1Authenticator.ForRequestToken(consumerKey, consumerSecret, callbackUrl) }
             .AddParameter("scopes", "email|personal");
-        TokenResponse response = new TokenResponse(client.Post(request));
+        RestResponse response = client.Post(request);
 
-        return new DTOLoginResponse(response.Token, response.Secret, $"{client.Options.BaseUrl!.AbsoluteUri}oauth/authorize?oauth_token={response.Token}");
+        var query = HttpUtility.ParseQueryString(response.Content!);
+        string token = query.Get("oauth_token")!;
+        string secret = query.Get("oauth_token_secret")!;
+        string url = $"{client.Options.BaseUrl!.AbsoluteUri}oauth/authorize?oauth_token={token}";
+
+        return (token, secret, url);
     }
 
-    public DTOAccessResponse RequestAccess(DTOAccessRequest dtoRequest)
+    public Guid Authenticate(string token, string secret, string verifier)
     {
         RestRequest accessRequest = new RestRequest("oauth/access_token")
-        { Authenticator = OAuth1Authenticator.ForAccessToken(consumerKey, consumerSecret, dtoRequest.loginToken, dtoRequest.loginSecret, dtoRequest.verifier) };
-        TokenResponse accessResponse = new TokenResponse(client.Get(accessRequest)!);
+        { Authenticator = OAuth1Authenticator.ForAccessToken(consumerKey, consumerSecret, token, secret, verifier) };
+        RestResponse accessResponse = client.Get(accessRequest)!;
+
+        var query = HttpUtility.ParseQueryString(accessResponse.Content!);
+        token = query.Get("oauth_token")!;
+        secret = query.Get("oauth_token_secret")!;
 
         RestRequest userRequest = new RestRequest("users/user")
-        { Authenticator = OAuth1Authenticator.ForProtectedResource(consumerKey, consumerSecret, accessResponse.Token, accessResponse.Secret) }
+        { Authenticator = OAuth1Authenticator.ForProtectedResource(consumerKey, consumerSecret, token, secret) }
             .AddParameter("fields", "id|first_name|last_name|email|birth_date");
         UserResponse userResponse = client.Get<UserResponse>(userRequest)!;
         if (string.IsNullOrEmpty(userResponse.Id))
-            throw new Exception("Unexpected expection - USOS API request succeeded, but returned ID is invalid, possible deserialization error");
+            throw new Exception("Unexpected expection - USOS API request succeeded, but returned ID is invalid");
 
         User? user = uow.Repository<User>().GetAll().Where(x => string.Equals(x.ExternalId, userResponse.Id)).SingleOrDefault();
         if (user is null) // first time user
@@ -105,7 +112,8 @@ public class UsosAuthentication
             uow.Repository<Student>().Add((Student)user);
             uow.Commit();
         }
+        // TODO: Update user data on login?
 
-        return new DTOAccessResponse(jwtService.Encode(user.Guid));
+        return user.Guid;
     }
 }

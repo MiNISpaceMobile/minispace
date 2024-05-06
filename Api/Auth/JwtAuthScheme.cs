@@ -17,13 +17,13 @@ public class JwtAuthScheme
 
     public class Handler : AuthenticationHandler<Options>
     {
-        private IJwtHandler jwtService;
+        private IJwtHandler jwtHandler;
 
-        public Handler(IJwtHandler jwtService,
+        public Handler(IJwtHandler jwtHandler,
                        IOptionsMonitor<Options> options, ILoggerFactory logger, UrlEncoder encoder)
             : base(options, logger, encoder)
         {
-            this.jwtService = jwtService;
+            this.jwtHandler = jwtHandler;
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -36,7 +36,7 @@ public class JwtAuthScheme
                 return AuthenticateResult.Fail("Missing 'Authenticate' header");
             
             jwt = IJwtHandler.StripAuthSchemeName(jwt, SchemeType);
-            Guid? guid = jwtService.Decode(jwt);
+            Guid? guid = jwtHandler.Decode(jwt);
             if (!guid.HasValue)
                 return AuthenticateResult.Fail("Invalid JWT");
 

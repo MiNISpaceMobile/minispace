@@ -36,7 +36,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception e)
         {
-            logger.LogError($"Login request failed: {e.Message}");
+            logger.LogError($"Token request failed: {e.Message}");
             return this.FailedDependency();
         }
     }
@@ -47,14 +47,14 @@ public class AuthController : ControllerBase
     [Produces("application/json")]
     public ActionResult<DTOJwtResponse> RequestJwt([FromBody] DTOJwtRequest request)
     {
-        try // TODO
+        try
         {
             string jwt = jwtHandler.Encode(authenticator.Authenticate(request.Token, request.Secret, request.Verifier));
             return Ok(new DTOJwtResponse(jwt));
         }
         catch (Exception e)
         {
-            logger.LogError($"Access request failed: {e.Message}");
+            logger.LogError($"JWT request failed: {e.Message}");
             return this.FailedDependency();
         }
     }

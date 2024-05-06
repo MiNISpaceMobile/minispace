@@ -48,7 +48,7 @@ builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
  * You will get an ugly Error 500 - Internal Server Error.
  * This is because the app tries to run 'Ping' method in the cotroller,
  * but can't satisfy all dependencies of the controller - namely IPingResponder.
- * So when you see this error it may mean you forgot to register your implementation h`ere
+ * So when you see this error it may mean you forgot to register your implementation here
  * ... or that you fucked up and got some other exception :)
  */
 

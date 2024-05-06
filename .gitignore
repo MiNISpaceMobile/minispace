@@ -9,7 +9,7 @@ MinispaceDb/
 # Secrets
 minispace-secrets.json
 # This file should not be in the repo directory anyway
-# This is here so someone doesn't push them accidentally
+# This rule is here so someone doesn't push it accidentally
 
 # User-specific files
 *.rsuser

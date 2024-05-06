@@ -59,7 +59,7 @@ public class DictionaryUnitOfWork : IUnitOfWork
     public IRepository<RecordType> Repository<RecordType>() where RecordType : notnull, BaseEntity
     {
         if (Disposed)
-            throw new InvalidOperationException("UnitOfWork was disposed");
+            throw new ObjectDisposedException(nameof(DictionaryUnitOfWork));
 
         foreach (Type type in typeof(RecordType).InheritancePathUpTo<BaseEntity>())
             if (!Tables.TryAdd(type, new Dictionary<Guid, BaseEntity>()))
@@ -68,7 +68,12 @@ public class DictionaryUnitOfWork : IUnitOfWork
         return new DictionaryRepository<RecordType>(this);
     }
 
-    public void Commit() => CommitCount++;
+    public void Commit()
+    {
+        if (Disposed)
+            throw new ObjectDisposedException(nameof(DictionaryUnitOfWork));
+        CommitCount++;
+    }
 
     public void Dispose() => Disposed = true;
 }

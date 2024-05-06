@@ -9,14 +9,7 @@ public class DictionaryRepository<RecordType> : IRepository<RecordType> where Re
 {
     private DictionaryUnitOfWork uow;
     private DictionaryUnitOfWork UnitOfWork
-    {
-        get
-        {
-            if (uow.Disposed)
-                throw new InvalidOperationException("UnitOfWork was disposed");
-            return uow;
-        }
-    }
+        => !uow.Disposed ? uow : throw new ObjectDisposedException(nameof(DictionaryUnitOfWork));
 
     public DictionaryRepository(DictionaryUnitOfWork uow)
     {
@@ -48,8 +41,9 @@ public class DictionaryRepository<RecordType> : IRepository<RecordType> where Re
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
         var selected = GetAll().Where(predicate);
+        int count = selected.Count();
         foreach (var record in selected)
             UnitOfWork.TryDelete(record);
-        return selected.Count();
+        return count;
     }
 }

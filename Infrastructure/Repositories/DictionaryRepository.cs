@@ -30,14 +30,7 @@ public class DictionaryRepository<RecordType> : IRepository<RecordType> where Re
     }
     public IQueryable<RecordType> GetAll() => UnitOfWork.Tables[typeof(RecordType)].Values.Select(r => (RecordType)r).AsQueryable();
 
-    public bool TryDelete(Guid guid)
-    {
-        var record = Get(guid);
-        if (record is null)
-            return false;
-        UnitOfWork.TryDelete(record);
-        return true;
-    }
+    public void Delete(RecordType record) => UnitOfWork.TryDelete(record);
     public int DeleteAll(Func<RecordType, bool> predicate)
     {
         var selected = GetAll().Where(predicate);

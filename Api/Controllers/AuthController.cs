@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("usos/requestToken")]
-    [Route("usos/request_token")]
+    [Route("usos/request-token")]
     [Consumes("application/json")]
     [Produces("application/json")]
     public ActionResult<DTOTokenResponse> RequestToken([FromBody] DTOTokenRequest request)

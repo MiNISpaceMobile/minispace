@@ -13,6 +13,8 @@ public class EventServiceTests
     private IUnitOfWork uow;
     private List<Event> events;
     private List<Student> students;
+
+    private IEventService sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
 
     [TestInitialize]
@@ -20,7 +22,7 @@ public class EventServiceTests
     {
         DateTime now = DateTime.Now;
 
-        Student st0 = new Student("tester0", "tester0@minispace.pw.edu.pl", "you_should_be_testing");
+        Student st0 = new Student("tester0", "tester0@minispace.pw.edu.pl", "you_should_be_testing") { IsOrganizer = true };
         students = new List<Student> { st0 };
 
         Event ev0 = new Event(st0, "event0", "description0", EventCategory.Uncategorized, now, now, now, "here", null, null)
@@ -30,6 +32,8 @@ public class EventServiceTests
         events = new List<Event> { ev0, ev1 };
 
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
+
+        sut = new EventService(uow).AsUser(st0.Guid);
     }
 
     #region GetEvent
@@ -67,21 +71,19 @@ public class EventServiceTests
     public void CreateEvent_NonexistentStudent_ShouldThrowArgumentException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         DateTime now = DateTime.Now;
 
         // Act
         var action = () => sut.CreateEvent(new Guid(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
         // Assert
-        Assert.ThrowsException<InvalidGuidException<Event>>(action);
+        Assert.ThrowsException<InvalidGuidException<Student>>(action);
     }
 
     [TestMethod]
     public void CreateEvent_CorrectEvent_ShouldAddEventToDB()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         DateTime now = DateTime.Now;
 
         // Act
@@ -97,7 +99,6 @@ public class EventServiceTests
     public void DeleteEvent_NonexistentEvent_ShouldThrowInvalidGuidException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
 
         // Act
         Action action = () => sut.DeleteEvent(Guid.Empty);
@@ -110,7 +111,6 @@ public class EventServiceTests
     public void DeleteEvent_CorrectEvent_ShouldDeleteEvent()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
         student.SubscribedEvents.Add(@event);
@@ -142,7 +142,6 @@ public class EventServiceTests
     public void UpdateEvent_NonexistentEvent_ShouldThrowArgumentException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         DateTime now = DateTime.Now;
         Event newEvent = new Event(students.Last(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
@@ -157,7 +156,6 @@ public class EventServiceTests
     public void UpdateEvent_CorrectEvent_ShouldUpdateEvent()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event toUpdate = events.Last();
         string newTitle = "a";
 
@@ -175,20 +173,18 @@ public class EventServiceTests
     public void TryAddParticipant_NonexistentEvent_ShouldThrowArgumentException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
 
         // Act
         Action action = () => sut.TryAddParticipant(Guid.Empty, students.Last().Guid);
 
         // Assert
-        Assert.ThrowsException<InvalidGuidException>(action);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
     public void TryAddParticipant_FullEvent_ShouldReturnFalse()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         @event.Capacity = 0;
 
@@ -203,7 +199,6 @@ public class EventServiceTests
     public void TryAddParticipant_AlreadyParticipating_ShouldReturnFalse()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
         @event.Participants.Add(student);
@@ -220,7 +215,6 @@ public class EventServiceTests
     public void TryParticipate_NoGivenCapacity_ShouldAddParticipant()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
 
@@ -236,7 +230,6 @@ public class EventServiceTests
     public void TryAddParticipant_AvailablePlace_ShouldAddParticipant()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
         @event.Capacity = 100;
@@ -255,20 +248,18 @@ public class EventServiceTests
     public void TryAddInterested_NonexistentEvent_ShouldThrowArgumentException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
 
         // Act
         Action action = () => sut.TryAddInterested(Guid.Empty, students.Last().Guid);
 
         // Assert
-        Assert.ThrowsException<InvalidGuidException>(action);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
     public void TryAddParticipant_AlreadyInterested_ShouldReturnFalse()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
         @event.Interested.Add(student);
@@ -285,7 +276,6 @@ public class EventServiceTests
     public void TryAddInterested_CorrectRequest_ShouldAddInterested()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
 
@@ -304,20 +294,18 @@ public class EventServiceTests
     public void TryRemoveParticipant_NonexistentEvent_ShouldThrowInvalidGuidException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
 
         // Act
         Action action = () => sut.TryRemoveParticipant(Guid.Empty, students.Last().Guid);
 
         // Assert
-        Assert.ThrowsException<InvalidGuidException>(action);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
     public void TryRemoveParticipant_NotParticipating_ShouldReturnFalse()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
 
@@ -332,7 +320,6 @@ public class EventServiceTests
     public void TryRemoveParticipant_Participating_ShouldRemoveParticipant()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
         @event.Participants.Add(student);
@@ -353,20 +340,18 @@ public class EventServiceTests
     public void TryRemoveInterested_NonexistentEvent_ShouldThrowInvalidGuidException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
 
         // Act
         Action action = () => sut.TryRemoveInterested(Guid.Empty, students.Last().Guid);
 
         // Assert
-        Assert.ThrowsException<InvalidGuidException>(action);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
     public void TryRemoveInterested_NotInterested_ShouldReturnFalse()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
 
@@ -381,7 +366,6 @@ public class EventServiceTests
     public void TryRemoveParticipant_Interested_ShouldRemoveInterested()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student student = students.Last();
         @event.Interested.Add(student);
@@ -402,10 +386,9 @@ public class EventServiceTests
     public void AddFeedback_NonexistentEvent_ShouldThrowInvalidGuidException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
 
         // Act
-        Action action = () => sut.AddFeedback(Guid.Empty, Guid.Empty, string.Empty);
+        Action action = () => sut.AddFeedback(Guid.Empty, students.Last().Guid, string.Empty);
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
@@ -415,7 +398,6 @@ public class EventServiceTests
     public void AddFeedback_EmptyContent_ShouldThrowEmptyContentException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
 
         // Act
         Action action = () => sut.AddFeedback(events.Last().Guid, students.Last().Guid, string.Empty);
@@ -428,7 +410,6 @@ public class EventServiceTests
     public void AddFeedback_AlreadyGivenFeedback_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student author = students.First();
         Feedback feedback = new Feedback(author, @event, "a");
@@ -445,7 +426,6 @@ public class EventServiceTests
     public void AddFeedback_CorrectInput_ShouldAddFeedback()
     {
         // Arrange
-        EventService sut = new EventService(uow);
         Event @event = events.Last();
         Student author = students.First();
 

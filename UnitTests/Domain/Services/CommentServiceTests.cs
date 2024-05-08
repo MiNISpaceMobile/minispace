@@ -3,7 +3,6 @@ using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
-using System.Net;
 
 namespace UnitTests.Domain.Services;
 
@@ -14,6 +13,8 @@ public class CommentServiceTests
     private IUnitOfWork uow;
     private List<Student> students;
     private List<Post> posts;
+
+    private ICommentService sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
 
     [TestInitialize]
@@ -32,6 +33,8 @@ public class CommentServiceTests
         posts = new List<Post> { po0, po1 };
 
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, posts));
+
+        sut = new CommentService(uow).AsUser(st0.Guid);
     }
 
     #region CreateComment
@@ -39,7 +42,6 @@ public class CommentServiceTests
     public void CreateComment_EmptyContent_ShouldThrowArgumentException()
     {
         // Arrange
-        CommentService sut = new CommentService(uow);
         Post post = posts.Last();
         Student author = students.Last();
         string content = string.Empty;
@@ -55,7 +57,6 @@ public class CommentServiceTests
     public void CreateComment_CorrectInput_AddCommentToPost()
     {
         // Arrange
-        CommentService sut = new CommentService(uow);
         Post post = posts.Last();
         Student author = students.Last();
         string content = "a";
@@ -75,7 +76,6 @@ public class CommentServiceTests
     public void GetComment_NonexistentComment_ShouldThrowArgumentException()
     {
         // Arrange
-        CommentService sut = new CommentService(uow);
 
         // Act
         var action = () => sut.GetComment(new Guid());
@@ -88,7 +88,6 @@ public class CommentServiceTests
     public void GetComment_CorrectInput_ShouldReturnCorrectComment()
     {
         // Arrange
-        CommentService sut = new CommentService(uow);
         Post post = posts.Last();
         Student author = students.Last();
         string content = "a";
@@ -108,7 +107,6 @@ public class CommentServiceTests
     public void DeleteComment_NonexistentComment_ShouldThrowArgumentException()
     {
         // Arrange
-        CommentService sut = new CommentService(uow);
 
         // Act
         var action = () => sut.DeleteComment(new Guid());
@@ -121,7 +119,6 @@ public class CommentServiceTests
     public void DeleteComment_CorrectInput_ShouldDeleteCorrectComment()
     {
         // Arrange
-        CommentService sut = new CommentService(uow);
         Post post = posts.Last();
         Student author = students.Last();
         string content = "a";

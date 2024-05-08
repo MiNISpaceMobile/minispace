@@ -1,5 +1,6 @@
 ﻿using Domain.DataModel;
 using Domain.Services;
+using Domain.Services.Abstractions;
 using Domain.Services.Implementations;
 using Infrastructure.UnitOfWorks;
 
@@ -12,7 +13,7 @@ public class UserServiceTests
     private Student st;
     private Administrator ad;
 
-    private UserService sut;
+    private IUserService sut;
     private DictionaryUnitOfWork uow;
 #pragma warning restore CS8618 // Unassigned non-nullables
 
@@ -23,7 +24,7 @@ public class UserServiceTests
         ad = new Administrator("ad", "ad", "ad");
 
         uow = new DictionaryUnitOfWork([st, ad]);
-        sut = new UserService(uow);
+        sut = new UserService(uow).AsUser(ad.Guid);
     }
 
     #region GetUser

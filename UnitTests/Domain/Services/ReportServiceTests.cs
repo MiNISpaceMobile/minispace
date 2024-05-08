@@ -53,7 +53,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        var result = service.GetAll<Report>();
+        var result = service.AsUser(ad0.Guid).GetAll<Report>();
 
         // Assert
         Assert.IsNotNull(result);
@@ -67,7 +67,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        IEnumerable<Report> result = service.GetAll<CommentReport>();
+        IEnumerable<Report> result = service.AsUser(ad0.Guid).GetAll<CommentReport>();
 
         // Assert
         Assert.IsNotNull(result);
@@ -84,7 +84,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.GetByGuid<Report>(Guid.Empty);
+        void act() => service.AsUser(ad0.Guid).GetByGuid<Report>(Guid.Empty);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
@@ -97,7 +97,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        var result = service.GetByGuid<Report>(evRe0.Guid);
+        var result = service.AsUser(ad0.Guid).GetByGuid<Report>(evRe0.Guid);
 
         // Assert
         Assert.IsNotNull(result);
@@ -111,7 +111,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        Report result = service.GetByGuid<CommentReport>(cRe0.Guid);
+        Report result = service.AsUser(ad0.Guid).GetByGuid<CommentReport>(cRe0.Guid);
 
         // Assert
         Assert.IsNotNull(result);
@@ -125,7 +125,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.GetByGuid<CommentReport>(evRe0.Guid);
+        void act() => service.AsUser(ad0.Guid).GetByGuid<CommentReport>(evRe0.Guid);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<CommentReport>>(act);
@@ -140,7 +140,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.CreateReport<Event, EventReport>(Guid.Empty, st0.Guid, "title", "details", ReportCategory.Unknown);
+        void act() => service.AsUser(st0.Guid).CreateReport<Event, EventReport>(Guid.Empty, st0.Guid, "title", "details", ReportCategory.Unknown);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Event>>(act);
@@ -153,7 +153,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.CreateReport<Event, EventReport>(ev0.Guid, Guid.Empty, "title", "details", ReportCategory.Unknown);
+        void act() => service.AsUser(st0.Guid).CreateReport<Event, EventReport>(ev0.Guid, Guid.Empty, "title", "details", ReportCategory.Unknown);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Student>>(act);
@@ -166,7 +166,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        var report = service.CreateReport<Event, EventReport>(ev0.Guid, st0.Guid, "title", "details", ReportCategory.Unknown);
+        var report = service.AsUser(st0.Guid).CreateReport<Event, EventReport>(ev0.Guid, st0.Guid, "title", "details", ReportCategory.Unknown);
 
         // Assert
         Assert.IsNotNull(report);
@@ -185,7 +185,7 @@ public class ReportServiceTests
         var newReport = new CommentReport(c0, newStudent, "title", "details", ReportCategory.Bug) { Guid = cRe1.Guid };
 
         // Act
-        void act() => service.UpdateReport(newReport, Guid.NewGuid());
+        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport, Guid.NewGuid());
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
@@ -199,7 +199,7 @@ public class ReportServiceTests
         var newReport = new CommentReport(c0, st0, "title", "details", ReportCategory.Bug);
 
         // Act
-        void act() => service.UpdateReport(newReport, ad0.Guid);
+        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport, ad0.Guid);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
@@ -213,7 +213,7 @@ public class ReportServiceTests
         var newReport = new CommentReport(c0, st1, "title", "details", ReportCategory.Bug) { Guid = cRe0.Guid };
 
         // Act
-        void act() => service.UpdateReport(newReport, ad0.Guid);
+        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport, ad0.Guid);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidOperationException>(act);
@@ -228,7 +228,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.DeleteReport(Guid.Empty);
+        void act() => service.AsUser(ad0.Guid).DeleteReport(Guid.Empty);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
@@ -241,7 +241,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        service.DeleteReport(evRe0.Guid);
+        service.AsUser(st0.Guid).DeleteReport(evRe0.Guid);
 
         // Assert
         Assert.IsFalse(unitOfWork.Repository<Report>().TryGet(evRe0.Guid, out _));

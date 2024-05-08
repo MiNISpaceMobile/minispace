@@ -40,7 +40,7 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
         AllowUser(@event.Organizer);
 
         while (@event.Posts.Count > 0) 
-            postService.DeletePost(@event.Posts.First().Guid);
+            postService.AsUser(@event.Organizer?.Guid).DeletePost(@event.Posts.First().Guid);
         while (@event.Participants.Count > 0)
             TryRemoveParticipant(@event.Guid, @event.Participants.First().Guid);
         while (@event.Interested.Count > 0)
@@ -204,6 +204,9 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
         AllowUser(author);
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
+
+        if (string.IsNullOrEmpty(content))
+            throw new EmptyContentException();
 
         if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == authorGuid) is not null)
             throw new InvalidOperationException("This Student have already given Feedback to this Event");

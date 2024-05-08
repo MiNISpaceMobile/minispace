@@ -46,7 +46,7 @@ public class StudentServiceTests
     [TestMethod]
     public void GetStudent_Unauthorized_ThrowsUserUnauthorized()
     {
-        var act = () => sut.AsUser(sts[0].Guid).GetStudent(sts[1].Guid);
+        var act = () => sut.AsUser(null).GetStudent(sts[1].Guid);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
         Assert.AreEqual(0, uow.CommitCount);

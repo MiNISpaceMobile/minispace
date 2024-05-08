@@ -34,6 +34,7 @@ public class CommentServiceTests
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, posts));
     }
 
+    #region CreateComment
     [TestMethod]
     public void CreateComment_EmptyContent_ShouldThrowArgumentException()
     {
@@ -47,8 +48,7 @@ public class CommentServiceTests
         var action = () => sut.CreateComment(author.Guid, @post.Guid, content);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual(ex.Message, "Arguments must not be empty");
+        Assert.ThrowsException<EmptyContentException>(action);
     }
 
     [TestMethod]
@@ -68,7 +68,9 @@ public class CommentServiceTests
         Assert.IsTrue(uow.Repository<Comment>().Get(comment.Guid) is not null);
         Assert.IsTrue(AreEqual(comment, author, post, content));
     }
+    #endregion
 
+    #region GetComment
     [TestMethod]
     public void GetComment_NonexistentComment_ShouldThrowArgumentException()
     {
@@ -79,8 +81,7 @@ public class CommentServiceTests
         var action = () => sut.GetComment(new Guid());
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual(ex.Message, "Nonexistent comment");
+        Assert.ThrowsException<InvalidGuidException<Comment>>(action);
     }
 
     [TestMethod]
@@ -100,7 +101,9 @@ public class CommentServiceTests
         // Assert
         Assert.AreEqual(comment, result);
     }
+    #endregion
 
+    #region DeleteComment
     [TestMethod]
     public void DeleteComment_NonexistentComment_ShouldThrowArgumentException()
     {
@@ -111,8 +114,7 @@ public class CommentServiceTests
         var action = () => sut.DeleteComment(new Guid());
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual(ex.Message, "Nonexistent comment");
+        Assert.ThrowsException<InvalidGuidException<Comment>>(action);
     }
 
     [TestMethod]
@@ -134,7 +136,7 @@ public class CommentServiceTests
         Assert.IsFalse(post.Comments.Contains(comment));
         Assert.IsNull(uow.Repository<Comment>().Get(comment.Guid));
     }
-
+    #endregion
 
     bool AreEqual(Comment c, Student author, Post post, string content)
     {

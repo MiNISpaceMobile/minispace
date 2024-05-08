@@ -33,15 +33,20 @@ public static class EntityFrameworkConfiguration
         model.Entity<Administrator>().Configure();
         model.Entity<Student>().Configure();
 
-        model.Entity<Comment>().Configure();
         model.Entity<Event>().Configure();
         model.Entity<Feedback>().Configure();
         model.Entity<Post>().Configure();
+        model.Entity<Comment>().Configure();
 
         model.Entity<Report>().Configure();
-        model.Entity<CommentReport>().Configure();
         model.Entity<EventReport>().Configure();
         model.Entity<PostReport>().Configure();
+        model.Entity<CommentReport>().Configure();
+
+        model.Entity<BaseNotification>().Configure();
+        model.Entity<Notification>().Configure();
+        model.Entity<SocialNotification>().Configure();
+        model.Entity<FriendRequest>().Configure();
 
         using var conventionBlock = model.Model.DelayConventions();
 
@@ -73,40 +78,58 @@ public static class EntityFrameworkConfiguration
         }
     }
 
+    #region Users
+    private static void Configure(this EntityTypeBuilder<User> type)
+    {
+        type.HasKey(x => x.Guid);
+
+        /* See Configure(Report) above for detailed explanation what line below does
+         * 
+         * Despite Student class being seemingly more complex then Administator
+         * in reality it has only a few additional columns - datetime, text and 2 booleans,
+         * so the performance gain from having everything in the same table is still worth much more
+         * then the fact that for Administrator these columns will be null.
+         * Especially since there will be much more normal users than admins using this app.
+         */
+        type.UseTphMappingStrategy();
+
+        type.HasIndex(x => x.ExternalId)
+            .IsUnique();
+
+        type.Property(x => x.FirstName)
+            .HasMaxLength(32);
+
+        type.Property(x => x.LastName)
+            .HasMaxLength(64);
+
+        type.Property(x => x.Email)
+            .HasMaxLength(128);
+
+        //type.Property(x => x.SaltedPasswordHash)
+        //    .HasMaxLength(64)
+        //    .IsFixedLength(true);
+    }
+
     private static void Configure(this EntityTypeBuilder<Administrator> type)
     {
         type.HasBaseType<User>();
     }
 
-    private static void Configure(this EntityTypeBuilder<Comment> type)
+    private static void Configure(this EntityTypeBuilder<Student> type)
     {
-        type.HasKey(x => x.Guid);
+        type.HasBaseType<User>();
 
-        type.HasOne(x => x.Author)
-            .WithMany()
-            .HasForeignKey(x => x.AuthorId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        type.HasOne(x => x.Post)
-            .WithMany(x => x.Comments)
-            .HasForeignKey(x => x.PostId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        type.HasMany(x => x.Likers)
+        type.HasMany(x => x.Friends)
             .WithMany();
 
-        /* This one is important!
-         * 
-         * By default when a Comment would be deleted, its responses would stop being resposes
-         * and instead would become direct Comments on the parent Post.
-         * Here we configure the OnDelete behaviour to also delete responses.
-         */
-        type.HasOne(x => x.InResponseTo)
-            .WithMany(x => x.Responses)
-            .HasForeignKey(x => x.InResponeseToId)
-            .OnDelete(DeleteBehavior.Cascade);
-    }
+        // This property simply concatenates results of other properties
+        type.Ignore(x => x.AllNotifications);
 
+        // All relationships with Event, Feedback, Post and Comment are configured in their respective classes
+    }
+    #endregion Users
+
+    #region Events/Feedback/Posts/Comments
     private static void Configure(this EntityTypeBuilder<Event> type)
     {
         type.HasKey(x => x.Guid);
@@ -120,7 +143,7 @@ public static class EntityFrameworkConfiguration
             .WithMany(x => x.SubscribedEvents);
 
         type.HasMany(x => x.Participants)
-            .WithMany();
+            .WithMany(x => x.JoinedEvents);
 
         // All relationships with Feedback and Post are configured in their respective classes
     }
@@ -157,6 +180,37 @@ public static class EntityFrameworkConfiguration
         // Relationship with Comment is configured in Comment
     }
 
+    private static void Configure(this EntityTypeBuilder<Comment> type)
+    {
+        type.HasKey(x => x.Guid);
+
+        type.HasOne(x => x.Author)
+            .WithMany()
+            .HasForeignKey(x => x.AuthorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        type.HasOne(x => x.Post)
+            .WithMany(x => x.Comments)
+            .HasForeignKey(x => x.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        type.HasMany(x => x.Likers)
+            .WithMany();
+
+        /* This one is important!
+         * 
+         * By default when a Comment would be deleted, its responses would stop being resposes
+         * and instead would become direct Comments on the parent Post.
+         * Here we configure the OnDelete behaviour to also delete responses.
+         */
+        type.HasOne(x => x.InResponseTo)
+            .WithMany(x => x.Responses)
+            .HasForeignKey(x => x.InResponeseToId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+    #endregion Events/Feedback/Posts/Comments
+
+    #region Reports
     private static void Configure(this EntityTypeBuilder<Report> type)
     {
         type.HasKey(x => x.Guid);
@@ -182,16 +236,6 @@ public static class EntityFrameworkConfiguration
             .OnDelete(DeleteBehavior.SetNull);
     }
 
-    private static void Configure(this EntityTypeBuilder<CommentReport> type)
-    {
-        type.HasBaseType<Report>();
-
-        type.HasOne(x => x.ReportedComment)
-            .WithMany()
-            .HasForeignKey(x => x.ReportedCommentId)
-            .OnDelete(DeleteBehavior.Cascade);
-    }
-
     private static void Configure(this EntityTypeBuilder<EventReport> type)
     {
         type.HasBaseType<Report>();
@@ -212,44 +256,69 @@ public static class EntityFrameworkConfiguration
             .OnDelete(DeleteBehavior.Cascade);
     }
 
-    private static void Configure(this EntityTypeBuilder<Student> type)
+    private static void Configure(this EntityTypeBuilder<CommentReport> type)
     {
-        type.HasBaseType<User>();
+        type.HasBaseType<Report>();
 
-        type.HasMany(x => x.Friends)
-            .WithMany();
-
-        // All relationships with Event, Feedback, Post and Comment are configured in their respective classes
+        type.HasOne(x => x.ReportedComment)
+            .WithMany()
+            .HasForeignKey(x => x.ReportedCommentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
+    #endregion Reposts
 
-    private static void Configure(this EntityTypeBuilder<User> type)
+    #region Notifications
+    public static void Configure(this EntityTypeBuilder<BaseNotification> type)
     {
         type.HasKey(x => x.Guid);
 
-        /* See Configure(Report) above for detailed explanation what line below does
-         * 
-         * Despite Student class being seemingly more complex then Administator
-         * in reality it has only a few additional columns - datetime, text and 2 booleans,
-         * so the performance gain from having everything in the same table is still worth much more
-         * then the fact that for Administrator these columns will be null.
-         * Especially since there will be much more normal users than admins using this app.
+        /* The following code is incompatible with navigations configured in BaseNotification subclasses
+         * But it reflects the idea, which AllNotifications property serves
          */
-        type.UseTphMappingStrategy();
-
-        type.HasIndex(x => x.ExternalId)
-            .IsUnique();
-
-        type.Property(x => x.FirstName)
-            .HasMaxLength(32);
-
-        type.Property(x => x.LastName)
-            .HasMaxLength(64);
-
-        type.Property(x => x.Email)
-            .HasMaxLength(128);
-
-        //type.Property(x => x.SaltedPasswordHash)
-        //    .HasMaxLength(64)
-        //    .IsFixedLength(true);
+        //type.HasOne(x => x.Target)
+        //    .WithMany(x => x.AllNotifications)
+        //    .HasForeignKey(x => x.TargetId)
+        //    .OnDelete(DeleteBehavior.Cascade);
     }
+
+    public static void Configure(this EntityTypeBuilder<Notification> type)
+    {
+        type.HasBaseType<BaseNotification>();
+
+        type.HasOne(x => x.Target)
+            .WithMany(x => x.PersonalNotifications)
+            .HasForeignKey(x => x.TargetId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    public static void Configure(this EntityTypeBuilder<SocialNotification> type)
+    {
+        type.HasBaseType<BaseNotification>();
+
+        type.HasOne(x => x.Target)
+            .WithMany(x => x.SocialNotifications)
+            .HasForeignKey(x => x.TargetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        type.HasOne(x => x.Friend)
+            .WithMany()
+            .HasForeignKey(x => x.FriendId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    public static void Configure(this EntityTypeBuilder<FriendRequest> type)
+    {
+        type.HasBaseType<BaseNotification>();
+
+        type.HasOne(x => x.Target)
+            .WithMany(x => x.ReceivedFriendRequests)
+            .HasForeignKey(x => x.TargetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        type.HasOne(x => x.Author)
+            .WithMany(x => x.SentFriendRequests)
+            .HasForeignKey(x => x.AuthorId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+    #endregion Notifications
 }

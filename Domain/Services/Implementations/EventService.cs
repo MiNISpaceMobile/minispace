@@ -1,4 +1,5 @@
 ﻿using Domain.Abstractions;
+using Domain.BaseTypes;
 using Domain.DataModel;
 using System;
 
@@ -7,17 +8,19 @@ namespace Domain.Services;
 public class EventService : IEventService
 {
     private IUnitOfWork uow;
+    private PostService postService;
 
     public EventService(IUnitOfWork uow)
     {
         this.uow = uow;
+        postService = new PostService(uow);
     }
 
     public Event GetEvent(Guid guid)
     {
         Event? @event = uow.Repository<Event>().Get(guid);
         if (@event is null)
-            throw new ArgumentException("Nonexistent event");
+            throw new InvalidGuidException<Event>();
 
         return @event;
     }
@@ -27,7 +30,7 @@ public class EventService : IEventService
     {
         Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null)
-            throw new ArgumentException("Nonexistent student");
+            throw new InvalidGuidException<Event>();
 
         Event @event = new Event(student, title, description, category, publicationDate,
             startDate, endDate, location, capacity, fee);
@@ -37,15 +40,35 @@ public class EventService : IEventService
     }
 
     /// <summary>
+    /// Deletes event and it's posts
+    /// </summary>
+    /// <param name="guid"></param>
+    public void DeleteEvent(Guid guid)
+    {
+        Event @event = uow.Repository<Event>().GetOrThrow(guid);
+
+        while (@event.Posts.Count > 0) 
+            postService.DeletePost(@event.Posts.First().Guid);
+        while (@event.Participants.Count > 0)
+            TryRemoveParticipant(@event.Guid, @event.Participants.First().Guid);
+        while (@event.Interested.Count > 0)
+            TryRemoveInterested(@event.Guid, @event.Interested.First().Guid);
+
+        uow.Repository<Event>().TryDelete(guid);
+
+        uow.Commit();
+    }
+
+    /// <summary>
     /// Assignes values of given event to event with the same guid existing in db 
     /// </summary>
     /// <param name="newEvent"></param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidGuidException"></exception>
     public void UpdateEvent(Event newEvent)
     {
         Event? currEvent = uow.Repository<Event>().Get(newEvent.Guid);
         if (currEvent is null)
-            throw new ArgumentException("Nonexistent event");
+            throw new InvalidGuidException<Event>();
 
         currEvent.Title = newEvent.Title;
         currEvent.Description = newEvent.Description;
@@ -67,13 +90,13 @@ public class EventService : IEventService
     /// <returns>
     /// true if operation was successfull, false if participants number reached maximum or student is already participating
     /// </returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidGuidException"></exception>
     public bool TryAddParticipant(Guid eventGuid, Guid studentGuid)
     {
         Event? @event = uow.Repository<Event>().Get(eventGuid);
         Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null || @event is null)
-            throw new ArgumentException("Nonexistent object");
+            throw new InvalidGuidException();
 
         // Full event
         if (@event.Capacity is not null && @event.Participants.Count == @event.Capacity)
@@ -100,13 +123,13 @@ public class EventService : IEventService
     /// <returns>
     /// true if operation was successfull, false if student is already interested
     /// </returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidGuidException"></exception>
     public bool TryAddInterested(Guid eventGuid, Guid studentGuid)
     {
         Event? @event = uow.Repository<Event>().Get(eventGuid);
         Student? student = uow.Repository<Student>().Get(studentGuid);
         if (student is null || @event is null)
-            throw new ArgumentException("Nonexistent object");
+            throw new InvalidGuidException();
         
         // Already interested
         if (@event.Interested.Contains(student))
@@ -120,5 +143,79 @@ public class EventService : IEventService
         uow.Commit();
 
         return true;
+    }
+
+    /// <summary>
+    /// Tries to remove student from participants of event.
+    /// </summary>
+    /// <param name="eventGuid"></param>
+    /// <param name="studentGuid"></param>
+    /// <returns>
+    /// true if operation was successfull, false if student is already not participating
+    /// </returns>
+    /// <exception cref="InvalidGuidException"></exception>
+    public bool TryRemoveParticipant(Guid eventGuid, Guid studentGuid)
+    {
+        Event? @event = uow.Repository<Event>().Get(eventGuid);
+        Student? student = uow.Repository<Student>().Get(studentGuid);
+        if (student is null || @event is null)
+            throw new InvalidGuidException();
+
+        // Already not participating
+        if (!@event.Participants.Contains(student))
+            return false;
+
+        @event.Participants.Remove(student);
+        student.SubscribedEvents.Remove(@event);
+
+        uow.Commit();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to remove student from interested of event.
+    /// </summary>
+    /// <param name="eventGuid"></param>
+    /// <param name="studentGuid"></param>
+    /// <returns>
+    /// true if operation was successfull, false if student is already not interested
+    /// </returns>
+    /// <exception cref="InvalidGuidException"></exception>
+    public bool TryRemoveInterested(Guid eventGuid, Guid studentGuid)
+    {
+        Event? @event = uow.Repository<Event>().Get(eventGuid);
+        Student? student = uow.Repository<Student>().Get(studentGuid);
+        if (student is null || @event is null)
+            throw new InvalidGuidException();
+
+        // Already not interested
+        if (!@event.Interested.Contains(student))
+            return false;
+
+        @event.Interested.Remove(student);
+        student.SubscribedEvents.Remove(@event);
+
+        uow.Commit();
+
+        return true;
+    }
+
+    public Feedback AddFeedback(Guid eventGuid, Guid authorGuid, string content)
+    {
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
+        Student author = uow.Repository<Student>().GetOrThrow(authorGuid);
+        if (content == string.Empty)
+            throw new EmptyContentException();
+
+        if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == authorGuid) is not null)
+            throw new InvalidOperationException("This Student have already given Feedback to this Event");
+
+        Feedback feedback = new Feedback(author, @event, content);
+        //uow.Repository<Feedback>().Add(feedback);
+        @event.Feedback.Add(feedback);
+
+        uow.Commit();
+        return feedback;
     }
 }

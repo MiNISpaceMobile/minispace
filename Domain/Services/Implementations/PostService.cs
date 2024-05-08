@@ -1,4 +1,5 @@
 ﻿using Domain.Abstractions;
+using Domain.BaseTypes;
 using Domain.DataModel;
 using System;
 using System.Collections.Generic;
@@ -22,9 +23,9 @@ public class PostService : IPostService
         Student? author = uow.Repository<Student>().Get(authorGuid);
         Event? @event = uow.Repository<Event>().Get(eventGuid);
         if (author is null || @event is null)
-            throw new ArgumentException("Nonexistent object");
+            throw new InvalidGuidException();
         if (content == string.Empty)
-            throw new ArgumentException("Arguments must not be empty");
+            throw new EmptyContentException();
 
         var post = new Post(author, @event, content, DateTime.Now);
         uow.Repository<Post>().Add(post);
@@ -38,7 +39,7 @@ public class PostService : IPostService
     {
         Post? post = uow.Repository<Post>().Get(guid);
         if (post is null)
-            throw new ArgumentException("Nonexistent post");
+            throw new InvalidGuidException<Post>();
 
         uow.Repository<Post>().TryDelete(guid);
         post.Event.Posts.Remove(post);
@@ -50,7 +51,7 @@ public class PostService : IPostService
     {
         Post? post = uow.Repository<Post>().Get(guid);
         if (post is null)
-            throw new ArgumentException("Nonexistent post");
+            throw new InvalidGuidException<Post>();
 
         return post;
     }

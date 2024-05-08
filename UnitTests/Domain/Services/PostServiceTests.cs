@@ -33,6 +33,7 @@ public class PostServiceTests
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
     }
 
+    #region CreatePost
     [TestMethod]
     public void CreatePost_EmptyContent_ShouldThrowArgumentException()
     {
@@ -46,8 +47,7 @@ public class PostServiceTests
         var action = () => sut.CreatePost(author.Guid, @event.Guid, content);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual(ex.Message, "Arguments must not be empty");
+        Assert.ThrowsException<EmptyContentException>(action);
     }
 
     [TestMethod]
@@ -67,7 +67,9 @@ public class PostServiceTests
         Assert.IsTrue(uow.Repository<Post>().Get(post.Guid) is not null);
         Assert.IsTrue(AreEqual(post, author, @event, content));
     }
+    #endregion
 
+    #region GetPost
     [TestMethod]
     public void GetPost_NonexistentPost_ShouldThrowArgumentException()
     {
@@ -78,8 +80,7 @@ public class PostServiceTests
         var action = () => sut.GetPost(new Guid());
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual(ex.Message, "Nonexistent post");
+        Assert.ThrowsException<InvalidGuidException<Post>>(action);
     }
 
     [TestMethod]
@@ -99,7 +100,9 @@ public class PostServiceTests
         // Assert
         Assert.AreEqual(post, result);
     }
+    #endregion
 
+    #region DeletePost
     [TestMethod]
     public void DeletePost_NonexistentPost_ShouldThrowArgumentException()
     {
@@ -110,8 +113,7 @@ public class PostServiceTests
         var action = () => sut.DeletePost(new Guid());
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual(ex.Message, "Nonexistent post");
+        Assert.ThrowsException<InvalidGuidException<Post>>(action);
     }
 
     [TestMethod]
@@ -133,7 +135,7 @@ public class PostServiceTests
         Assert.IsFalse(@event.Posts.Contains(post));
         Assert.IsNull(uow.Repository<Post>().Get(post.Guid));
     }
-
+    #endregion
 
     bool AreEqual(Post p, Student author, Event @event, string content)
     {

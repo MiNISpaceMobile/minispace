@@ -8,6 +8,14 @@ public class Student : User
     public virtual ICollection<Student> Friends { get; }
 
     public virtual ICollection<Event> SubscribedEvents { get; }
+    public virtual ICollection<Event> JoinedEvents { get; }
+
+    public IEnumerable<BaseNotification> AllNotifications
+        => Enumerable.Concat<BaseNotification>(PersonalNotifications, SocialNotifications).Concat(ReceivedFriendRequests);
+    public virtual ICollection<Notification> PersonalNotifications { get; }
+    public virtual ICollection<SocialNotification> SocialNotifications { get; }
+    public virtual ICollection<FriendRequest> ReceivedFriendRequests { get; }
+    public virtual ICollection<FriendRequest> SentFriendRequests { get; }
 
     public string Description { get; set; }
     public DateTime? DateOfBirth { get; set; }
@@ -38,7 +46,14 @@ public class Student : User
         : base(firstName, lastName, email, externalId, creationDate)
     {
         Friends = new List<Student>();
+
         SubscribedEvents = new List<Event>();
+        JoinedEvents = new List<Event>();
+
+        PersonalNotifications = new List<Notification>();
+        SocialNotifications = new List<SocialNotification>();
+        ReceivedFriendRequests = new List<FriendRequest>();
+        SentFriendRequests = new List<FriendRequest>();
 
         Description = "";
 

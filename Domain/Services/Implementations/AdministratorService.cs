@@ -39,7 +39,7 @@ public class AdministratorService : IAdministratorService
     public void DeleteAdministrator(Guid guid)
     {
         if (!uow.Repository<Administrator>().TryDelete(guid))
-            throw new InvalidGuidException();
+            throw new InvalidGuidException<Administrator>();
         uow.Commit();
     }
 }

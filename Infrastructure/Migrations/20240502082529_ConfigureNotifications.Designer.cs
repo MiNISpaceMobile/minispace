@@ -3,6 +3,7 @@ using System;
 using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    partial class SqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240502082529_ConfigureNotifications")]
+    partial class ConfigureNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,9 +275,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ExternalId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -286,9 +286,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Guid");
-
-                    b.HasIndex("ExternalId")
-                        .IsUnique();
 
                     b.ToTable("User");
 

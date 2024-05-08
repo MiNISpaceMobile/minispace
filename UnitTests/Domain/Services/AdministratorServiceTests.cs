@@ -31,7 +31,7 @@ public class AdministratorServiceTests
     {
         var act = () => sut.GetAdministrator(Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -65,7 +65,7 @@ public class AdministratorServiceTests
 
         var act = () => sut.UpdateAdministrator(newAdministrator);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -91,7 +91,7 @@ public class AdministratorServiceTests
     {
         var act = () => sut.DeleteAdministrator(Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 

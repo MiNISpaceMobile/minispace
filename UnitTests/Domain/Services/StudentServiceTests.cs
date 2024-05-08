@@ -237,7 +237,7 @@ public class StudentServiceTests
     {
         var act = () => sut.RespondFriendRequest(Guid.NewGuid(), true);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<FriendRequest>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 

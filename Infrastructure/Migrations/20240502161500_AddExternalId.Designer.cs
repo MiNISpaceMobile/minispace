@@ -3,6 +3,7 @@ using System;
 using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    partial class SqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240502161500_AddExternalId")]
+    partial class AddExternalId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,38 +37,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("LikersGuid");
 
                     b.ToTable("CommentStudent");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.BaseNotification", b =>
-                {
-                    b.Property<Guid>("Guid")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("Seen")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("SourceId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("TargetId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Guid");
-
-                    b.ToTable("BaseNotification");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("BaseNotification");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Domain.DataModel.Comment", b =>
@@ -314,13 +285,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("EventStudent1", b =>
                 {
-                    b.Property<Guid>("JoinedEventsGuid")
+                    b.Property<Guid>("EventGuid")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ParticipantsGuid")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("JoinedEventsGuid", "ParticipantsGuid");
+                    b.HasKey("EventGuid", "ParticipantsGuid");
 
                     b.HasIndex("ParticipantsGuid");
 
@@ -340,61 +311,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("StudentGuid");
 
                     b.ToTable("StudentStudent");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.FriendRequest", b =>
-                {
-                    b.HasBaseType("Domain.DataModel.BaseNotification");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("TargetId");
-
-                    b.HasDiscriminator().HasValue("FriendRequest");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.Notification", b =>
-                {
-                    b.HasBaseType("Domain.DataModel.BaseNotification");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .IsUnicode(false)
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("TargetId");
-
-                    b.HasDiscriminator().HasValue("Notification");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.SocialNotification", b =>
-                {
-                    b.HasBaseType("Domain.DataModel.BaseNotification");
-
-                    b.Property<Guid>("FriendId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .IsUnicode(false)
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("FriendId");
-
-                    b.HasIndex("TargetId");
-
-                    b.ToTable("BaseNotification", t =>
-                        {
-                            t.Property("Type")
-                                .HasColumnName("SocialNotification_Type");
-                        });
-
-                    b.HasDiscriminator().HasValue("SocialNotification");
                 });
 
             modelBuilder.Entity("Domain.DataModel.CommentReport", b =>
@@ -583,7 +499,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.DataModel.Event", null)
                         .WithMany()
-                        .HasForeignKey("JoinedEventsGuid")
+                        .HasForeignKey("EventGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -607,55 +523,6 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("StudentGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.DataModel.FriendRequest", b =>
-                {
-                    b.HasOne("Domain.DataModel.Student", "Author")
-                        .WithMany("SentFriendRequests")
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.DataModel.Student", "Target")
-                        .WithMany("ReceivedFriendRequests")
-                        .HasForeignKey("TargetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Target");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.Notification", b =>
-                {
-                    b.HasOne("Domain.DataModel.Student", "Target")
-                        .WithMany("PersonalNotifications")
-                        .HasForeignKey("TargetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Target");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.SocialNotification", b =>
-                {
-                    b.HasOne("Domain.DataModel.Student", "Friend")
-                        .WithMany()
-                        .HasForeignKey("FriendId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.DataModel.Student", "Target")
-                        .WithMany("SocialNotifications")
-                        .HasForeignKey("TargetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Friend");
-
-                    b.Navigation("Target");
                 });
 
             modelBuilder.Entity("Domain.DataModel.CommentReport", b =>
@@ -711,14 +578,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.DataModel.Student", b =>
                 {
                     b.Navigation("OrganizedEvents");
-
-                    b.Navigation("PersonalNotifications");
-
-                    b.Navigation("ReceivedFriendRequests");
-
-                    b.Navigation("SentFriendRequests");
-
-                    b.Navigation("SocialNotifications");
                 });
 #pragma warning restore 612, 618
         }

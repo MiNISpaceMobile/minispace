@@ -18,11 +18,11 @@ public class StudentService : BaseService<StudentService>, IStudentService
         return student;
     }
 
-    public Student CreateStudent(string firstName, string lastName, string email)
+    public Student CreateStudent(string firstName, string lastName, string email, string? externalId = null)
     {
         AllowNotLoggedIn();
 
-        Student student = new Student(firstName, lastName, email);
+        Student student = new Student(firstName, lastName, email, externalId);
 
         uow.Repository<Student>().Add(student);
         uow.Commit();

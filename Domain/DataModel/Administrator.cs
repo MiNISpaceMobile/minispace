@@ -6,6 +6,6 @@ public class Administrator : User
     protected Administrator() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Administrator(string firstName, string lastName, string email, DateTime? creationDate = null)
-        : base(firstName, lastName, email, creationDate) { }  
+    public Administrator(string firstName, string lastName, string email, string? externalId = null, DateTime? creationDate = null)
+        : base(firstName, lastName, email, externalId, creationDate) { }  
 }

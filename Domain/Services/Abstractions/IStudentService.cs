@@ -6,7 +6,7 @@ namespace Domain.Services.Abstractions
     {
         public Student GetStudent(Guid guid);
 
-        public Student CreateStudent(string firstName, string lastName, string email);
+        public Student CreateStudent(string firstName, string lastName, string email, string? externalId = null);
 
         public void UpdateStudent(Student newStudent);
 

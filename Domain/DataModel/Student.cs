@@ -42,8 +42,8 @@ public class Student : User
     protected Student() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Student(string firstName, string lastName, string email, DateTime? creationDate = null)
-        : base(firstName, lastName, email, creationDate)
+    public Student(string firstName, string lastName, string email, string? externalId = null, DateTime? creationDate = null)
+        : base(firstName, lastName, email, externalId, creationDate)
     {
         Friends = new List<Student>();
 

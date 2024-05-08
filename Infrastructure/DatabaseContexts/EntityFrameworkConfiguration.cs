@@ -93,6 +93,9 @@ public static class EntityFrameworkConfiguration
          */
         type.UseTphMappingStrategy();
 
+        type.HasIndex(x => x.ExternalId)
+            .IsUnique();
+
         type.Property(x => x.FirstName)
             .HasMaxLength(32);
 

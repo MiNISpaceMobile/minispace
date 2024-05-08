@@ -9,6 +9,8 @@ public abstract class User : BaseEntity
     public static byte[] CalculatePasswordHash(string password, string salt)
         => SHA512.HashData(Encoding.UTF8.GetBytes($"{password}{salt}"));
 
+    // USOS is the source of ExternalId in our case
+    public string? ExternalId { get; private set; }
     public DateTime CreationDate { get; private set; }
 
     public string FirstName { get; set; }
@@ -30,8 +32,9 @@ public abstract class User : BaseEntity
     protected User() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public User(string firstName, string lastName, string email, DateTime? creationDate = null)
+    public User(string firstName, string lastName, string email, string? externalId, DateTime? creationDate)
     {
+        ExternalId = externalId;
         CreationDate = creationDate ?? DateTime.Now;
 
         FirstName = firstName;

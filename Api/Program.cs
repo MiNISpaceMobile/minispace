@@ -1,15 +1,21 @@
 using Api;
+using Api.Auth;
 using Domain.Abstractions;
-using Domain.Services;
+using Infrastructure.Authenticators;
+using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;
+using Infrastructure.JwtHandlers;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddJsonFile(Path.Join(Directory.GetCurrentDirectory(), "../../minispace-secrets.json"), true);
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options => options.AddJwtAuthorization());
 
 builder.Services.AddControllers()
                 .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
@@ -25,11 +31,15 @@ builder.Services.AddControllers()
  * It means that only one object of your class will exist for entire program duration.
  */
 
+// EF Core
 builder.Services.AddEFContext<SqliteDbContext>();
-
-builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
-
 builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
+// Auth:
+builder.Services.AddSingleton<ICryptographyProvider<RSAParameters>, RsaConfigCryptographyProvider>();
+builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
+builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
+// Services:
+builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 
 /* Warning! Important! Will help you later!
  * 
@@ -42,10 +52,16 @@ builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
  * ... or that you fucked up and got some other exception :)
  */
 
+builder.Services.AddAuthentication(nameof(JwtAuthScheme))
+                .AddScheme<JwtAuthScheme.Options, JwtAuthScheme.Handler>(nameof(JwtAuthScheme), null);
+
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

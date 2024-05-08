@@ -16,11 +16,11 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
         return student;
     }
 
-    public Student CreateStudent(string firstName, string lastName, string email)
+    public Student CreateStudent(string firstName, string lastName, string email, string? externalId = null)
     {
         AllowOnlyNotLoggedIn();
 
-        Student student = new Student(firstName, lastName, email);
+        Student student = new Student(firstName, lastName, email, externalId);
 
         uow.Repository<Student>().Add(student);
         uow.Commit();

@@ -9,11 +9,11 @@ public class AdministratorService(IUnitOfWork uow) : BaseService<IAdministratorS
 {
     public Administrator GetAdministrator(Guid guid) => uow.Repository<Administrator>().GetOrThrow(guid);
 
-    public Administrator CreateAdministrator(string firstName, string lastName, string email)
+    public Administrator CreateAdministrator(string firstName, string lastName, string email, string? externalId = null)
     {
         AllowOnlyAdmins();
 
-        Administrator administrator = new Administrator(firstName, lastName, email);
+        Administrator administrator = new Administrator(firstName, lastName, email, externalId);
 
         uow.Repository<Administrator>().Add(administrator);
         uow.Commit();

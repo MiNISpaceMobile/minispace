@@ -3,7 +3,6 @@ using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
-using System.Net;
 
 namespace UnitTests.Domain.Services;
 
@@ -44,7 +43,7 @@ public class PostServiceTests
         string content = string.Empty;
 
         // Act
-        var action = () => sut.CreatePost(author.Guid, @event.Guid, content);
+        var action = () => sut.CreatePost(/*author.Guid, */@event.Guid, content);
 
         // Assert
         Assert.ThrowsException<EmptyContentException>(action);
@@ -60,7 +59,7 @@ public class PostServiceTests
         string content = "a";
 
         // Act
-        Post post = sut.CreatePost(author.Guid, @event.Guid, content);
+        Post post = sut.CreatePost(/*author.Guid, */@event.Guid, content);
 
         // Assert
         Assert.IsTrue(@event.Posts.Contains(post));

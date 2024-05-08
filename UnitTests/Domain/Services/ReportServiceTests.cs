@@ -180,7 +180,8 @@ public class ReportServiceTests
     {
         // Arrange
         ReportService service = new(unitOfWork);
-        var newStudent = new Student("abc", "abc", "abc", DateTime.Now);
+
+        var newStudent = new Student("abc", "abc", "abc");
         var newReport = new CommentReport(c0, newStudent, "title", "details", ReportCategory.Bug) { Guid = cRe1.Guid };
 
         // Act

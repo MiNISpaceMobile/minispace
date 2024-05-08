@@ -1,8 +1,9 @@
-﻿using Domain.DataModel;
+﻿using Domain.BaseTypes;
+using Domain.DataModel;
 
 namespace Domain.Services.Abstractions;
 
-public interface IAdministratorService
+public interface IAdministratorService : IBaseService<IAdministratorService>
 {
     public Administrator GetAdministrator(Guid guid);
 

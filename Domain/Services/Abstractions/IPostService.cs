@@ -1,13 +1,9 @@
-﻿using Domain.DataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.BaseTypes;
+using Domain.DataModel;
 
 namespace Domain.Services;
 
-public interface IPostService
+public interface IPostService : IBaseService<IPostService>
 {
     public Post CreatePost(Guid authorGuid, Guid eventGuid, string content);
     public Post GetPost(Guid guid);

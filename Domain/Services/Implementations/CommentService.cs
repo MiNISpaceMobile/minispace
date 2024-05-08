@@ -1,23 +1,11 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Domain.DataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Services;
 
-public class CommentService : ICommentService
+public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, CommentService>(uow), ICommentService
 {
-    private IUnitOfWork uow;
-
-    public CommentService(IUnitOfWork uow)
-    {
-        this.uow = uow;
-    }
-
     public Comment CreateComment(Guid authorGuid, Guid postGuid, string content, Guid inResponseToGuid = new Guid(), DateTime? creationDate = null)
     {
         Student? author = uow.Repository<Student>().Get(authorGuid);

@@ -1,13 +1,9 @@
-﻿using Domain.DataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.BaseTypes;
+using Domain.DataModel;
 
 namespace Domain.Services;
 
-public interface IEventService
+public interface IEventService : IBaseService<IEventService>
 {
     public Event GetEvent(Guid guid);
     public Event CreateEvent(Guid studentGuid, string title, string description, EventCategory category, DateTime publicationDate,

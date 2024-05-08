@@ -1,8 +1,9 @@
-﻿using Domain.DataModel;
+﻿using Domain.BaseTypes;
+using Domain.DataModel;
 
 namespace Domain.Services.Abstractions
 {
-    public interface IStudentService
+    public interface IStudentService : IBaseService<IStudentService>
     {
         public Student GetStudent(Guid guid);
 

@@ -1,23 +1,11 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Domain.DataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Services;
 
-public class PostService : IPostService
+public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostService>(uow), IPostService
 {
-    private IUnitOfWork uow;
-
-    public PostService(IUnitOfWork uow)
-    {
-        this.uow = uow;
-    }
-
     public Post CreatePost(Guid authorGuid, Guid eventGuid, string content)
     {
         Student? author = uow.Repository<Student>().Get(authorGuid);

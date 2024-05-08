@@ -1,18 +1,15 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Domain.DataModel;
-using System;
 
 namespace Domain.Services;
 
-public class EventService : IEventService
+public class EventService : BaseService<IEventService, EventService>, IEventService
 {
-    private IUnitOfWork uow;
     private PostService postService;
 
-    public EventService(IUnitOfWork uow)
+    public EventService(IUnitOfWork uow) : base(uow)
     {
-        this.uow = uow;
         postService = new PostService(uow);
     }
 

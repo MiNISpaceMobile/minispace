@@ -5,10 +5,8 @@ using Domain.Services.Abstractions;
 
 namespace Domain.Services.Implementations;
 
-public class StudentService : BaseService<StudentService>, IStudentService
+public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, StudentService>(uow), IStudentService
 {
-    public StudentService(IUnitOfWork uow) : base(uow) { }
-
     public Student GetStudent(Guid guid)
     {
         Student student = uow.Repository<Student>().GetOrThrow(guid);

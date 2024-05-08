@@ -1,18 +1,12 @@
 ﻿using Domain.Abstractions;
+using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services.Abstractions;
 
 namespace Domain.Services.Implementations;
 
-public class AdministratorService : IAdministratorService
+public class AdministratorService(IUnitOfWork uow) : BaseService<IAdministratorService, AdministratorService>(uow), IAdministratorService
 {
-    private IUnitOfWork uow;
-
-    public AdministratorService(IUnitOfWork uow)
-    {
-        this.uow = uow;
-    }
-
     public Administrator GetAdministrator(Guid guid) => uow.Repository<Administrator>().GetOrThrow(guid);
 
     public Administrator CreateAdministrator(string firstName, string lastName, string email)

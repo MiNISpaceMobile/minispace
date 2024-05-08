@@ -10,6 +10,6 @@ public interface IReportService : IBaseService<IReportService>
         where ReportType : Report;
     IEnumerable<ReportType> GetAll<ReportType>() where ReportType : Report;
     ReportType GetByGuid<ReportType>(Guid guid) where ReportType : Report;
-    Report UpdateReport(Report newReport);
+    Report UpdateReport(Report newReport, Guid responderId);
     void DeleteReport(Guid guid);
 }

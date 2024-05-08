@@ -87,7 +87,7 @@ public class ReportServiceTests
         void act() => service.GetByGuid<Report>(Guid.Empty);
 
         // Assert
-        var exception = Assert.ThrowsException<Exception>(act);
+        var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
     }
 
     [TestMethod]
@@ -128,7 +128,7 @@ public class ReportServiceTests
         void act() => service.GetByGuid<CommentReport>(evRe0.Guid);
 
         // Assert
-        var exception = Assert.ThrowsException<Exception>(act);
+        var exception = Assert.ThrowsException<InvalidGuidException<CommentReport>>(act);
     }
     #endregion GetByGuid
 
@@ -143,7 +143,7 @@ public class ReportServiceTests
         void act() => service.CreateReport<Event, EventReport>(Guid.Empty, st0.Guid, "title", "details", ReportCategory.Unknown);
 
         // Assert
-        var exception = Assert.ThrowsException<Exception>(act);
+        var exception = Assert.ThrowsException<InvalidGuidException<Event>>(act);
     }
 
     [TestMethod]
@@ -156,7 +156,7 @@ public class ReportServiceTests
         void act() => service.CreateReport<Event, EventReport>(ev0.Guid, Guid.Empty, "title", "details", ReportCategory.Unknown);
 
         // Assert
-        var exception = Assert.ThrowsException<Exception>(act);
+        var exception = Assert.ThrowsException<InvalidGuidException<Student>>(act);
     }
 
     [TestMethod]
@@ -181,13 +181,13 @@ public class ReportServiceTests
         // Arrange
         ReportService service = new(unitOfWork);
         var newStudent = new Student("abc", "abc", "abc", DateTime.Now);
-        var newReport = new CommentReport(c0, newStudent, "title", "details", ReportCategory.Bug);
+        var newReport = new CommentReport(c0, newStudent, "title", "details", ReportCategory.Bug) { Guid = cRe1.Guid };
 
         // Act
-        void act() => service.UpdateReport(newReport);
+        void act() => service.UpdateReport(newReport, Guid.NewGuid());
 
         // Assert
-        var exception = Assert.ThrowsException<Exception>(act);
+        var exception = Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
     }
 
     [TestMethod]
@@ -198,10 +198,10 @@ public class ReportServiceTests
         var newReport = new CommentReport(c0, st0, "title", "details", ReportCategory.Bug);
 
         // Act
-        void act() => service.UpdateReport(newReport);
+        void act() => service.UpdateReport(newReport, ad0.Guid);
 
         // Assert
-        var exception = Assert.ThrowsException<Exception>(act);
+        var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
     }
 
     [TestMethod]
@@ -209,13 +209,13 @@ public class ReportServiceTests
     {
         // Arrange
         ReportService service = new(unitOfWork);
-        var newReport = new CommentReport(c0, st1, "title", "details", ReportCategory.Bug);
+        var newReport = new CommentReport(c0, st1, "title", "details", ReportCategory.Bug) { Guid = cRe0.Guid };
 
         // Act
-        void act() => service.UpdateReport(newReport);
+        void act() => service.UpdateReport(newReport, ad0.Guid);
 
         // Assert
-        var exception = Assert.ThrowsException<Exception>(act);
+        var exception = Assert.ThrowsException<InvalidOperationException>(act);
     }
     #endregion UpdateReport
 
@@ -230,7 +230,7 @@ public class ReportServiceTests
         void act() => service.DeleteReport(Guid.Empty);
 
         // Assert
-        var exception = Assert.ThrowsException<Exception>(act);
+        var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
     }
 
     [TestMethod]

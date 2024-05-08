@@ -11,14 +11,14 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
     {
         Student student = uow.Repository<Student>().GetOrThrow(guid);
 
-        AllowOnlyStudent(student);
+        AllowAllUsers();
 
         return student;
     }
 
     public Student CreateStudent(string firstName, string lastName, string email)
     {
-        AllowNotLoggedIn();
+        AllowOnlyNotLoggedIn();
 
         Student student = new Student(firstName, lastName, email);
 
@@ -32,7 +32,7 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
     {
         Student student = uow.Repository<Student>().GetOrThrow(newStudent.Guid);
 
-        AllowOnlyStudent(student);
+        AllowUser(student);
 
         student.FirstName = newStudent.FirstName;
         student.LastName = newStudent.LastName;
@@ -51,7 +51,7 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
     {
         Student student = uow.Repository<Student>().GetOrThrow(guid);
 
-        AllowOnlyStudent(student);
+        AllowUser(student);
 
         uow.Repository<Student>().Delete(student);
         uow.Commit();
@@ -62,7 +62,7 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
         Student target = uow.Repository<Student>().GetOrThrow(targetId);
         Student author = uow.Repository<Student>().GetOrThrow(authorId);
 
-        AllowOnlyStudent(author);
+        AllowUser(author);
 
         FriendRequest? opposite = target.SentFriendRequests.Where(r => r.Target == author).SingleOrDefault();
         if (opposite is not null) // Author already received a FriendRequest from target
@@ -93,7 +93,7 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
     {
         FriendRequest request = uow.Repository<FriendRequest>().GetOrThrow(requestId);
 
-        AllowOnlyStudent(request.Target);
+        AllowUser(request.Target);
 
         if (accept)
         {

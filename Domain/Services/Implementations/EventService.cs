@@ -4,30 +4,23 @@ using Domain.DataModel;
 
 namespace Domain.Services;
 
-public class EventService : BaseService<IEventService, EventService>, IEventService
+public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventService>(uow), IEventService
 {
-    private PostService postService;
-
-    public EventService(IUnitOfWork uow) : base(uow)
-    {
-        postService = new PostService(uow);
-    }
+    private PostService postService = new PostService(uow);
 
     public Event GetEvent(Guid guid)
     {
-        Event? @event = uow.Repository<Event>().Get(guid);
-        if (@event is null)
-            throw new InvalidGuidException<Event>();
+        AllowEveryone();
 
-        return @event;
+        return uow.Repository<Event>().GetOrThrow(guid);
     }
 
     public Event CreateEvent(Guid studentGuid, string title, string description, EventCategory category, DateTime publicationDate,
                  DateTime startDate, DateTime endDate, string location, int? capacity, decimal? fee)
     {
-        Student? student = uow.Repository<Student>().Get(studentGuid);
-        if (student is null)
-            throw new InvalidGuidException<Event>();
+        AllowOrganizers();
+
+        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
 
         Event @event = new Event(student, title, description, category, publicationDate,
             startDate, endDate, location, capacity, fee);
@@ -43,6 +36,8 @@ public class EventService : BaseService<IEventService, EventService>, IEventServ
     public void DeleteEvent(Guid guid)
     {
         Event @event = uow.Repository<Event>().GetOrThrow(guid);
+
+        AllowUser(@event.Organizer);
 
         while (@event.Posts.Count > 0) 
             postService.DeletePost(@event.Posts.First().Guid);
@@ -63,9 +58,9 @@ public class EventService : BaseService<IEventService, EventService>, IEventServ
     /// <exception cref="InvalidGuidException"></exception>
     public void UpdateEvent(Event newEvent)
     {
-        Event? currEvent = uow.Repository<Event>().Get(newEvent.Guid);
-        if (currEvent is null)
-            throw new InvalidGuidException<Event>();
+        Event currEvent = uow.Repository<Event>().GetOrThrow(newEvent.Guid);
+
+        AllowUser(currEvent.Organizer);
 
         currEvent.Title = newEvent.Title;
         currEvent.Description = newEvent.Description;
@@ -90,10 +85,11 @@ public class EventService : BaseService<IEventService, EventService>, IEventServ
     /// <exception cref="InvalidGuidException"></exception>
     public bool TryAddParticipant(Guid eventGuid, Guid studentGuid)
     {
-        Event? @event = uow.Repository<Event>().Get(eventGuid);
-        Student? student = uow.Repository<Student>().Get(studentGuid);
-        if (student is null || @event is null)
-            throw new InvalidGuidException();
+        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+
+        AllowUser(student);
+
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
         // Full event
         if (@event.Capacity is not null && @event.Participants.Count == @event.Capacity)
@@ -123,10 +119,11 @@ public class EventService : BaseService<IEventService, EventService>, IEventServ
     /// <exception cref="InvalidGuidException"></exception>
     public bool TryAddInterested(Guid eventGuid, Guid studentGuid)
     {
-        Event? @event = uow.Repository<Event>().Get(eventGuid);
-        Student? student = uow.Repository<Student>().Get(studentGuid);
-        if (student is null || @event is null)
-            throw new InvalidGuidException();
+        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+
+        AllowUser(student);
+
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
         
         // Already interested
         if (@event.Interested.Contains(student))
@@ -153,10 +150,11 @@ public class EventService : BaseService<IEventService, EventService>, IEventServ
     /// <exception cref="InvalidGuidException"></exception>
     public bool TryRemoveParticipant(Guid eventGuid, Guid studentGuid)
     {
-        Event? @event = uow.Repository<Event>().Get(eventGuid);
-        Student? student = uow.Repository<Student>().Get(studentGuid);
-        if (student is null || @event is null)
-            throw new InvalidGuidException();
+        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+
+        AllowUser(student);
+
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
         // Already not participating
         if (!@event.Participants.Contains(student))
@@ -181,10 +179,11 @@ public class EventService : BaseService<IEventService, EventService>, IEventServ
     /// <exception cref="InvalidGuidException"></exception>
     public bool TryRemoveInterested(Guid eventGuid, Guid studentGuid)
     {
-        Event? @event = uow.Repository<Event>().Get(eventGuid);
-        Student? student = uow.Repository<Student>().Get(studentGuid);
-        if (student is null || @event is null)
-            throw new InvalidGuidException();
+        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+
+        AllowUser(student);
+
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
         // Already not interested
         if (!@event.Interested.Contains(student))
@@ -200,10 +199,11 @@ public class EventService : BaseService<IEventService, EventService>, IEventServ
 
     public Feedback AddFeedback(Guid eventGuid, Guid authorGuid, string content)
     {
-        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
         Student author = uow.Repository<Student>().GetOrThrow(authorGuid);
-        if (content == string.Empty)
-            throw new EmptyContentException();
+
+        AllowUser(author);
+
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
         if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == authorGuid) is not null)
             throw new InvalidOperationException("This Student have already given Feedback to this Event");

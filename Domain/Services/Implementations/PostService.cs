@@ -6,16 +6,16 @@ namespace Domain.Services;
 
 public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostService>(uow), IPostService
 {
-    public Post CreatePost(Guid authorGuid, Guid eventGuid, string content)
+    public Post CreatePost(/*Guid authorGuid, */Guid eventGuid, string content)
     {
-        Student? author = uow.Repository<Student>().Get(authorGuid);
-        Event? @event = uow.Repository<Event>().Get(eventGuid);
-        if (author is null || @event is null)
-            throw new InvalidGuidException();
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
+
+        AllowUser(@event.Organizer);
+
         if (content == string.Empty)
             throw new EmptyContentException();
 
-        var post = new Post(author, @event, content, DateTime.Now);
+        var post = new Post(@event.Organizer!, @event, content, DateTime.Now);
         uow.Repository<Post>().Add(post);
         @event.Posts.Add(post);
 
@@ -25,9 +25,9 @@ public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostServic
 
     public void DeletePost(Guid guid)
     {
-        Post? post = uow.Repository<Post>().Get(guid);
-        if (post is null)
-            throw new InvalidGuidException<Post>();
+        Post post = uow.Repository<Post>().GetOrThrow(guid);
+
+        AllowUser(post.Author);
 
         uow.Repository<Post>().TryDelete(guid);
         post.Event.Posts.Remove(post);
@@ -37,6 +37,8 @@ public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostServic
 
     public Post GetPost(Guid guid)
     {
+        AllowEveryone();
+
         Post? post = uow.Repository<Post>().Get(guid);
         if (post is null)
             throw new InvalidGuidException<Post>();

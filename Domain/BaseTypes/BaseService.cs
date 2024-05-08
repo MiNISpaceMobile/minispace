@@ -32,34 +32,32 @@ public abstract class BaseService<ServiceInterface, ServiceImplementaion> : IBas
         return (ServiceImplementaion)this;
     }
 
-    // TODO: Actually use these guards in derived Services
-
     protected void AllowOnlyAdmins()
     {
         if (ActingUser is not Administrator)
             throw new UserUnauthorizedException("Not an admin");
     }
-    protected void AllowOnlyOrganizers(bool allowAdmins = true)
+    protected void AllowOrganizers(bool allowAdmins = true)
     {
         bool allowed = (allowAdmins && ActingUser is Administrator) || ((ActingUser as Student)?.IsOrganizer ?? false);
         if (!allowed)
             throw new UserUnauthorizedException("Not an organizer");
     }
-    protected void AllowLoggedInStudents(bool allowAdmins = true)
+    protected void AllowAllUsers(bool allowAdmins = true)
     {
         bool allowed = (allowAdmins && ActingUser is Administrator) || ActingUser is Student;
         if (!allowed)
             throw new UserUnauthorizedException("Not logged in");
     }
-    protected void AllowNotLoggedIn(bool allowAdmins = true)
+    protected void AllowOnlyNotLoggedIn(bool allowAdmins = true)
     {
         bool allowed = (allowAdmins && ActingUser is Administrator) || ActingUser is null;
         if (!allowed)
             throw new UserUnauthorizedException("Logged in");
     }
-    protected void AllowOnlyStudent(Student authorized, bool allowAdmins = true)
+    protected void AllowUser(User? authorized, bool allowAdmins = true)
     {
-        bool allowed = (allowAdmins && ActingUser is Administrator) || ActingUser == authorized;
+        bool allowed = (allowAdmins && ActingUser is Administrator) || Equals(ActingUser, authorized);
         if (!allowed)
             throw new UserUnauthorizedException();
     }

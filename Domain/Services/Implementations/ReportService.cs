@@ -9,20 +9,31 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
     public IEnumerable<ReportType> GetAll<ReportType>()
         where ReportType : Report
     {
+        AllowOnlyAdmins();
+
         return uow.Repository<ReportType>().GetAll();
     }
 
     public ReportType GetByGuid<ReportType>(Guid guid)
         where ReportType : Report
-        => uow.Repository<ReportType>().GetOrThrow(guid);
+    {
+        ReportType report = uow.Repository<ReportType>().GetOrThrow(guid);
+
+        AllowUser(report.Author);
+
+        return report;
+    }
 
     public ReportType CreateReport<TargetType, ReportType>(Guid targetId, Guid authorId, string title,
         string details, ReportCategory category)
         where TargetType : BaseEntity
         where ReportType : Report
     {
-        var target = uow.Repository<TargetType>().GetOrThrow(targetId);
         var author = uow.Repository<Student>().GetOrThrow(authorId);
+
+        AllowUser(author);
+
+        var target = uow.Repository<TargetType>().GetOrThrow(targetId);
 
         var report = (ReportType)CreateSpecificReport(target, author, title, details, category);
 
@@ -36,6 +47,9 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
     public Report UpdateReport(Report newReport, Guid responderId)
     {
         var report = uow.Repository<Report>().GetOrThrow(newReport.Guid);
+
+        AllowUser(report.Author);
+
         var responder = uow.Repository<Administrator>().GetOrThrow(responderId);
         if (!report.IsOpen)
             throw new InvalidOperationException("Report is closed");
@@ -51,9 +65,11 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
 
     public void DeleteReport(Guid guid)
     {
-        if (!uow.Repository<Report>().TryDelete(guid))
-            throw new InvalidGuidException<Report>();
+        var report = uow.Repository<Report>().GetOrThrow(guid);
 
+        AllowUser(report.Author);
+
+        uow.Repository<Report>().Delete(report);
         uow.Commit();
     }
 

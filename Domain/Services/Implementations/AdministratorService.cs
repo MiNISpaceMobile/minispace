@@ -11,6 +11,8 @@ public class AdministratorService(IUnitOfWork uow) : BaseService<IAdministratorS
 
     public Administrator CreateAdministrator(string firstName, string lastName, string email)
     {
+        AllowOnlyAdmins();
+
         Administrator administrator = new Administrator(firstName, lastName, email);
 
         uow.Repository<Administrator>().Add(administrator);
@@ -21,6 +23,8 @@ public class AdministratorService(IUnitOfWork uow) : BaseService<IAdministratorS
 
     public void UpdateAdministrator(Administrator newAdministrator)
     {
+        AllowOnlyAdmins();
+
         Administrator administrator = uow.Repository<Administrator>().GetOrThrow(newAdministrator.Guid);
 
         administrator.FirstName = newAdministrator.FirstName;
@@ -32,6 +36,8 @@ public class AdministratorService(IUnitOfWork uow) : BaseService<IAdministratorS
 
     public void DeleteAdministrator(Guid guid)
     {
+        AllowOnlyAdmins();
+
         if (!uow.Repository<Administrator>().TryDelete(guid))
             throw new InvalidGuidException<Administrator>();
         uow.Commit();

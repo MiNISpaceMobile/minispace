@@ -24,3 +24,8 @@ public class EmptyContentException : Exception
     public EmptyContentException() : base("Content must not be empty") { }
     public EmptyContentException(string message) : base(message) { }
 }
+
+public class UserUnauthorizedException : Exception
+{
+    public UserUnauthorizedException(string? message = null) : base(message) { }
+}

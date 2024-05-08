@@ -1,22 +1,27 @@
 ﻿using Domain.Abstractions;
+using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services.Abstractions;
 
 namespace Domain.Services.Implementations;
 
-public class StudentService : IStudentService
+public class StudentService : BaseService<StudentService>, IStudentService
 {
-    private IUnitOfWork uow;
+    public StudentService(IUnitOfWork uow) : base(uow) { }
 
-    public StudentService(IUnitOfWork uow)
+    public Student GetStudent(Guid guid)
     {
-        this.uow = uow;
-    }
+        Student student = uow.Repository<Student>().GetOrThrow(guid);
 
-    public Student GetStudent(Guid guid) => uow.Repository<Student>().GetOrThrow(guid);
+        AllowOnlyStudent(student);
+
+        return student;
+    }
 
     public Student CreateStudent(string firstName, string lastName, string email)
     {
+        AllowNotLoggedIn();
+
         Student student = new Student(firstName, lastName, email);
 
         uow.Repository<Student>().Add(student);
@@ -28,6 +33,8 @@ public class StudentService : IStudentService
     public void UpdateStudent(Student newStudent)
     {
         Student student = uow.Repository<Student>().GetOrThrow(newStudent.Guid);
+
+        AllowOnlyStudent(student);
 
         student.FirstName = newStudent.FirstName;
         student.LastName = newStudent.LastName;
@@ -44,40 +51,62 @@ public class StudentService : IStudentService
 
     public void DeleteStudent(Guid guid)
     {
-        if (!uow.Repository<Student>().TryDelete(guid))
-            throw new InvalidGuidException<Student>();
+        Student student = uow.Repository<Student>().GetOrThrow(guid);
+
+        AllowOnlyStudent(student);
+
+        uow.Repository<Student>().Delete(student);
         uow.Commit();
     }
 
-    public bool TrySetFriendship(Guid guid1, Guid guid2, bool make_friends)
+    public FriendRequest? SendFriendRequest(Guid targetId, Guid authorId)
     {
-        // 2 students, 1 query
-        var students = uow.Repository<Student>().GetAll().Where(s => s.Guid == guid1 || s.Guid == guid2);
+        Student target = uow.Repository<Student>().GetOrThrow(targetId);
+        Student author = uow.Repository<Student>().GetOrThrow(authorId);
 
-        if (students.Count() != 2)
-            throw new InvalidGuidException<Student>();
+        AllowOnlyStudent(author);
 
-        Student student1 = students.First();
-        Student student2 = students.Last();
-
-        if (make_friends)
+        FriendRequest? opposite = target.SentFriendRequests.Where(r => r.Target == author).SingleOrDefault();
+        if (opposite is not null) // Author already received a FriendRequest from target
         {
-            if (student1.Friends.Contains(student2))
-                return false;
+            target.Friends.Add(author);
+            author.Friends.Add(target);
 
-            student1.Friends.Add(student2);
-            student2.Friends.Add(student1);
-        }
-        else
-        {
-            if (!student1.Friends.Contains(student2))
-                return false;
+            uow.Repository<FriendRequest>().Delete(opposite);
+            uow.Commit();
 
-            student1.Friends.Remove(student2);
-            student2.Friends.Remove(student1);
+            return null;
         }
+
+        if (target.Friends.Contains(author))
+            throw new InvalidOperationException("Already friends");
+
+        if (target.ReceivedFriendRequests.Any(r => r.Author == author))
+            throw new InvalidOperationException("Already sent a friend request");
+
+        FriendRequest request = new FriendRequest(target, author);
+        uow.Repository<FriendRequest>().Add(request);
         uow.Commit();
 
-        return true;
+        return request;
+    }
+
+    public void RespondFriendRequest(Guid requestId, bool accept)
+    {
+        FriendRequest request = uow.Repository<FriendRequest>().GetOrThrow(requestId);
+
+        AllowOnlyStudent(request.Target);
+
+        if (accept)
+        {
+            Student target = request.Target;
+            Student author = request.Author;
+
+            target.Friends.Add(author);
+            author.Friends.Add(target);
+        }
+
+        uow.Repository<FriendRequest>().Delete(request);
+        uow.Commit();
     }
 }

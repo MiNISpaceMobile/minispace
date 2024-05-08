@@ -1,4 +1,5 @@
-﻿using Domain.DataModel;
+﻿using Domain.Abstractions;
+using Domain.DataModel;
 using Infrastructure.Repositories;
 using Infrastructure.UnitOfWorks;
 
@@ -12,7 +13,7 @@ public class DictionaryRepositoryTests
     private Administrator ad1;
 
     private DictionaryUnitOfWork uow;
-    private DictionaryRepository<Administrator> sut;
+    private IRepository<Administrator> sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
 
     [TestInitialize]
@@ -86,7 +87,6 @@ public class DictionaryRepositoryTests
     public void TryDelete_InvalidGuid_ReturnsFalse()
     {
         bool deleted = sut.TryDelete(Guid.NewGuid());
-
         Assert.IsFalse(deleted);
     }
 

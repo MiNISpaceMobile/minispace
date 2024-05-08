@@ -32,7 +32,7 @@ public class UserServiceTests
     {
         var act = () => sut.GetUser(Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<User>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 

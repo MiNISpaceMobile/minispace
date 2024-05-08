@@ -1,4 +1,5 @@
 ﻿using Domain.Abstractions;
+using Domain.BaseTypes;
 using Domain.DataModel;
 using System;
 using System.Collections.Generic;
@@ -23,9 +24,9 @@ public class CommentService : ICommentService
         Post? post = uow.Repository<Post>().Get(postGuid);
         Comment? inResponseTo = uow.Repository<Comment>().Get(inResponseToGuid);
         if (author is null || post is null || (inResponseToGuid != Guid.Empty && inResponseTo is null))
-            throw new ArgumentException("Nonexistent object");
+            throw new InvalidGuidException();
         if (content == string.Empty)
-            throw new ArgumentException("Arguments must not be empty");
+            throw new EmptyContentException();
 
         Comment comment = new Comment(author, post, content, inResponseTo, creationDate);
         uow.Repository<Comment>().Add(comment);
@@ -39,7 +40,7 @@ public class CommentService : ICommentService
     {
         Comment? comment = uow.Repository<Comment>().Get(guid);
         if (comment is null)
-            throw new ArgumentException("Nonexistent comment");
+            throw new InvalidGuidException<Comment>();
 
         uow.Repository<Comment>().TryDelete(guid);
         comment.Post.Comments.Remove(comment);
@@ -51,7 +52,7 @@ public class CommentService : ICommentService
     {
         Comment? comment = uow.Repository<Comment>().Get(guid);
         if (comment is null)
-            throw new ArgumentException("Nonexistent comment");
+            throw new InvalidGuidException<Comment>();
 
         return comment;
     }

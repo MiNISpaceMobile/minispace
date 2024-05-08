@@ -39,7 +39,7 @@ public class StudentServiceTests
     {
         var act = () => sut.GetStudent(Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -91,7 +91,7 @@ public class StudentServiceTests
 
         var act = () => sut.UpdateStudent(newStudent);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -130,7 +130,7 @@ public class StudentServiceTests
     {
         var act = () => sut.DeleteStudent(Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -159,7 +159,7 @@ public class StudentServiceTests
     {
         Action act = () => sut.SendFriendRequest(Guid.NewGuid(), Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -168,7 +168,7 @@ public class StudentServiceTests
     {
         Action act = () => sut.SendFriendRequest(Guid.NewGuid(), sts[1].Guid);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -177,7 +177,7 @@ public class StudentServiceTests
     {
         Action act = () => sut.SendFriendRequest(sts[0].Guid, Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
@@ -237,7 +237,7 @@ public class StudentServiceTests
     {
         var act = () => sut.RespondFriendRequest(Guid.NewGuid(), true);
 
-        Assert.ThrowsException<InvalidGuidException>(act);
+        Assert.ThrowsException<InvalidGuidException<FriendRequest>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 

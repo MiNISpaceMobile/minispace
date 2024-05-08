@@ -44,7 +44,7 @@ public class EventServiceTests
         Action action = () => service.GetEvent(guid);
 
         // Assert
-        Assert.ThrowsException<ArgumentException>(action);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
@@ -74,8 +74,7 @@ public class EventServiceTests
         var action = () => sut.CreateEvent(new Guid(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual("Nonexistent student", ex.Message);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
@@ -93,6 +92,51 @@ public class EventServiceTests
     }
     #endregion
 
+    #region DeleteEvent
+    [TestMethod]
+    public void DeleteEvent_NonexistentEvent_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.DeleteEvent(Guid.Empty);
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
+    }
+
+    [TestMethod]
+    public void DeleteEvent_CorrectEvent_ShouldDeleteEvent()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        student.SubscribedEvents.Add(@event);
+        @event.Interested.Add(student);
+        // Event posts
+        uow.Repository<Event>().Add(@event);
+        Post post1 = new Post(student, @event, "a");
+        uow.Repository<Post>().Add(post1);
+        Post post2 = new Post(student, @event, "a");
+        uow.Repository<Post>().Add(post2);
+        @event.Posts.Add(post1);
+        @event.Posts.Add(post2);
+
+        // Act
+        sut.DeleteEvent(@event.Guid);
+
+        // Assert
+        Assert.IsNull(uow.Repository<Event>().Get(@event.Guid));
+        Assert.IsNull(uow.Repository<Post>().Get(post1.Guid));
+        Assert.IsNull(uow.Repository<Post>().Get(post2.Guid));
+        Assert.IsTrue(@event.Interested.Count == 0);
+        Assert.IsTrue(@event.Posts.Count == 0);
+        Assert.IsFalse(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
+
     #region UpdateEvent
     [TestMethod]
     public void UpdateEvent_NonexistentEvent_ShouldThrowArgumentException()
@@ -106,8 +150,7 @@ public class EventServiceTests
         var action = () => sut.UpdateEvent(newEvent);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual("Nonexistent event", ex.Message);
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
     [TestMethod]
@@ -138,8 +181,7 @@ public class EventServiceTests
         Action action = () => sut.TryAddParticipant(Guid.Empty, students.Last().Guid);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual("Nonexistent object", ex.Message);
+        Assert.ThrowsException<InvalidGuidException>(action);
     }
 
     [TestMethod]
@@ -219,8 +261,7 @@ public class EventServiceTests
         Action action = () => sut.TryAddInterested(Guid.Empty, students.Last().Guid);
 
         // Assert
-        var ex = Assert.ThrowsException<ArgumentException>(action);
-        Assert.AreEqual("Nonexistent object", ex.Message);
+        Assert.ThrowsException<InvalidGuidException>(action);
     }
 
     [TestMethod]
@@ -255,6 +296,164 @@ public class EventServiceTests
         Assert.IsTrue(result);
         Assert.IsTrue(@event.Interested.Contains(student));
         Assert.IsTrue(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
+
+    #region TryRemoveParticipant
+    [TestMethod]
+    public void TryRemoveParticipant_NonexistentEvent_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.TryRemoveParticipant(Guid.Empty, students.Last().Guid);
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException>(action);
+    }
+
+    [TestMethod]
+    public void TryRemoveParticipant_NotParticipating_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+
+        // Act
+        var result = sut.TryRemoveParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void TryRemoveParticipant_Participating_ShouldRemoveParticipant()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Participants.Add(student);
+        student.SubscribedEvents.Add(@event);
+
+        // Act
+        var result = sut.TryRemoveParticipant(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsFalse(@event.Participants.Contains(student));
+        Assert.IsFalse(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
+
+    #region TryRemoveInterested
+    [TestMethod]
+    public void TryRemoveInterested_NonexistentEvent_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.TryRemoveInterested(Guid.Empty, students.Last().Guid);
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException>(action);
+    }
+
+    [TestMethod]
+    public void TryRemoveInterested_NotInterested_ShouldReturnFalse()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+
+        // Act
+        var result = sut.TryRemoveInterested(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void TryRemoveParticipant_Interested_ShouldRemoveInterested()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student student = students.Last();
+        @event.Interested.Add(student);
+        student.SubscribedEvents.Add(@event);
+
+        // Act
+        var result = sut.TryRemoveInterested(@event.Guid, student.Guid);
+
+        // Assert
+        Assert.IsTrue(result);
+        Assert.IsFalse(@event.Interested.Contains(student));
+        Assert.IsFalse(student.SubscribedEvents.Contains(@event));
+    }
+    #endregion
+
+    #region AddFeedback
+    [TestMethod]
+    public void AddFeedback_NonexistentEvent_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.AddFeedback(Guid.Empty, Guid.Empty, string.Empty);
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException<Event>>(action);
+    }
+
+    [TestMethod]
+    public void AddFeedback_EmptyContent_ShouldThrowEmptyContentException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+
+        // Act
+        Action action = () => sut.AddFeedback(events.Last().Guid, students.Last().Guid, string.Empty);
+
+        // Assert
+        Assert.ThrowsException<EmptyContentException>(action);
+    }
+
+    [TestMethod]
+    public void AddFeedback_AlreadyGivenFeedback_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student author = students.First();
+        Feedback feedback = new Feedback(author, @event, "a");
+        @event.Feedback.Add(feedback);
+
+        // Act
+        Action action = () => sut.AddFeedback(@event.Guid, author.Guid, "b");
+
+        // Assert
+        Assert.ThrowsException<InvalidOperationException>(action);
+    }
+
+    [TestMethod]
+    public void AddFeedback_CorrectInput_ShouldAddFeedback()
+    {
+        // Arrange
+        EventService sut = new EventService(uow);
+        Event @event = events.Last();
+        Student author = students.First();
+
+        // Act
+        Feedback result = sut.AddFeedback(@event.Guid, author.Guid, "a");
+
+        // Assert
+        Assert.IsTrue(@event.Feedback.Count == 1);
     }
     #endregion
 }

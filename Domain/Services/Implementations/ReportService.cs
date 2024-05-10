@@ -29,7 +29,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         where TargetType : BaseEntity
         where ReportType : Report
     {
-        var author = uow.Repository<Student>().GetOrThrow(authorId);
+        var author = uow.Repository<User>().GetOrThrow(authorId);
 
         AllowUser(author);
 

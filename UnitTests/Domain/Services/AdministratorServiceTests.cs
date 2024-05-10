@@ -41,7 +41,7 @@ public class AdministratorServiceTests
     [TestMethod]
     public void GetAdministrator_Correct_ReturnsAdministrator()
     {
-        var result = sut.GetAdministrator(ad1.Guid);
+        var result = sut.AsUser(ad0.Guid).GetAdministrator(ad1.Guid);
 
         Assert.AreSame(ads[1], result);
         Assert.AreEqual(0, uow.CommitCount);

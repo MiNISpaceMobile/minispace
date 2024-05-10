@@ -156,7 +156,7 @@ public class ReportServiceTests
         void act() => service.AsUser(st0.Guid).CreateReport<Event, EventReport>(ev0.Guid, Guid.Empty, "title", "details", ReportCategory.Unknown);
 
         // Assert
-        var exception = Assert.ThrowsException<InvalidGuidException<Student>>(act);
+        var exception = Assert.ThrowsException<InvalidGuidException<User>>(act);
     }
 
     [TestMethod]

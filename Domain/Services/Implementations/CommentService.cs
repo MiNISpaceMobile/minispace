@@ -6,11 +6,11 @@ namespace Domain.Services;
 
 public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, CommentService>(uow), ICommentService
 {
-    public Comment CreateComment(Guid authorGuid, Guid postGuid, string content, Guid inResponseToGuid = new Guid(), DateTime? creationDate = null)
+    public Comment CreateComment(Guid postGuid, string content, Guid inResponseToGuid = new Guid(), DateTime? creationDate = null)
     {
-        Student author = uow.Repository<Student>().GetOrThrow(authorGuid);
+        AllowOnlyStudents();
 
-        AllowUser(author);
+        Student author = (Student)ActingUser!;
 
         Post post = uow.Repository<Post>().GetOrThrow(postGuid);
         Comment? inResponseTo = uow.Repository<Comment>().Get(inResponseToGuid);
@@ -31,7 +31,7 @@ public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, Comm
     {
         Comment comment = uow.Repository<Comment>().GetOrThrow(guid);
 
-        AllowUser(comment.Author);
+        AllowOnlyUser(comment.Author);
 
         uow.Repository<Comment>().TryDelete(guid);
         comment.Post.Comments.Remove(comment);

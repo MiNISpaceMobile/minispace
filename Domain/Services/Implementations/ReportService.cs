@@ -19,19 +19,19 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
     {
         ReportType report = uow.Repository<ReportType>().GetOrThrow(guid);
 
-        AllowUser(report.Author);
+        AllowOnlyUser(report.Author);
 
         return report;
     }
 
-    public ReportType CreateReport<TargetType, ReportType>(Guid targetId, Guid authorId, string title,
+    public ReportType CreateReport<TargetType, ReportType>(Guid targetId, string title,
         string details, ReportCategory category)
         where TargetType : BaseEntity
         where ReportType : Report
     {
-        var author = uow.Repository<User>().GetOrThrow(authorId);
+        AllowAllUsers();
 
-        AllowUser(author);
+        var author = ActingUser!;
 
         var target = uow.Repository<TargetType>().GetOrThrow(targetId);
 
@@ -44,17 +44,16 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
-    public Report UpdateReport(Report newReport, Guid responderId)
+    public Report UpdateReport(Report newReport)
     {
-        var report = uow.Repository<Report>().GetOrThrow(newReport.Guid);
-
         AllowOnlyAdmins();
 
-        var responder = uow.Repository<Administrator>().GetOrThrow(responderId);
+        var report = uow.Repository<Report>().GetOrThrow(newReport.Guid);
+
         if (!report.IsOpen)
             throw new InvalidOperationException("Report is closed");
 
-        report.Responder = responder;
+        report.Responder = (Administrator)ActingUser!;
         report.Feedback = newReport.Feedback;
         report.State = newReport.State;
 
@@ -67,7 +66,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
     {
         var report = uow.Repository<Report>().GetOrThrow(guid);
 
-        AllowUser(report.Author);
+        AllowOnlyUser(report.Author);
 
         uow.Repository<Report>().Delete(report);
         uow.Commit();

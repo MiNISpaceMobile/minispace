@@ -15,16 +15,14 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
         return uow.Repository<Event>().GetOrThrow(guid);
     }
 
-    public Event CreateEvent(Guid studentGuid, string title, string description, EventCategory category, DateTime publicationDate,
+    public Event CreateEvent(string title, string description, EventCategory category, DateTime publicationDate,
                  DateTime startDate, DateTime endDate, string location, int? capacity, decimal? fee)
     {
-        AllowOrganizers();
-        
-        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+        AllowOnlyOrganizers();
 
-        AllowUser(student);
+        Student author = (Student)ActingUser!;
 
-        Event @event = new Event(student, title, description, category, publicationDate,
+        Event @event = new Event(author, title, description, category, publicationDate,
             startDate, endDate, location, capacity, fee);
         uow.Repository<Event>().Add(@event);
         uow.Commit();
@@ -39,14 +37,14 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     {
         Event @event = uow.Repository<Event>().GetOrThrow(guid);
 
-        AllowUser(@event.Organizer);
+        AllowOnlyUser(@event.Organizer);
 
         while (@event.Posts.Count > 0) 
             postService.AsUser(@event.Organizer?.Guid).DeletePost(@event.Posts.First().Guid);
         while (@event.Participants.Count > 0)
-            TryRemoveParticipant(@event.Guid, @event.Participants.First().Guid);
+            TryRemoveParticipant(@event.Guid);
         while (@event.Interested.Count > 0)
-            TryRemoveInterested(@event.Guid, @event.Interested.First().Guid);
+            TryRemoveInterested(@event.Guid);
 
         uow.Repository<Event>().TryDelete(guid);
 
@@ -62,7 +60,7 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     {
         Event currEvent = uow.Repository<Event>().GetOrThrow(newEvent.Guid);
 
-        AllowUser(currEvent.Organizer);
+        AllowOnlyUser(currEvent.Organizer);
 
         currEvent.Title = newEvent.Title;
         currEvent.Description = newEvent.Description;
@@ -85,11 +83,11 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     /// true if operation was successfull, false if participants number reached maximum or student is already participating
     /// </returns>
     /// <exception cref="InvalidGuidException"></exception>
-    public bool TryAddParticipant(Guid eventGuid, Guid studentGuid)
+    public bool TryAddParticipant(Guid eventGuid)
     {
-        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+        AllowAllUsers();
 
-        AllowUser(student);
+        Student student = (Student)ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
@@ -114,16 +112,15 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     /// Tries to add student to interested of event. Removes from Participants list.
     /// </summary>
     /// <param name="eventGuid"></param>
-    /// <param name="studentGuid"></param>
     /// <returns>
     /// true if operation was successfull, false if student is already interested
     /// </returns>
     /// <exception cref="InvalidGuidException"></exception>
-    public bool TryAddInterested(Guid eventGuid, Guid studentGuid)
+    public bool TryAddInterested(Guid eventGuid)
     {
-        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+        AllowAllUsers();
 
-        AllowUser(student);
+        Student student = (Student)ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
         
@@ -145,16 +142,15 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     /// Tries to remove student from participants of event.
     /// </summary>
     /// <param name="eventGuid"></param>
-    /// <param name="studentGuid"></param>
     /// <returns>
     /// true if operation was successfull, false if student is already not participating
     /// </returns>
     /// <exception cref="InvalidGuidException"></exception>
-    public bool TryRemoveParticipant(Guid eventGuid, Guid studentGuid)
+    public bool TryRemoveParticipant(Guid eventGuid)
     {
-        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+        AllowAllUsers();
 
-        AllowUser(student);
+        Student student = (Student)ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
@@ -179,11 +175,11 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     /// true if operation was successfull, false if student is already not interested
     /// </returns>
     /// <exception cref="InvalidGuidException"></exception>
-    public bool TryRemoveInterested(Guid eventGuid, Guid studentGuid)
+    public bool TryRemoveInterested(Guid eventGuid)
     {
-        Student student = uow.Repository<Student>().GetOrThrow(studentGuid);
+        AllowAllUsers();
 
-        AllowUser(student);
+        Student student = (Student)ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
@@ -199,18 +195,18 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
         return true;
     }
 
-    public Feedback AddFeedback(Guid eventGuid, Guid authorGuid, string content)
+    public Feedback AddFeedback(Guid eventGuid, string content)
     {
-        Student author = uow.Repository<Student>().GetOrThrow(authorGuid);
+        AllowAllUsers();
 
-        AllowUser(author);
+        Student author = (Student)ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
         if (string.IsNullOrEmpty(content))
             throw new EmptyContentException();
 
-        if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == authorGuid) is not null)
+        if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == author.Guid) is not null)
             throw new InvalidOperationException("This Student have already given Feedback to this Event");
 
         Feedback feedback = new Feedback(author, @event, content);

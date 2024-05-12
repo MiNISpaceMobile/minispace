@@ -9,9 +9,9 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
 {
     public Student GetStudent(Guid guid)
     {
-        Student student = uow.Repository<Student>().GetOrThrow(guid);
-
         AllowAllUsers();
+
+        Student student = uow.Repository<Student>().GetOrThrow(guid);
 
         return student;
     }
@@ -30,9 +30,9 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
 
     public void UpdateStudent(Student newStudent)
     {
-        Student student = uow.Repository<Student>().GetOrThrow(newStudent.Guid);
+        AllowOnlyStudents();
 
-        AllowUser(student);
+        Student student = (Student)ActingUser!;
 
         student.FirstName = newStudent.FirstName;
         student.LastName = newStudent.LastName;
@@ -47,22 +47,26 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
         uow.Commit();
     }
 
-    public void DeleteStudent(Guid guid)
+    public void DeleteStudent()
     {
-        Student student = uow.Repository<Student>().GetOrThrow(guid);
+        AllowOnlyStudents();
 
-        AllowUser(student);
+        Student student = (Student)ActingUser!;
 
         uow.Repository<Student>().Delete(student);
         uow.Commit();
     }
 
-    public FriendRequest? SendFriendRequest(Guid targetId, Guid authorId)
+    public FriendRequest? SendFriendRequest(Guid targetId)
     {
-        Student target = uow.Repository<Student>().GetOrThrow(targetId);
-        Student author = uow.Repository<Student>().GetOrThrow(authorId);
+        AllowOnlyStudents();
 
-        AllowUser(author);
+        Student author = (Student)ActingUser!;
+
+        if (author.Guid == targetId)
+            throw new InvalidOperationException("Can't befriend self");
+
+        Student target = uow.Repository<Student>().GetOrThrow(targetId);
 
         FriendRequest? opposite = target.SentFriendRequests.Where(r => r.Target == author).SingleOrDefault();
         if (opposite is not null) // Author already received a FriendRequest from target
@@ -93,7 +97,7 @@ public class StudentService(IUnitOfWork uow) : BaseService<IStudentService, Stud
     {
         FriendRequest request = uow.Repository<FriendRequest>().GetOrThrow(requestId);
 
-        AllowUser(request.Target);
+        AllowOnlyUser(request.Target);
 
         if (accept)
         {

@@ -6,11 +6,11 @@ namespace Domain.Services;
 
 public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostService>(uow), IPostService
 {
-    public Post CreatePost(/*Guid authorGuid, */Guid eventGuid, string content)
+    public Post CreatePost(Guid eventGuid, string content)
     {
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
-        AllowUser(@event.Organizer);
+        AllowOnlyUser(@event.Organizer);
 
         if (content == string.Empty)
             throw new EmptyContentException();
@@ -27,7 +27,7 @@ public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostServic
     {
         Post post = uow.Repository<Post>().GetOrThrow(guid);
 
-        AllowUser(post.Author);
+        AllowOnlyUser(post.Author);
 
         uow.Repository<Post>().TryDelete(guid);
         post.Event.Posts.Remove(post);

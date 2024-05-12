@@ -1,4 +1,5 @@
 ﻿using Domain.Abstractions;
+using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
@@ -140,23 +141,23 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.AsUser(st0.Guid).CreateReport<Event, EventReport>(Guid.Empty, st0.Guid, "title", "details", ReportCategory.Unknown);
+        void act() => service.AsUser(st0.Guid).CreateReport<Event, EventReport>(Guid.Empty, "title", "details", ReportCategory.Unknown);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Event>>(act);
     }
 
     [TestMethod]
-    public void CreateReport_InvalidAuthorGuid_ThrowsException()
+    public void CreateReport_NotLoggedIn_ThrowsUserUnauthorized()
     {
         // Arrange
         ReportService service = new(unitOfWork);
 
         // Act
-        void act() => service.AsUser(st0.Guid).CreateReport<Event, EventReport>(ev0.Guid, Guid.Empty, "title", "details", ReportCategory.Unknown);
+        void act() => service.AsUser(null).CreateReport<Event, EventReport>(ev0.Guid, "title", "details", ReportCategory.Unknown);
 
         // Assert
-        var exception = Assert.ThrowsException<InvalidGuidException<User>>(act);
+        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
     }
 
     [TestMethod]
@@ -166,7 +167,7 @@ public class ReportServiceTests
         ReportService service = new(unitOfWork);
 
         // Act
-        var report = service.AsUser(st0.Guid).CreateReport<Event, EventReport>(ev0.Guid, st0.Guid, "title", "details", ReportCategory.Unknown);
+        var report = service.AsUser(st0.Guid).CreateReport<Event, EventReport>(ev0.Guid, "title", "details", ReportCategory.Unknown);
 
         // Assert
         Assert.IsNotNull(report);
@@ -176,19 +177,19 @@ public class ReportServiceTests
 
     #region UpdateReport
     [TestMethod]
-    public void UpdateReport_InvalidResponderGuid_ThrowsException()
+    public void UpdateReport_AsStudent_ThrowsUserUnauthorized()
     {
         // Arrange
         ReportService service = new(unitOfWork);
 
         var newStudent = new Student("abc", "abc", "abc");
         var newReport = new CommentReport(c0, newStudent, "title", "details", ReportCategory.Bug) { Guid = cRe1.Guid };
-
+        
         // Act
-        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport, Guid.NewGuid());
+        void act() => service.AsUser(st0.Guid).UpdateReport(newReport);
 
         // Assert
-        var exception = Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
+        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
     }
 
     [TestMethod]
@@ -199,7 +200,7 @@ public class ReportServiceTests
         var newReport = new CommentReport(c0, st0, "title", "details", ReportCategory.Bug);
 
         // Act
-        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport, ad0.Guid);
+        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
@@ -213,7 +214,7 @@ public class ReportServiceTests
         var newReport = new CommentReport(c0, st1, "title", "details", ReportCategory.Bug) { Guid = cRe0.Guid };
 
         // Act
-        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport, ad0.Guid);
+        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport);
 
         // Assert
         var exception = Assert.ThrowsException<InvalidOperationException>(act);

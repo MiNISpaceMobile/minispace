@@ -2,6 +2,7 @@
 using Domain.Services.Implementations;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
+using Domain.Services.Abstractions;
 
 namespace UnitTests.Domain.Services;
 
@@ -11,7 +12,7 @@ public class StudentServiceTests
 #pragma warning disable CS8618 // Unassigned non-nullables
     private Student[] sts;
     private FriendRequest fr;
-    private StudentService sut;
+    private IStudentService sut;
     private DictionaryUnitOfWork uow;
 #pragma warning restore CS8618 // Unassigned non-nullables
 
@@ -37,7 +38,7 @@ public class StudentServiceTests
     [TestMethod]
     public void GetStudent_Nonexistent_ThrowsInvalidGuid()
     {
-        var act = () => sut.GetStudent(Guid.NewGuid());
+        var act = () => sut.AsUser(sts[0].Guid).GetStudent(Guid.NewGuid());
 
         Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -85,22 +86,11 @@ public class StudentServiceTests
 
     #region UpdateStudent
     [TestMethod]
-    public void UpdateStudent_Nonexistent_ThrowsInvalidGuid()
+    public void UpdateStudent_NotLoggedIn_ThrowsUserUnauthorized()
     {
-        var newStudent = new Student("test", "test", "test") { Guid = Guid.NewGuid() };
+        var newStudent = new Student("test", "test", "test");
 
-        var act = () => sut.UpdateStudent(newStudent);
-
-        Assert.ThrowsException<InvalidGuidException<Student>>(act);
-        Assert.AreEqual(0, uow.CommitCount);
-    }
-
-    [TestMethod]
-    public void UpdateStudent_Unauthorized_ThrowsUserUnauthorized()
-    {
-        var newStudent = new Student("test", "test", "test") { Guid = sts[1].Guid };
-
-        var act = () => sut.AsUser(sts[0].Guid).UpdateStudent(newStudent);
+        var act = () => sut.AsUser(null).UpdateStudent(newStudent);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -109,11 +99,7 @@ public class StudentServiceTests
     [TestMethod]
     public void UpdateStudent_Correct_StudentUpdated()
     {
-        var newStudent = new Student("test", "test", "test")
-        {
-            Guid = sts[1].Guid,
-            DateOfBirth = DateTime.UnixEpoch,
-        };
+        var newStudent = new Student("test", "test", "test") { DateOfBirth = DateTime.UnixEpoch };
 
         sut.AsUser(sts[1].Guid).UpdateStudent(newStudent);
 
@@ -126,18 +112,9 @@ public class StudentServiceTests
 
     #region DeleteStudent
     [TestMethod]
-    public void DeleteStudent_Nonexistent_ThrowsInvalidGuid()
+    public void DeleteStudent_NotLoggedIn_ThrowsUserUnauthorized()
     {
-        var act = () => sut.DeleteStudent(Guid.NewGuid());
-
-        Assert.ThrowsException<InvalidGuidException<Student>>(act);
-        Assert.AreEqual(0, uow.CommitCount);
-    }
-
-    [TestMethod]
-    public void DeleteStudent_Unauthorized_ThrowsUserUnauthorized()
-    {
-        var act = () => sut.AsUser(sts[1].Guid).DeleteStudent(sts[0].Guid);
+        var act = () => sut.AsUser(null).DeleteStudent();
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -146,7 +123,7 @@ public class StudentServiceTests
     [TestMethod]
     public void DeleteStudent_Correct_StudentDeleted()
     {
-        sut.AsUser(sts[0].Guid).DeleteStudent(sts[0].Guid);
+        sut.AsUser(sts[0].Guid).DeleteStudent();
 
         Assert.AreEqual(2, uow.Repository<Student>().GetAll().Count());
         Assert.AreEqual(1, uow.CommitCount);
@@ -154,37 +131,29 @@ public class StudentServiceTests
     #endregion DeleteStudent
 
     #region SendFriendRequest
-    [TestMethod]
-    public void SendFriendRequest_BothNonexistent_ThrowsInvalidGuid()
-    {
-        Action act = () => sut.SendFriendRequest(Guid.NewGuid(), Guid.NewGuid());
 
-        Assert.ThrowsException<InvalidGuidException<Student>>(act);
+    [TestMethod]
+    public void SendFriendRequest_ToSelf_ThrowsInvalidOperation()
+    {
+        Action act = () => sut.AsUser(sts[0].Guid).SendFriendRequest(sts[0].Guid);
+
+        Assert.ThrowsException<InvalidOperationException>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
     public void SendFriendRequest_TargetNonexistent_ThrowsInvalidGuid()
     {
-        Action act = () => sut.SendFriendRequest(Guid.NewGuid(), sts[1].Guid);
+        Action act = () => sut.AsUser(sts[0].Guid).SendFriendRequest(Guid.NewGuid());
 
         Assert.ThrowsException<InvalidGuidException<Student>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
-    public void SendFriendRequest_AuthorNonexistent_ThrowsInvalidGuid()
+    public void SendFriendRequest_NotLoggedIn_ThrowsUserUnathorized()
     {
-        Action act = () => sut.SendFriendRequest(sts[0].Guid, Guid.NewGuid());
-
-        Assert.ThrowsException<InvalidGuidException<Student>>(act);
-        Assert.AreEqual(0, uow.CommitCount);
-    }
-
-    [TestMethod]
-    public void SendFriendRequest_Unauthorized_ThrowsUserUnauthorized()
-    {
-        Action act = () => sut.AsUser(sts[0].Guid).SendFriendRequest(sts[0].Guid, sts[1].Guid);
+        Action act = () => sut.AsUser(null).SendFriendRequest(Guid.NewGuid());
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -193,7 +162,7 @@ public class StudentServiceTests
     [TestMethod]
     public void SendFriendRequest_AlreadySent_ThrowsInvalidOperation()
     {
-        var act = () => sut.AsUser(sts[2].Guid).SendFriendRequest(sts[1].Guid, sts[2].Guid);
+        var act = () => sut.AsUser(sts[2].Guid).SendFriendRequest(sts[1].Guid);
 
         Assert.ThrowsException<InvalidOperationException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -202,7 +171,7 @@ public class StudentServiceTests
     [TestMethod]
     public void SendFriendRequest_AlreadyFriends_ThrowsInvalidOperation()
     {
-        var act = () => sut.AsUser(sts[2].Guid).SendFriendRequest(sts[0].Guid, sts[2].Guid);
+        var act = () => sut.AsUser(sts[2].Guid).SendFriendRequest(sts[0].Guid);
 
         Assert.ThrowsException<InvalidOperationException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -211,7 +180,7 @@ public class StudentServiceTests
     [TestMethod]
     public void SendFriendRequest_OppositeAlreadySent_MakesFriends()
     {
-        FriendRequest? request = sut.AsUser(sts[1].Guid).SendFriendRequest(sts[2].Guid, sts[1].Guid);
+        FriendRequest? request = sut.AsUser(sts[1].Guid).SendFriendRequest(sts[2].Guid);
 
         Assert.IsNull(request);
         Assert.IsTrue(sts[2].Friends.Contains(sts[1]));
@@ -223,7 +192,7 @@ public class StudentServiceTests
     [TestMethod]
     public void SendFriendRequest_Correct_FriendRequestCreated()
     {
-        FriendRequest? request = sut.AsUser(sts[1].Guid).SendFriendRequest(sts[0].Guid, sts[1].Guid);
+        FriendRequest? request = sut.AsUser(sts[1].Guid).SendFriendRequest(sts[0].Guid);
 
         Assert.IsNotNull(request);
         Assert.AreEqual(2, uow.Repository<FriendRequest>().GetAll().Count());

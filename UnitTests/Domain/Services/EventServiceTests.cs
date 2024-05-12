@@ -68,16 +68,16 @@ public class EventServiceTests
 
     #region CreateEvent
     [TestMethod]
-    public void CreateEvent_NonexistentStudent_ShouldThrowArgumentException()
+    public void CreateEvent_NotLoggedIn_ShouldThrowUserUnathorized()
     {
         // Arrange
         DateTime now = DateTime.Now;
 
         // Act
-        var action = () => sut.CreateEvent(new Guid(), "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
+        var action = () => sut.AsUser(null).CreateEvent("event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
         // Assert
-        Assert.ThrowsException<InvalidGuidException<Student>>(action);
+        Assert.ThrowsException<UserUnauthorizedException>(action);
     }
 
     [TestMethod]
@@ -87,7 +87,7 @@ public class EventServiceTests
         DateTime now = DateTime.Now;
 
         // Act
-        Event newEvent = sut.CreateEvent(students.Last().Guid, "event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
+        Event newEvent = sut.CreateEvent("event2", "description2", EventCategory.Uncategorized, now, now, now, "here", null, null);
 
         // Assert 
         Assert.AreEqual(newEvent, uow.Repository<Event>().Get(newEvent.Guid));
@@ -175,7 +175,7 @@ public class EventServiceTests
         // Arrange
 
         // Act
-        Action action = () => sut.TryAddParticipant(Guid.Empty, students.Last().Guid);
+        Action action = () => sut.TryAddParticipant(Guid.Empty);
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
@@ -189,7 +189,7 @@ public class EventServiceTests
         @event.Capacity = 0;
 
         // Act
-        var result = sut.TryAddParticipant(@event.Guid, students.Last().Guid);
+        var result = sut.TryAddParticipant(@event.Guid);
 
         // Assert
         Assert.IsFalse(result);
@@ -204,7 +204,7 @@ public class EventServiceTests
         @event.Participants.Add(student);
 
         // Act
-        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+        var result = sut.TryAddParticipant(@event.Guid);
 
         // Assert
         Assert.IsFalse(result);
@@ -219,7 +219,7 @@ public class EventServiceTests
         Student student = students.Last();
 
         // Act
-        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+        var result = sut.TryAddParticipant(@event.Guid);
 
         // Assert
         Assert.IsTrue(result);
@@ -235,7 +235,7 @@ public class EventServiceTests
         @event.Capacity = 100;
 
         // Act
-        var result = sut.TryAddParticipant(@event.Guid, student.Guid);
+        var result = sut.TryAddParticipant(@event.Guid);
 
         // Assert
         Assert.IsTrue(result);
@@ -250,7 +250,7 @@ public class EventServiceTests
         // Arrange
 
         // Act
-        Action action = () => sut.TryAddInterested(Guid.Empty, students.Last().Guid);
+        Action action = () => sut.TryAddInterested(Guid.Empty);
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
@@ -265,7 +265,7 @@ public class EventServiceTests
         @event.Interested.Add(student);
 
         // Act
-        var result = sut.TryAddInterested(@event.Guid, student.Guid);
+        var result = sut.TryAddInterested(@event.Guid);
 
         // Assert
         Assert.IsFalse(result);
@@ -280,7 +280,7 @@ public class EventServiceTests
         Student student = students.Last();
 
         // Act
-        var result = sut.TryAddInterested(@event.Guid, student.Guid);
+        var result = sut.TryAddInterested(@event.Guid);
 
         // Assert
         Assert.IsTrue(result);
@@ -296,7 +296,7 @@ public class EventServiceTests
         // Arrange
 
         // Act
-        Action action = () => sut.TryRemoveParticipant(Guid.Empty, students.Last().Guid);
+        Action action = () => sut.TryRemoveParticipant(Guid.Empty);
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
@@ -310,7 +310,7 @@ public class EventServiceTests
         Student student = students.Last();
 
         // Act
-        var result = sut.TryRemoveParticipant(@event.Guid, student.Guid);
+        var result = sut.TryRemoveParticipant(@event.Guid);
 
         // Assert
         Assert.IsFalse(result);
@@ -326,7 +326,7 @@ public class EventServiceTests
         student.SubscribedEvents.Add(@event);
 
         // Act
-        var result = sut.TryRemoveParticipant(@event.Guid, student.Guid);
+        var result = sut.TryRemoveParticipant(@event.Guid);
 
         // Assert
         Assert.IsTrue(result);
@@ -342,7 +342,7 @@ public class EventServiceTests
         // Arrange
 
         // Act
-        Action action = () => sut.TryRemoveInterested(Guid.Empty, students.Last().Guid);
+        Action action = () => sut.TryRemoveInterested(Guid.Empty);
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
@@ -356,7 +356,7 @@ public class EventServiceTests
         Student student = students.Last();
 
         // Act
-        var result = sut.TryRemoveInterested(@event.Guid, student.Guid);
+        var result = sut.TryRemoveInterested(@event.Guid);
 
         // Assert
         Assert.IsFalse(result);
@@ -372,7 +372,7 @@ public class EventServiceTests
         student.SubscribedEvents.Add(@event);
 
         // Act
-        var result = sut.TryRemoveInterested(@event.Guid, student.Guid);
+        var result = sut.TryRemoveInterested(@event.Guid);
 
         // Assert
         Assert.IsTrue(result);
@@ -388,7 +388,7 @@ public class EventServiceTests
         // Arrange
 
         // Act
-        Action action = () => sut.AddFeedback(Guid.Empty, students.Last().Guid, string.Empty);
+        Action action = () => sut.AddFeedback(Guid.Empty, string.Empty);
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
@@ -400,7 +400,7 @@ public class EventServiceTests
         // Arrange
 
         // Act
-        Action action = () => sut.AddFeedback(events.Last().Guid, students.Last().Guid, string.Empty);
+        Action action = () => sut.AddFeedback(events.Last().Guid, string.Empty);
 
         // Assert
         Assert.ThrowsException<EmptyContentException>(action);
@@ -416,7 +416,7 @@ public class EventServiceTests
         @event.Feedback.Add(feedback);
 
         // Act
-        Action action = () => sut.AddFeedback(@event.Guid, author.Guid, "b");
+        Action action = () => sut.AddFeedback(@event.Guid, "b");
 
         // Assert
         Assert.ThrowsException<InvalidOperationException>(action);
@@ -430,7 +430,7 @@ public class EventServiceTests
         Student author = students.First();
 
         // Act
-        Feedback result = sut.AddFeedback(@event.Guid, author.Guid, "a");
+        Feedback result = sut.AddFeedback(@event.Guid, "a");
 
         // Assert
         Assert.IsTrue(@event.Feedback.Count == 1);

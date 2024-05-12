@@ -47,7 +47,7 @@ public class CommentServiceTests
         string content = string.Empty;
 
         // Act
-        var action = () => sut.CreateComment(author.Guid, @post.Guid, content);
+        var action = () => sut.CreateComment(@post.Guid, content);
 
         // Assert
         Assert.ThrowsException<EmptyContentException>(action);
@@ -62,7 +62,7 @@ public class CommentServiceTests
         string content = "a";
 
         // Act
-        Comment comment = sut.CreateComment(author.Guid, post.Guid, content);
+        Comment comment = sut.CreateComment(post.Guid, content);
 
         // Assert
         Assert.IsTrue(post.Comments.Contains(comment));

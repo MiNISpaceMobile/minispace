@@ -48,7 +48,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
     {
         var report = uow.Repository<Report>().GetOrThrow(newReport.Guid);
 
-        AllowUser(report.Author);
+        AllowOnlyAdmins();
 
         var responder = uow.Repository<Administrator>().GetOrThrow(responderId);
         if (!report.IsOpen)

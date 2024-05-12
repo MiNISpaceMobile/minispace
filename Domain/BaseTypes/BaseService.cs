@@ -4,7 +4,15 @@ using Domain.Services;
 
 namespace Domain.BaseTypes;
 
-public abstract class BaseService<ServiceType> where ServiceType : notnull, BaseService<ServiceType>
+public interface IBaseService<ServiceType> where ServiceType : notnull, IBaseService<ServiceType>
+{
+    public User? ActingUser { get; }
+    public ServiceType AsUser(Guid? guid);
+}
+
+public abstract class BaseService<ServiceInterface, ServiceImplementaion> : IBaseService<ServiceInterface>
+    where ServiceInterface : notnull, IBaseService<ServiceInterface>
+    where ServiceImplementaion : notnull, BaseService<ServiceInterface, ServiceImplementaion>, ServiceInterface
 {
     public User? ActingUser { get; private set; }
 
@@ -15,44 +23,53 @@ public abstract class BaseService<ServiceType> where ServiceType : notnull, Base
         this.uow = uow;
     }
 
-    public ServiceType AsUser(Guid? guid)
+    public ServiceInterface AsUser(Guid? guid)
     {
         if (guid.HasValue)
             ActingUser = uow.Repository<User>().GetOrThrow(guid.Value);
         else
             ActingUser = null;
-        return (ServiceType)this;
+        return (ServiceImplementaion)this;
     }
 
     protected void AllowOnlyAdmins()
     {
-        if (ActingUser is not Administrator)
-            throw new UserUnauthorizedException("Not an admin");
+        if (ActingUser is Administrator)
+            return;
+        throw new UserUnauthorizedException("Not an admin");
     }
-    protected void AllowOnlyOrganizers(bool allowAdmins = true)
+    protected void AllowOnlyOrganizers()
     {
-        bool allowed = (allowAdmins && ActingUser is Administrator) || ((ActingUser as Student)?.IsOrganizer ?? false);
-        if (!allowed)
-            throw new UserUnauthorizedException("Not an organizer");
+        if ((ActingUser as Student)?.IsOrganizer ?? false)
+            return;
+        throw new UserUnauthorizedException("Not an organizer");
     }
-    protected void AllowLoggedInStudents(bool allowAdmins = true)
+    protected void AllowOnlyStudents()
     {
-        bool allowed = (allowAdmins && ActingUser is Administrator) || ActingUser is Student;
-        if (!allowed)
-            throw new UserUnauthorizedException("Not logged in");
+        if (ActingUser is Student)
+            return;
+        throw new UserUnauthorizedException("Not a student");
     }
-    protected void AllowNotLoggedIn(bool allowAdmins = true)
+    protected void AllowAllUsers()
     {
-        bool allowed = (allowAdmins && ActingUser is Administrator) || ActingUser is null;
-        if (!allowed)
-            throw new UserUnauthorizedException("Logged in");
+        if (ActingUser is not null)
+            return;
+        throw new UserUnauthorizedException("Not logged in");
     }
-    protected void AllowOnlyStudent(Student authorized, bool allowAdmins = true)
+    protected void AllowOnlyNotLoggedIn(bool allowAdmins = true)
     {
-        bool allowed = (allowAdmins && ActingUser is Administrator) || ActingUser == authorized;
-        if (!allowed)
-            throw new UserUnauthorizedException();
+        if ((allowAdmins && ActingUser is Administrator) || ActingUser is null)
+            return;
+        throw new UserUnauthorizedException("Logged in");
     }
-    // Empty function, checks nothing, but is explicit about it
+    // If passed in User is null, then NO non-admin is authorized
+    // Passing in (null, false) will result in Exception no matter the ActingUser
+    protected void AllowOnlyUser(User? authorized, bool allowAdmins = true)
+    {
+        if ((allowAdmins && ActingUser is Administrator) || (authorized is not null && Equals(ActingUser, authorized)))
+            return;
+        throw new UserUnauthorizedException();
+    }
+    // Empty function, which checks nothing, but is explicit about it
     protected void AllowEveryone() { }
 }

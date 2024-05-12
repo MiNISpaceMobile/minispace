@@ -1,30 +1,21 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Domain.DataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Services;
 
-public class CommentService : ICommentService
+public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, CommentService>(uow), ICommentService
 {
-    private IUnitOfWork uow;
-
-    public CommentService(IUnitOfWork uow)
+    public Comment CreateComment(Guid postGuid, string content, Guid inResponseToGuid = new Guid(), DateTime? creationDate = null)
     {
-        this.uow = uow;
-    }
+        AllowOnlyStudents();
 
-    public Comment CreateComment(Guid authorGuid, Guid postGuid, string content, Guid inResponseToGuid = new Guid(), DateTime? creationDate = null)
-    {
-        Student? author = uow.Repository<Student>().Get(authorGuid);
-        Post? post = uow.Repository<Post>().Get(postGuid);
+        Student author = (Student)ActingUser!;
+
+        Post post = uow.Repository<Post>().GetOrThrow(postGuid);
         Comment? inResponseTo = uow.Repository<Comment>().Get(inResponseToGuid);
-        if (author is null || post is null || (inResponseToGuid != Guid.Empty && inResponseTo is null))
-            throw new InvalidGuidException();
+        if (inResponseToGuid != Guid.Empty && inResponseTo is null)
+            throw new InvalidGuidException<Comment>();
         if (content == string.Empty)
             throw new EmptyContentException();
 
@@ -38,9 +29,9 @@ public class CommentService : ICommentService
 
     public void DeleteComment(Guid guid)
     {
-        Comment? comment = uow.Repository<Comment>().Get(guid);
-        if (comment is null)
-            throw new InvalidGuidException<Comment>();
+        Comment comment = uow.Repository<Comment>().GetOrThrow(guid);
+
+        AllowOnlyUser(comment.Author);
 
         uow.Repository<Comment>().TryDelete(guid);
         comment.Post.Comments.Remove(comment);
@@ -50,6 +41,8 @@ public class CommentService : ICommentService
 
     public Comment GetComment(Guid guid)
     {
+        AllowEveryone();
+
         Comment? comment = uow.Repository<Comment>().Get(guid);
         if (comment is null)
             throw new InvalidGuidException<Comment>();

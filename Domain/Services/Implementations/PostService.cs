@@ -1,33 +1,21 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Domain.DataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Services;
 
-public class PostService : IPostService
+public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostService>(uow), IPostService
 {
-    private IUnitOfWork uow;
-
-    public PostService(IUnitOfWork uow)
+    public Post CreatePost(Guid eventGuid, string content)
     {
-        this.uow = uow;
-    }
+        Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
-    public Post CreatePost(Guid authorGuid, Guid eventGuid, string content)
-    {
-        Student? author = uow.Repository<Student>().Get(authorGuid);
-        Event? @event = uow.Repository<Event>().Get(eventGuid);
-        if (author is null || @event is null)
-            throw new InvalidGuidException();
+        AllowOnlyUser(@event.Organizer);
+
         if (content == string.Empty)
             throw new EmptyContentException();
 
-        var post = new Post(author, @event, content, DateTime.Now);
+        var post = new Post(@event.Organizer!, @event, content, DateTime.Now);
         uow.Repository<Post>().Add(post);
         @event.Posts.Add(post);
 
@@ -37,9 +25,9 @@ public class PostService : IPostService
 
     public void DeletePost(Guid guid)
     {
-        Post? post = uow.Repository<Post>().Get(guid);
-        if (post is null)
-            throw new InvalidGuidException<Post>();
+        Post post = uow.Repository<Post>().GetOrThrow(guid);
+
+        AllowOnlyUser(post.Author);
 
         uow.Repository<Post>().TryDelete(guid);
         post.Event.Posts.Remove(post);
@@ -49,6 +37,8 @@ public class PostService : IPostService
 
     public Post GetPost(Guid guid)
     {
+        AllowEveryone();
+
         Post? post = uow.Repository<Post>().Get(guid);
         if (post is null)
             throw new InvalidGuidException<Post>();

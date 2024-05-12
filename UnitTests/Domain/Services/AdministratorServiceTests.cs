@@ -9,7 +9,10 @@ namespace UnitTests.Domain.Services;
 public class AdministratorServiceTests
 {
 #pragma warning disable CS8618 // Unassigned non-nullables
+    private Administrator ad0;
+    private Administrator ad1;
     private Administrator[] ads;
+
     private AdministratorService sut;
     private DictionaryUnitOfWork uow;
 #pragma warning restore CS8618 // Unassigned non-nullables
@@ -17,8 +20,8 @@ public class AdministratorServiceTests
     [TestInitialize]
     public void PreTest()
     {
-        Administrator ad0 = new Administrator("ad0", "ad0", "ad0");
-        Administrator ad1 = new Administrator("ad1", "ad1", "ad1");
+        ad0 = new Administrator("ad0", "ad0", "ad0");
+        ad1 = new Administrator("ad1", "ad1", "ad1");
         ads = [ad0, ad1];
 
         uow = new DictionaryUnitOfWork(ads);
@@ -29,16 +32,16 @@ public class AdministratorServiceTests
     [TestMethod]
     public void GetAdministrator_Nonexistent_ThrowsInvalidGuid()
     {
-        var act = () => sut.GetAdministrator(Guid.NewGuid());
+        var act = () => sut.AsUser(ad0.Guid).GetAdministrator(Guid.NewGuid());
 
         Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
-    public void GetAdministrator_Correct_ReturnsStudent()
+    public void GetAdministrator_Correct_ReturnsAdministrator()
     {
-        var result = sut.GetAdministrator(ads[1].Guid);
+        var result = sut.AsUser(ad0.Guid).GetAdministrator(ad1.Guid);
 
         Assert.AreSame(ads[1], result);
         Assert.AreEqual(0, uow.CommitCount);
@@ -49,7 +52,7 @@ public class AdministratorServiceTests
     [TestMethod]
     public void CreateAdministrator_Always_AdministratorCreated()
     {
-        var result = sut.CreateAdministrator("test", "test", "test");
+        var result = sut.AsUser(ads[0].Guid).CreateAdministrator("test", "test", "test");
 
         Assert.IsNotNull(result);
         Assert.AreEqual(3, uow.Repository<Administrator>().GetAll().Count());
@@ -63,7 +66,7 @@ public class AdministratorServiceTests
     {
         var newAdministrator = new Administrator("test", "test", "test") { Guid = Guid.NewGuid() };
 
-        var act = () => sut.UpdateAdministrator(newAdministrator);
+        var act = () => sut.AsUser(ad0.Guid).UpdateAdministrator(newAdministrator);
 
         Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -74,10 +77,10 @@ public class AdministratorServiceTests
     {
         var newAdministrator = new Administrator("test", "test", "test")
         {
-            Guid = ads[0].Guid,
+            Guid = ad0.Guid,
         };
 
-        sut.UpdateAdministrator(newAdministrator);
+        sut.AsUser(ad0.Guid).UpdateAdministrator(newAdministrator);
 
         Assert.AreEqual("test", ads[0].FirstName);
         Assert.AreEqual(2, uow.Repository<Administrator>().GetAll().Count());
@@ -89,7 +92,7 @@ public class AdministratorServiceTests
     [TestMethod]
     public void DeleteAdministrator_Nonexistent_ThrowsInvalidGuid()
     {
-        var act = () => sut.DeleteAdministrator(Guid.NewGuid());
+        var act = () => sut.AsUser(ad0.Guid).DeleteAdministrator(Guid.NewGuid());
 
         Assert.ThrowsException<InvalidGuidException<Administrator>>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -98,7 +101,7 @@ public class AdministratorServiceTests
     [TestMethod]
     public void DeleteAdministrator_Correct_AdministratorDeleted()
     {
-        sut.DeleteAdministrator(ads[0].Guid);
+        sut.AsUser(ad0.Guid).DeleteAdministrator(ads[0].Guid);
 
         Assert.AreEqual(1, uow.Repository<Administrator>().GetAll().Count());
         Assert.AreEqual(1, uow.CommitCount);

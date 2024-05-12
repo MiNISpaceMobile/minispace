@@ -1,8 +1,9 @@
-﻿using Domain.DataModel;
+﻿using Domain.BaseTypes;
+using Domain.DataModel;
 
 namespace Domain.Services.Abstractions;
 
-public interface IUserService
+public interface IUserService : IBaseService<IUserService>
 {
     public User GetUser(Guid guid);
 }

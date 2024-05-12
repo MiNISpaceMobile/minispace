@@ -4,67 +4,72 @@ using Domain.DataModel;
 
 namespace Domain.Services;
 
-public class ReportService(IUnitOfWork unitOfWork) : IReportService
+public class ReportService(IUnitOfWork uow) : BaseService<IReportService, ReportService>(uow), IReportService
 {
-    // TODO: Change all exception to custom exceptions with proper error information
     public IEnumerable<ReportType> GetAll<ReportType>()
         where ReportType : Report
     {
-        return unitOfWork.Repository<ReportType>().GetAll();
+        AllowOnlyAdmins();
+
+        return uow.Repository<ReportType>().GetAll();
     }
 
     public ReportType GetByGuid<ReportType>(Guid guid)
         where ReportType : Report
     {
-        var report = unitOfWork.Repository<ReportType>().Get(guid);
-        return report is not null ? report : throw new Exception("Invalid report guid");
+        ReportType report = uow.Repository<ReportType>().GetOrThrow(guid);
+
+        AllowOnlyUser(report.Author);
+
+        return report;
     }
 
-    public ReportType CreateReport<TargetType, ReportType>(Guid targetId, Guid authorId, string title,
+    public ReportType CreateReport<TargetType, ReportType>(Guid targetId, string title,
         string details, ReportCategory category)
         where TargetType : BaseEntity
         where ReportType : Report
     {
-        var target = unitOfWork.Repository<TargetType>().Get(targetId) ??
-            throw new Exception("Invalid target guid");
-        var author = unitOfWork.Repository<Student>().Get(authorId) ??
-            throw new Exception("Invalid author guid");
+        AllowAllUsers();
+
+        var author = ActingUser!;
+
+        var target = uow.Repository<TargetType>().GetOrThrow(targetId);
 
         var report = (ReportType)CreateSpecificReport(target, author, title, details, category);
 
-        unitOfWork.Repository<ReportType>().Add(report);
+        uow.Repository<ReportType>().Add(report);
 
-        unitOfWork.Commit();
+        uow.Commit();
 
         return report;
     }
 
     public Report UpdateReport(Report newReport)
     {
-        var responderId = newReport.ResponderId ??
-            throw new Exception("No responder guid");
-        var responder = unitOfWork.Repository<Administrator>().Get(responderId) ??
-            throw new Exception("Invalid responder guid");
-        var report = unitOfWork.Repository<Report>().Get(newReport.Guid) ??
-            throw new Exception("Invalid report guid");
-        if (!report.IsOpen)
-            throw new Exception("Report is closed");
+        AllowOnlyAdmins();
 
-        report.Responder = responder;
+        var report = uow.Repository<Report>().GetOrThrow(newReport.Guid);
+
+        if (!report.IsOpen)
+            throw new InvalidOperationException("Report is closed");
+
+        report.Responder = (Administrator)ActingUser!;
         report.Feedback = newReport.Feedback;
         report.State = newReport.State;
 
-        unitOfWork.Commit();
+        uow.Commit();
 
         return report;
     }
 
     public void DeleteReport(Guid guid)
     {
-        if (!unitOfWork.Repository<Report>().TryDelete(guid))
-            throw new Exception("Invalid guid");
+        var report = uow.Repository<Report>().GetOrThrow(guid);
 
-        unitOfWork.Commit();
+        AllowOnlyUser(report.Author);
+
+        uow.Repository<Report>().Delete(report);
+        uow.Commit();
     }
 
     private static Report CreateSpecificReport<TargetType>(TargetType target, User author, string title,
@@ -76,7 +81,7 @@ public class ReportService(IUnitOfWork unitOfWork) : IReportService
             Event @event => new EventReport(@event, author, title, details, category),
             Post post => new PostReport(post, author, title, details, category),
             Comment comment => new CommentReport(comment, author, title, details, category),
-            _ => throw new NotImplementedException("Reporting this entity is not possible")
+            _ => throw new InvalidOperationException("Reporting this entity is not possible")
         };
     }
 }

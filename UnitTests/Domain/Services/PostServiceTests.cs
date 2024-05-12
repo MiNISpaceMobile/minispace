@@ -3,7 +3,6 @@ using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
-using System.Net;
 
 namespace UnitTests.Domain.Services;
 
@@ -14,6 +13,8 @@ public class PostServiceTests
     private IUnitOfWork uow;
     private List<Event> events;
     private List<Student> students;
+
+    private IPostService sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
 
     [TestInitialize]
@@ -31,6 +32,8 @@ public class PostServiceTests
         events = new List<Event> { ev0, ev1 };
 
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
+
+        sut = new PostService(uow).AsUser(st0.Guid);
     }
 
     #region CreatePost
@@ -38,13 +41,12 @@ public class PostServiceTests
     public void CreatePost_EmptyContent_ShouldThrowArgumentException()
     {
         // Arrange
-        PostService sut = new PostService(uow);
         Event @event = events.Last();
         Student author = students.Last();
         string content = string.Empty;
 
         // Act
-        var action = () => sut.CreatePost(author.Guid, @event.Guid, content);
+        var action = () => sut.CreatePost(/*author.Guid, */@event.Guid, content);
 
         // Assert
         Assert.ThrowsException<EmptyContentException>(action);
@@ -54,13 +56,12 @@ public class PostServiceTests
     public void CreatePost_CorrectInput_AddPostToEvent()
     {
         // Arrange
-        PostService sut = new PostService(uow);
         Event @event = events.Last();
         Student author = students.Last();
         string content = "a";
 
         // Act
-        Post post = sut.CreatePost(author.Guid, @event.Guid, content);
+        Post post = sut.CreatePost(/*author.Guid, */@event.Guid, content);
 
         // Assert
         Assert.IsTrue(@event.Posts.Contains(post));
@@ -74,7 +75,6 @@ public class PostServiceTests
     public void GetPost_NonexistentPost_ShouldThrowArgumentException()
     {
         // Arrange
-        PostService sut = new PostService(uow);
 
         // Act
         var action = () => sut.GetPost(new Guid());
@@ -87,7 +87,6 @@ public class PostServiceTests
     public void GetPost_CorrectInput_ShouldReturnCorrectPost()
     {
         // Arrange
-        PostService sut = new PostService(uow);
         Event @event = events.Last();
         Student author = students.Last();
         string content = "a";
@@ -107,7 +106,6 @@ public class PostServiceTests
     public void DeletePost_NonexistentPost_ShouldThrowArgumentException()
     {
         // Arrange
-        PostService sut = new PostService(uow);
 
         // Act
         var action = () => sut.DeletePost(new Guid());
@@ -120,7 +118,6 @@ public class PostServiceTests
     public void DeletePost_CorrectInput_ShouldDeleteCorrectPost()
     {
         // Arrange
-        PostService sut = new PostService(uow);
         Event @event = events.Last();
         Student author = students.Last();
         string content = "a";

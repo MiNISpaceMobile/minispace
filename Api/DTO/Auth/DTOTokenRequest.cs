@@ -1,3 +1,5 @@
-﻿namespace Api.DTO.Auth;
+﻿using static Api.SwaggerConfig;
 
-public record DTOTokenRequest(string CallbackUrl);
+namespace Api.DTO.Auth;
+
+public record DTOTokenRequest([DefaultApiValue("oob")] string CallbackUrl);

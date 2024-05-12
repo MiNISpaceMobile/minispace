@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile(Path.Join(Directory.GetCurrentDirectory(), "../../minispace-secrets.json"), true);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options => options.AddJwtAuthorization());
+builder.Services.AddSwaggerGen(options => options.AddJwtAuthorization().AddDefaultValues());
 
 builder.Services.AddControllers()
                 .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);

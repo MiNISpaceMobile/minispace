@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api;
 
-public static class AppCustomStartup
+public static class CustomStartup
 {
     public static void PerformCustomStartupActions(this WebApplication app, bool resetDb)
     {

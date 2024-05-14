@@ -30,15 +30,15 @@ public class Paged<Type>
     public IEnumerable<Type> Results { get; }
     public Paging Paging { get; }
 
-    public Paged(IEnumerable<Type> results, Paging paging)
+    private Paged(IEnumerable<Type> results, Paging paging)
     {
         Results = results;
         Paging = paging;
     }
 
-    public static Paged<Type> PageFrom<SortableType>(IEnumerable<Type> items, Func<Type, SortableType> sortablePropertySelector, Paging paging)
+    public static Paged<Type> PageFrom(IEnumerable<Type> items, IComparer<Type> comparer, Paging paging)
     {
-        var results = (paging.Ascending ? items.OrderBy(sortablePropertySelector) : items.OrderByDescending(sortablePropertySelector))
+        var results = (paging.Ascending ? items.OrderBy(x => x, comparer) : items.OrderByDescending(x => x, comparer))
                 .Skip(paging.Start).Take(paging.Limit);
         paging.Size = results.Count();
         return new Paged<Type>(results, paging);

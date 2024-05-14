@@ -7,10 +7,10 @@ namespace Domain.Services.Implementations;
 
 public class UserService(IUnitOfWork uow) : BaseService<IUserService, UserService>(uow), IUserService
 {
-    public User GetUser(Guid guid)
+    public IEnumerable<User> GetAllUsers()
     {
         AllowOnlyAdmins();
 
-        return uow.Repository<User>().GetOrThrow(guid);
+        return uow.Repository<User>().GetAll();
     }
 }

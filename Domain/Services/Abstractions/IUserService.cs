@@ -5,5 +5,5 @@ namespace Domain.Services.Abstractions;
 
 public interface IUserService : IBaseService<IUserService>
 {
-    public User GetUser(Guid guid);
+    public IEnumerable<User> GetAllUsers();
 }

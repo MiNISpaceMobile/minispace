@@ -15,9 +15,9 @@ public class PictureService(IUnitOfWork uow, IStorage pictureStorage) : BaseServ
     public const int MaxPicturesPerEvent = 10;
     public const int MaxPicturesPerPost = 3;
 
-    private string UserDirectory(Guid guid) => $"users/{guid}";
-    private string EventDirectory(Guid guid) => $"events/{guid}";
-    private string PostDirectory(Guid guid) => $"posts/{guid}";
+    private string UserDirectory(Guid guid) => $"user-{guid}";
+    private string EventDirectory(Guid guid) => $"event-{guid}";
+    private string PostDirectory(Guid guid) => $"post-{guid}";
     private string IndexFilename(int index) => $"{index}.webp";
 
     private const string profilePictureFilename = "profile.webp";

@@ -6,4 +6,5 @@ public record PostDto(
     Guid Guid,
     Guid EventGuid,
     UserDto? Author,
-    DateTime CreationDate);
+    DateTime CreationDate,
+    int PictureCount);

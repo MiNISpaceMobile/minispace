@@ -50,6 +50,8 @@ public class Event : BaseEntity
     public int? Capacity { get; set; }
     public decimal? Fee { get; set; }
 
+    public int PictureCount { get; set; }
+
     public virtual ICollection<Student> Interested { get; set; }
     public virtual ICollection<Student> Participants { get; set; }
 
@@ -86,6 +88,8 @@ public class Event : BaseEntity
 
         Capacity = capacity;
         Fee = fee;
+
+        PictureCount = 0;
 
         Participants = new List<Student>();
         Interested = new List<Student>();

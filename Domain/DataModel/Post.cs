@@ -14,6 +14,8 @@ public class Post : BaseEntity
 
     public DateTime CreationDate { get; set; }
 
+    public int PictureCount { get; set; }
+
     public virtual ICollection<Comment> Comments { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
@@ -29,6 +31,8 @@ public class Post : BaseEntity
         Content = content;
 
         CreationDate = creationDate ?? DateTime.Now;
+
+        PictureCount = 0;
 
         Comments = new List<Comment>();
     }

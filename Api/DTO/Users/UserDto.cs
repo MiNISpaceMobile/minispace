@@ -4,4 +4,5 @@ public record UserDto(
     Guid Guid,
     string FirstName,
     string LastName,
-    string Email);
+    string Email,
+    bool HasProfilePicture);

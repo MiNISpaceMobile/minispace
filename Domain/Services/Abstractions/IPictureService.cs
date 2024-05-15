@@ -4,7 +4,12 @@ namespace Domain.Services.Abstractions;
 
 public interface IPictureService : IBaseService<IPictureService>
 {
-    public string GetProfilePictureModificationUrl();
-    public string GetEventPicturesModificationUrl(Guid eventGuid);
-    public string GetPostPicturesModificationUrl(Guid postGuid);
+    public void UploadUserProfilePicture(Stream file);
+    public void DeleteUserProfilePicture();
+
+    public void UploadEventPicture(Guid eventGuid, Stream file);
+    public void DeleteEventPicture(Guid eventGuid, int index);
+
+    public void UploadPostPicture(Guid postGuid, Stream file);
+    public void DeletePostPicture(Guid postGuid, int index);
 }

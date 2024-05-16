@@ -8,9 +8,8 @@ namespace Domain.Services.Implementations;
 public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler pictureHandler)
     : BaseService<IPictureService, PictureService>(uow), IPictureService
 {
-    // TODO: Nicer exceptions
     // TODO: Tests
-    
+
     public long MaxFileSize { get; set; } = 10 * 1024 * 1024; // 10MB
     public int MaxPicturesPerEvent { get; set; } = 10;
     public int MaxPicturesPerPost { get; set; } = 3;
@@ -27,12 +26,18 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         AllowAllUsers();
 
         if (source.Length > MaxFileSize)
-            throw new Exception("File too big");
+            throw new FileTooBigException();
 
-        Stream picture = pictureHandler.ConvertIfNeeded(source);
+        Stream picture;
+        try
+        { picture = pictureHandler.ConvertIfNeeded(source); }
+        catch
+        { throw new FileFormatException(); }
 
-        storage.UploadFile(picture, UserDirectory(ActingUser!.Guid), ProfilePictureFilename);
-        picture.Dispose();
+        try
+        { storage.UploadFile(picture, UserDirectory(ActingUser!.Guid), ProfilePictureFilename); }
+        catch
+        { throw new StorageException(); }
 
         ActingUser.HasProfilePicture = true;
         uow.Commit();
@@ -42,7 +47,10 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
     {
         AllowAllUsers();
 
-        storage.DeleteFile(UserDirectory(ActingUser!.Guid), ProfilePictureFilename);
+        try
+        { storage.DeleteFile(UserDirectory(ActingUser!.Guid), ProfilePictureFilename); }
+        catch
+        { throw new StorageException(); }
 
         ActingUser.HasProfilePicture = false;
         uow.Commit();
@@ -51,19 +59,25 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
     public void UploadEventPicture(Guid eventGuid, Stream source)
     {
         if (source.Length > MaxFileSize)
-            throw new Exception("File too big");
+            throw new FileTooBigException();
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
         AllowOnlyUser(@event.Organizer);
 
         if (@event.PictureCount == MaxPicturesPerEvent)
-            throw new Exception("Maximum number of pictures already uploaded");
+            throw new FileLimitExeption();
 
-        Stream picture = pictureHandler.ConvertIfNeeded(source);
+        Stream picture;
+        try
+        { picture = pictureHandler.ConvertIfNeeded(source); }
+        catch
+        { throw new FileFormatException(); }
 
-        storage.UploadFile(picture, EventDirectory(eventGuid), IndexFilename(@event.PictureCount));
-        picture.Dispose();
+        try
+        { storage.UploadFile(picture, EventDirectory(eventGuid), IndexFilename(@event.PictureCount)); }
+        catch
+        { throw new StorageException(); }
 
         @event.PictureCount++;
         uow.Commit();
@@ -76,34 +90,46 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         AllowOnlyUser(@event.Organizer);
 
         if (index < 0 || index >= @event.PictureCount)
-            throw new Exception("Invalid result index");
+            throw new FileIndexException();
 
         var directory = EventDirectory(eventGuid);
-        storage.DeleteFile(directory, IndexFilename(index));
+        try
+        { storage.DeleteFile(directory, IndexFilename(index)); }
+        catch
+        { throw new StorageException(); }
 
         @event.PictureCount--;
         uow.Commit();
 
         for (int i = index; i < @event.PictureCount; i++)
-            storage.RenameFile(directory, IndexFilename(i + 1), IndexFilename(i));
+            try
+            { storage.RenameFile(directory, IndexFilename(i + 1), IndexFilename(i)); }
+            catch
+            { throw new StorageException(); }
     }
 
     public void UploadPostPicture(Guid postGuid, Stream source)
     {
         if (source.Length > MaxFileSize)
-            throw new Exception("File too big");
+            throw new FileTooBigException();
 
         Post post = uow.Repository<Post>().GetOrThrow(postGuid);
 
         AllowOnlyUser(post.Author);
 
         if (post.PictureCount == MaxPicturesPerPost)
-            throw new Exception("Maximum number of pictures already uploaded");
+            throw new FileLimitExeption();
 
-        Stream picture = pictureHandler.ConvertIfNeeded(source);
+        Stream picture;
+        try
+        { picture = pictureHandler.ConvertIfNeeded(source); }
+        catch
+        { throw new FileFormatException(); }
 
-        storage.UploadFile(picture, PostDirectory(postGuid), IndexFilename(post.PictureCount));
-        picture.Dispose();
+        try
+        { storage.UploadFile(picture, PostDirectory(postGuid), IndexFilename(post.PictureCount)); }
+        catch
+        { throw new StorageException(); }
 
         post.PictureCount++;
         uow.Commit();
@@ -116,15 +142,21 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         AllowOnlyUser(post.Author);
 
         if (index < 0 || index >= post.PictureCount)
-            throw new Exception("Invalid result index");
+            throw new FileIndexException();
 
         var directory = PostDirectory(postGuid);
-        storage.DeleteFile(directory, IndexFilename(index));
+        try
+        { storage.DeleteFile(directory, IndexFilename(index)); }
+        catch
+        { throw new StorageException(); }
 
         post.PictureCount--;
         uow.Commit();
 
         for (int i = index; i < post.PictureCount; i++)
-            storage.RenameFile(directory, IndexFilename(i + 1), IndexFilename(i));
+            try
+            { storage.RenameFile(directory, IndexFilename(i + 1), IndexFilename(i)); }
+            catch
+            { throw new StorageException(); }
     }
 }

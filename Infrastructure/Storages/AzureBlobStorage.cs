@@ -8,8 +8,6 @@ namespace Infrastructure.PictureStorages
 {
     public class AzureBlobStorage : IStorage
     {
-        // TODO: Nicer exceptions
-
         public string FileStorageUrl { get; }
 
         private BlobServiceClient client;

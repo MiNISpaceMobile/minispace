@@ -20,7 +20,6 @@ namespace Infrastructure.PictureHandlers
                 {
                     result = new MemoryStream((int)source.Length);
                     Image.Load(source).SaveAsWebp(result);
-                    source.Dispose();
                 }
             }
             catch

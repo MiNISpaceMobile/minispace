@@ -1,10 +1,14 @@
 using Api;
 using Api.Auth;
 using Domain.Abstractions;
+using Domain.Services.Abstractions;
+using Domain.Services.Implementations;
 using Infrastructure.Authenticators;
 using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;
 using Infrastructure.JwtHandlers;
+using Infrastructure.PictureHandlers;
+using Infrastructure.PictureStorages;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
 using System.Security.Cryptography;
@@ -12,6 +16,7 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// TODO: Add Azure Blob Storage keys to config
 builder.Configuration.AddJsonFile(Path.Join(Directory.GetCurrentDirectory(), "../../minispace-secrets.json"), true);
 
 builder.Services.AddEndpointsApiExplorer();
@@ -40,6 +45,10 @@ builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
 builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+builder.Services.AddScoped<IPictureService, PictureService>();
+// Integrations:
+builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
+builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();
 
 /* Warning! Important! Will help you later!
  * 

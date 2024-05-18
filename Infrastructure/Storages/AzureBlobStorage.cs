@@ -59,7 +59,7 @@ namespace Infrastructure.PictureStorages
             }
             catch
             {
-                throw new Exception("Could not upload to Blob");
+                throw new Exception("Could not upload Blob");
             }
         }
 
@@ -73,7 +73,7 @@ namespace Infrastructure.PictureStorages
             }
             catch
             {
-                throw new Exception("Container or at least one Blob do not exist");
+                throw new Exception("Could not find/copy/delete Blob");
             }
         }
 
@@ -83,7 +83,10 @@ namespace Infrastructure.PictureStorages
             {
                 client.GetBlobContainerClient(directory).GetBlobClient(filename).Delete();
             }
-            catch { }
+            catch
+            {
+                throw new Exception("Could not find/delete Blob");
+            }
         }
     }
 }

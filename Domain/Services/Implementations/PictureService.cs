@@ -8,8 +8,6 @@ namespace Domain.Services.Implementations;
 public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler pictureHandler)
     : BaseService<IPictureService, PictureService>(uow), IPictureService
 {
-    // TODO: Tests
-
     public long MaxFileSize { get; set; } = 10 * 1024 * 1024; // 10MB
     public int MaxPicturesPerEvent { get; set; } = 10;
     public int MaxPicturesPerPost { get; set; } = 3;

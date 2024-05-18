@@ -5,7 +5,7 @@ namespace Domain.DataModel;
 public class Comment : BaseEntity
 {
     public Guid? AuthorId { get; private set; }
-    public virtual Student? Author { get; set; }
+    public virtual User? Author { get; set; }
     public Guid PostId { get; private set; }
     public virtual Post Post { get; set; }
 
@@ -13,7 +13,7 @@ public class Comment : BaseEntity
 
     public DateTime CreationDate { get; set; }
 
-    public virtual ICollection<Student> Likers { get; set; }
+    public virtual ICollection<User> Likers { get; set; }
 
     public Guid? InResponeseToId { get; private set; }
     public virtual Comment? InResponseTo { get; set; }
@@ -23,7 +23,7 @@ public class Comment : BaseEntity
     protected Comment() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Comment(Student author, Post post, string content, Comment? inResponseTo, DateTime? creationDate = null)
+    public Comment(User author, Post post, string content, Comment? inResponseTo, DateTime? creationDate = null)
     {
         Author = author;
         Post = post;
@@ -32,7 +32,7 @@ public class Comment : BaseEntity
 
         CreationDate = creationDate ?? DateTime.Now;
 
-        Likers = new List<Student>();
+        Likers = new List<User>();
 
         InResponseTo = inResponseTo;
         Responses = new List<Comment>();

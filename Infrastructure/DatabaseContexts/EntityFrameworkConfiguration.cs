@@ -30,8 +30,6 @@ public static class EntityFrameworkConfiguration
     public static void Configure(this ModelBuilder model)
     {
         model.Entity<User>().Configure();
-        model.Entity<Administrator>().Configure();
-        model.Entity<Student>().Configure();
 
         model.Entity<Event>().Configure();
         model.Entity<Feedback>().Configure();
@@ -78,20 +76,10 @@ public static class EntityFrameworkConfiguration
         }
     }
 
-    #region Users
+    #region User
     private static void Configure(this EntityTypeBuilder<User> type)
     {
         type.HasKey(x => x.Guid);
-
-        /* See Configure(Report) above for detailed explanation what line below does
-         * 
-         * Despite Student class being seemingly more complex then Administator
-         * in reality it has only a few additional columns - datetime, text and 2 booleans,
-         * so the performance gain from having everything in the same table is still worth much more
-         * then the fact that for Administrator these columns will be null.
-         * Especially since there will be much more normal users than admins using this app.
-         */
-        type.UseTphMappingStrategy();
 
         type.HasIndex(x => x.ExternalId)
             .IsUnique();
@@ -104,20 +92,6 @@ public static class EntityFrameworkConfiguration
 
         type.Property(x => x.Email)
             .HasMaxLength(128);
-
-        //type.Property(x => x.SaltedPasswordHash)
-        //    .HasMaxLength(64)
-        //    .IsFixedLength(true);
-    }
-
-    private static void Configure(this EntityTypeBuilder<Administrator> type)
-    {
-        type.HasBaseType<User>();
-    }
-
-    private static void Configure(this EntityTypeBuilder<Student> type)
-    {
-        type.HasBaseType<User>();
 
         type.HasMany(x => x.Friends)
             .WithMany();

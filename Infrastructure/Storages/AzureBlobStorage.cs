@@ -8,7 +8,7 @@ namespace Infrastructure.PictureStorages
 {
     public class AzureBlobStorage : IStorage
     {
-        public string FileStorageUrl { get; }
+        public string RootUrl { get; }
 
         private BlobServiceClient client;
 
@@ -16,12 +16,12 @@ namespace Infrastructure.PictureStorages
         {
             string accountName = config["AZURE_BLOB_ACCOUNT_NAME"]!;
 
-            FileStorageUrl = $"https://{accountName}.blob.core.windows.net";
+            RootUrl = $"https://{accountName}.blob.core.windows.net";
 
             StorageSharedKeyCredential credential =
                 new StorageSharedKeyCredential(accountName, config["AZURE_BLOB_ACCOUNT_KEY"]);
 
-            client = new BlobServiceClient(new Uri(FileStorageUrl), credential);
+            client = new BlobServiceClient(new Uri(RootUrl), credential);
         }
 
         public bool TryCreateDirectory(string directory)

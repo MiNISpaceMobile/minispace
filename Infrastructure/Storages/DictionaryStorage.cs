@@ -4,7 +4,7 @@ namespace Infrastructure.Storages;
 
 public class DictionaryStorage : IStorage
 {
-    public string FileStorageUrl => "";
+    public string RootUrl => "";
 
     public Dictionary<string, Dictionary<string, Stream>> Storage { get; }
         = new Dictionary<string, Dictionary<string, Stream>>();

@@ -58,20 +58,29 @@ public static class CustomStartup
         var week_ago = now.AddDays(-7);
         var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
 
-        var ad0 = new Administrator("AdFirst0", "AdLast0", "ad0@pw.edu.pl");
-        var ad1 = new Administrator("AdFirst1", "AdLast1", "ad1@pw.edu.pl");
-        var ad2 = new Administrator("AdFirst2", "AdLast2", "ad2@pw.edu.pl");
+        var ad0 = new Administrator("AdFirst0", "AdLast0", "ad0@pw.edu.pl")
+            { Guid = Guid.Parse("d1f78079-dab3-4ee3-b8c2-73b217377d89") };
+        var ad1 = new Administrator("AdFirst1", "AdLast1", "ad1@pw.edu.pl")
+            { Guid = Guid.Parse("2fbe3558-20d7-4872-8048-c6dbdd13a813") };
+        var ad2 = new Administrator("AdFirst2", "AdLast2", "ad2@pw.edu.pl")
+            { Guid = Guid.Parse("01c018c1-9dcc-42ba-9b53-123e33be0db2") };
         Administrator[] administrators = [ad0, ad1, ad2];
 
-        var st0 = new Student("StFirst0", "StLast0", "st0@pw.edu.pl") { IsOrganizer = true };
-        var st1 = new Student("StFirst1", "StLast1", "st1@pw.edu.pl") { DateOfBirth = years_ago };
-        var st2 = new Student("StFirst2", "StLast2", "st2@pw.edu.pl") { EmailNotification = false };
+        var st0 = new Student("StFirst0", "StLast0", "st0@pw.edu.pl")
+            { Guid = Guid.Parse("e59669d5-7621-4685-8275-cb3432a1aa0f"), IsOrganizer = true };
+        var st1 = new Student("StFirst1", "StLast1", "st1@pw.edu.pl")
+            { Guid = Guid.Parse("1cf19aa7-af25-4129-b01b-507c3816a347"), DateOfBirth = years_ago };
+        var st2 = new Student("StFirst2", "StLast2", "st2@pw.edu.pl")
+            { Guid = Guid.Parse("08a5310b-02ec-4166-b102-f38face8cb27"), EmailNotification = false };
         st0.Friends.Add(st2); st2.Friends.Add(st0);
         Student[] students = [st0, st1, st2];
 
-        var ev0 = new Event(st0, "Ev0", "Des0", EventCategory.Uncategorized, week_ago, now, week_in, "Loc1", null, null) { ViewCount = 2 };
-        var ev1 = new Event(st0, "Ev1", "Des1", EventCategory.Uncategorized, now, week_in, weeks_in, "Loc2", 10, null) { ViewCount = 3 };
-        var ev2 = new Event(st1, "Ev2", "Des2", EventCategory.Uncategorized, week_ago, now, weeks_in, "Loc3", null, 10) { ViewCount = 2 };
+        var ev0 = new Event(st0, "Ev0", "Des0", EventCategory.Uncategorized, week_ago, now, week_in, "Loc1", null, null)
+            { Guid = Guid.Parse("3a788a02-e7e9-4c96-b268-96eb9f71b98c"), ViewCount = 2 };
+        var ev1 = new Event(st0, "Ev1", "Des1", EventCategory.Uncategorized, now, week_in, weeks_in, "Loc2", 10, null)
+            { Guid = Guid.Parse("22b365d8-c76a-4e22-b546-9e37e5917fe1"), ViewCount = 3 };
+        var ev2 = new Event(st1, "Ev2", "Des2", EventCategory.Uncategorized, week_ago, now, weeks_in, "Loc3", null, 10)
+            { Guid = Guid.Parse("acbcd26e-877c-45cf-a697-ff4a3c70980a"), ViewCount = 2 };
         ev0.Participants.Add(st0); ev0.Participants.Add(st1);
         ev0.Interested.Add(st0);
         ev1.Participants.Add(st0);
@@ -80,20 +89,29 @@ public static class CustomStartup
         ev2.Interested.Add(st1); ev2.Interested.Add(st2);
         Event[] events = [ev0, ev1, ev2];
 
-        var po0 = new Post(st0, ev0, "Po0");
-        var po1 = new Post(st0, ev0, "Po1");
-        var po2 = new Post(st1, ev2, "Po2");
+        var po0 = new Post(st0, ev0, "Po0")
+            { Guid = Guid.Parse("0fc79a80-dfdd-4d12-ade4-44f03c0ad9ef") };
+        var po1 = new Post(st0, ev0, "Po1")
+            { Guid = Guid.Parse("fe92c735-b049-406d-9a4c-d6d9b4456d4e") };
+        var po2 = new Post(st1, ev2, "Po2")
+            { Guid = Guid.Parse("8857657f-3157-4ff4-b06f-b6828e2b7d7e") };
         Post[] posts = [po0, po1, po2];
 
-        var co0 = new Comment(st1, po0, "Co0", null);
-        var co1 = new Comment(st0, po0, "Co1", co0);
-        var co2 = new Comment(st2, po2, "Co2", null);
+        var co0 = new Comment(st1, po0, "Co0", null)
+            { Guid = Guid.Parse("06954235-f2b9-490e-b8ca-76b567db2ce4") };
+        var co1 = new Comment(st0, po0, "Co1", co0)
+            { Guid = Guid.Parse("29953098-1ab8-42e6-b07e-e84a50246247") };
+        var co2 = new Comment(st2, po2, "Co2", null)
+            { Guid = Guid.Parse("09c24709-70dc-4595-83a6-f738fbf6bd7a") };
         co1.Likers.Add(st1);
         Comment[] comments = [co0, co1, co2];
 
-        var re0 = new CommentReport(co2, st1, "Re0", "Des0", ReportCategory.Behaviour);
-        var re1 = new EventReport(ev0, st0, "Re1", "Des1", ReportCategory.Bug);
-        var re2 = new PostReport(po2, st2, "Re2", "Des2", ReportCategory.Behaviour);
+        var re0 = new CommentReport(co2, st1, "Re0", "Des0", ReportCategory.Behaviour)
+            { Guid = Guid.Parse("05cc7ef1-489b-4313-89fc-f617a07248f9") };
+        var re1 = new EventReport(ev0, st0, "Re1", "Des1", ReportCategory.Bug)
+            { Guid = Guid.Parse("7fb6f604-3a5c-4b57-9211-7173776cb0d7") };
+        var re2 = new PostReport(po2, st2, "Re2", "Des2", ReportCategory.Behaviour)
+            { Guid = Guid.Parse("1efef05d-6ee6-48be-b636-dde8f82e8679") };
         Report[] reports = [re0, re1, re2];
 
         uow.Repository<Administrator>().AddMany(administrators);

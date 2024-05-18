@@ -2,7 +2,7 @@
 
 public interface IStorage
 {
-    public string FileStorageUrl { get; }
+    public string RootUrl { get; }
 
     public bool TryCreateDirectory(string directory);
     public bool TryDeleteDirectory(string directory);

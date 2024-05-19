@@ -58,16 +58,16 @@ public static class CustomStartup
         var week_ago = now.AddDays(-7);
         var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
 
-        var ad0 = new Administrator("AdFirst0", "AdLast0", "ad0@pw.edu.pl");
-        var ad1 = new Administrator("AdFirst1", "AdLast1", "ad1@pw.edu.pl");
-        var ad2 = new Administrator("AdFirst2", "AdLast2", "ad2@pw.edu.pl");
-        Administrator[] administrators = [ad0, ad1, ad2];
-
-        var st0 = new Student("StFirst0", "StLast0", "st0@pw.edu.pl") { IsOrganizer = true };
-        var st1 = new Student("StFirst1", "StLast1", "st1@pw.edu.pl") { DateOfBirth = years_ago };
-        var st2 = new Student("StFirst2", "StLast2", "st2@pw.edu.pl") { EmailNotification = false };
+        var ad0 = new User("AdFirst0", "AdLast0", "ad0@pw.edu.pl", now) { IsAdmin = true };
+        var ad1 = new User("AdFirst1", "AdLast1", "ad1@pw.edu.pl", now) { IsAdmin = true };
+        var ad2 = new User("AdFirst2", "AdLast2", "ad2@pw.edu.pl", now) { IsAdmin = true };
+        
+        var st0 = new User("StFirst0", "StLast0", "st0@pw.edu.pl", now) { IsOrganizer = true };
+        var st1 = new User("StFirst1", "StLast1", "st1@pw.edu.pl", now) { DateOfBirth = years_ago };
+        var st2 = new User("StFirst2", "StLast2", "st2@pw.edu.pl", now) { EmailNotification = false };
         st0.Friends.Add(st2); st2.Friends.Add(st0);
-        Student[] students = [st0, st1, st2];
+
+        User[] users = [ad0, ad1, ad2, st0, st1, st2];
 
         var ev0 = new Event(st0, "Ev0", "Des0", EventCategory.Uncategorized, week_ago, now, week_in, "Loc1", null, null) { ViewCount = 2 };
         var ev1 = new Event(st0, "Ev1", "Des1", EventCategory.Uncategorized, now, week_in, weeks_in, "Loc2", 10, null) { ViewCount = 3 };
@@ -96,12 +96,11 @@ public static class CustomStartup
         var re2 = new PostReport(po2, st2, "Re2", "Des2", ReportCategory.Behaviour);
         Report[] reports = [re0, re1, re2];
 
-        uow.Repository<Administrator>().AddMany(administrators);
         uow.Repository<Comment>().AddMany(comments);
         uow.Repository<Event>().AddMany(events);
         uow.Repository<Post>().AddMany(posts);
         uow.Repository<Report>().AddMany(reports);
-        uow.Repository<Student>().AddMany(students);
+        uow.Repository<User>().AddMany(users);
 
         uow.Commit();
 

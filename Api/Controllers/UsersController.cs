@@ -24,7 +24,7 @@ namespace Api.Controllers
         {
             try
             {
-                var users = userService.AsUser(User.GetGuid()).GetAllUsers();
+                var users = userService.AsUser(User.GetGuid()).GetUsers();
                 var paged = Paged<UserDto>.PageFrom(users.Select(u => u.ToDto()), UserNameComparer.Instance, paging);
                 return Ok(paged);
             }

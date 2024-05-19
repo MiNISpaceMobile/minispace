@@ -9,11 +9,11 @@ namespace UnitTests.Infrastucture.Repositories;
 public class DictionaryRepositoryTests
 {
 #pragma warning disable CS8618 // Unassigned non-nullables
-    private Administrator ad0;
-    private Administrator ad1;
+    private User st0;
+    private User st1;
 
     private DictionaryUnitOfWork uow;
-    private IRepository<Administrator> sut;
+    private IRepository<User> sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
 
     [TestInitialize]
@@ -21,11 +21,11 @@ public class DictionaryRepositoryTests
     {
         DateTime now = DateTime.Now;
 
-        ad0 = new Administrator("ad0", "ad0", "ad0");
-        ad1 = new Administrator("ad1", "ad1", "ad1");
+        st0 = new User("st0", "st0", "st0", now);
+        st1 = new User("st1", "st1", "st1", now);
 
-        uow = new DictionaryUnitOfWork([ad0, ad1]);
-        sut = (DictionaryRepository<Administrator>)uow.Repository<Administrator>();
+        uow = new DictionaryUnitOfWork([st0, st1]);
+        sut = (DictionaryRepository<User>)uow.Repository<User>();
     }
 
     #region Add
@@ -33,23 +33,23 @@ public class DictionaryRepositoryTests
     public void Add_PresetGuid_AddsKeepingGuid()
     {
         Guid guid = Guid.NewGuid();
-        Administrator ad = new Administrator("ad", "ad", "ad") { Guid = guid };
+        User st = new User("st", "st", "st", DateTime.Now) { Guid = guid };
 
-        sut.Add(ad);
+        sut.Add(st);
 
-        Assert.AreEqual(guid, ad.Guid);
-        Assert.AreSame(ad, uow.Tables[typeof(Administrator)][guid]);
+        Assert.AreEqual(guid, st.Guid);
+        Assert.AreSame(st, uow.Tables[typeof(User)][guid]);
     }
 
     [TestMethod]
     public void Add_GuidEmpty_AddsAssigningGuid()
     {
-        Administrator ad = new Administrator("ad", "ad", "ad");
+        User st = new User("st", "st", "st", DateTime.Now);
 
-        sut.Add(ad);
+        sut.Add(st);
 
-        Assert.AreNotEqual(Guid.Empty, ad.Guid);
-        Assert.AreSame(ad, uow.Tables[typeof(Administrator)][ad.Guid]);
+        Assert.AreNotEqual(Guid.Empty, st.Guid);
+        Assert.AreSame(st, uow.Tables[typeof(User)][st.Guid]);
     }
     #endregion Add
 
@@ -57,18 +57,18 @@ public class DictionaryRepositoryTests
     [TestMethod]
     public void Get_InvalidGuid_ReturnsNull()
     {
-        var ad = sut.Get(Guid.NewGuid());
+        var st = sut.Get(Guid.NewGuid());
 
-        Assert.IsNull(ad);
+        Assert.IsNull(st);
     }
 
     [TestMethod]
     public void Get_Correct_ReturnsNotNull()
     {
-        var ad = sut.Get(ad0.Guid);
+        var st = sut.Get(st0.Guid);
 
-        Assert.IsNotNull(ad);
-        Assert.AreSame(ad0, ad);
+        Assert.IsNotNull(st);
+        Assert.AreSame(st0, st);
     }
     #endregion Get
 
@@ -76,9 +76,9 @@ public class DictionaryRepositoryTests
     [TestMethod]
     public void GetAll_Always_ReturnsAll()
     {
-        var ads = sut.GetAll();
+        var sts = sut.GetAll();
 
-        Assert.AreEqual(2, ads.Count());
+        Assert.AreEqual(2, sts.Count());
     }
     #endregion GetAll
 
@@ -93,10 +93,10 @@ public class DictionaryRepositoryTests
     [TestMethod]
     public void TryDelete_Correct_DeletesReturnsTrue()
     {
-        bool deleted = sut.TryDelete(ad1.Guid);
+        bool deleted = sut.TryDelete(st1.Guid);
 
         Assert.IsTrue(deleted);
-        Assert.IsFalse(uow.Tables[typeof(Administrator)].ContainsKey(ad1.Guid));
+        Assert.IsFalse(uow.Tables[typeof(User)].ContainsKey(st1.Guid));
     }
     #endregion TryDelete
 
@@ -104,11 +104,11 @@ public class DictionaryRepositoryTests
     [TestMethod]
     public void DeleteAll_Always_DeleteAllMatchingPredicate()
     {
-        int count = sut.DeleteAll(ad => string.Equals(ad.Email, "ad0"));
+        int count = sut.DeleteAll(st => string.Equals(st.Email, "st0"));
 
         Assert.AreEqual(1, count);
-        Assert.AreEqual(1, uow.Tables[typeof(Administrator)].Count);
-        Assert.IsFalse(uow.Tables[typeof(Administrator)].ContainsKey(ad0.Guid));
+        Assert.AreEqual(1, uow.Tables[typeof(User)].Count);
+        Assert.IsFalse(uow.Tables[typeof(User)].ContainsKey(st0.Guid));
     }
     #endregion DeleteAll
 }

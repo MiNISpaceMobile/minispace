@@ -61,8 +61,8 @@ public class Event : BaseEntity
     {
         get
         {
-            var ages = Participants.Where(p => p.DateOfBirth is not null).Select(p => (int)p.Age!);
-            return !ages.Any() ? null : ages.Sum() / ages.Count();
+            var ages = Participants.Select(p => p.Age);
+            return ages.Any() ? ages.Sum() / ages.Count() : null;
         }
     }
 

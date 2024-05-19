@@ -99,7 +99,7 @@ public static class EntityFrameworkConfiguration
         // This property simply concatenates results of other properties
         type.Ignore(x => x.AllNotifications);
 
-        // All relationships with Event, Feedback, Post and Comment are configured in their respective classes
+        // All relationships with other classes are configured in their respective classes
     }
     #endregion Users
 

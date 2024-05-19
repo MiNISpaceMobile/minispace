@@ -15,9 +15,9 @@ public class ReportServiceTests
     private PostReport pRe0;
     private CommentReport cRe0;
     private CommentReport cRe1;
-    private Student st0;
-    private Student st1;
-    private Administrator ad0;
+    private User st0;
+    private User st1;
+    private User ad0;
     private Event ev0;
     private Post p0;
     private Comment c0;
@@ -28,9 +28,9 @@ public class ReportServiceTests
     public void Setup()
     {
         var now = DateTime.Now;
-        st0 = new Student("user0", "user0@test.pl", "password");
-        st1 = new Student("user1", "user1@test.pl", "password") { IsOrganizer = true };
-        ad0 = new Administrator("user2", "user2@test.pl", "password");
+        st0 = new User("user0", "user0@test.pl", "password", now);
+        st1 = new User("user1", "user1@test.pl", "password", now) { IsOrganizer = true };
+        ad0 = new User("user2", "user2@test.pl", "password", now) { IsAdmin = true };
         ev0 = new Event(st1, "test event", "test description", EventCategory.Uncategorized,
             now, now.AddDays(10), now.AddDays(11), "test location", 20, 20);
         p0 = new Post(st1, ev0, "post");
@@ -182,7 +182,7 @@ public class ReportServiceTests
         // Arrange
         ReportService service = new(unitOfWork);
 
-        var newStudent = new Student("abc", "abc", "abc");
+        var newStudent = new User("abc", "abc", "abc", DateTime.Now);
         var newReport = new CommentReport(c0, newStudent, "title", "details", ReportCategory.Bug) { Guid = cRe1.Guid };
         
         // Act

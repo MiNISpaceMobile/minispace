@@ -1,4 +1,5 @@
 ﻿using Domain.BaseTypes;
+using System.Runtime.ExceptionServices;
 
 namespace Domain.Services;
 
@@ -35,4 +36,10 @@ public class EmptyContentException : Exception
 {
     public EmptyContentException() : base("Content must not be empty") { }
     public EmptyContentException(string message) : base(message) { }
+}
+
+public class FriendTargetException : Exception
+{
+    public FriendTargetException() : base("This user cannot be befriended") { }
+    public FriendTargetException(string message) : base(message) { }
 }

@@ -1,6 +1,8 @@
 using Api;
 using Api.Auth;
 using Domain.Abstractions;
+using Domain.Services.Abstractions;
+using Domain.Services.Implementations;
 using Infrastructure.Authenticators;
 using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;
@@ -40,6 +42,7 @@ builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
 builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 /* Warning! Important! Will help you later!
  * 
@@ -66,6 +69,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Our own function that setups a few things
-app.PerformCustomStartupActions(resetDb: true);
+app.PerformCustomStartupActions(resetDb: true, generateDevAdminJwt: true);
 
 app.Run();

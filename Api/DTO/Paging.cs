@@ -1,27 +1,32 @@
-﻿using System.Text.Json.Serialization;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Text.Json.Serialization;
 
 namespace Api.DTO;
 
 public class Paging
 {
-    const int MinLimit = 1;
-    const int DefLimit = 10;
-    const int MaxLimit = 100;
+    public const int MinLimit = 1;
+    public const int DefLimit = 10;
+    public const int MaxLimit = 100;
 
     public int Limit { get; set; }
     public int Start { get; set; }
+    [BindNever]
     public int? Size { get; set; }
+    [BindNever]
     public int? End => Size.HasValue ? Start + Size.Value : null;
+    [BindNever]
+    public bool? Last { get; set; }
 
-    public bool Ascending { get; set; }
+    public Paging() : this(null, null, null, null) { }
 
     [JsonConstructor]
-    public Paging(int? limit, int? start, int? size, bool? ascending)
+    public Paging(int? limit, int? start, int? size, bool? last)
     {
         Limit = Math.Clamp(limit ?? DefLimit, MinLimit, MaxLimit);
         Start = start ?? 0;
         Size = null; // size is for response only
-        Ascending = ascending ?? true;
+        Last = null; // last is for response only
     }
 }
 
@@ -38,8 +43,8 @@ public class Paged<Type>
 
     public static Paged<Type> PageFrom(IEnumerable<Type> items, IComparer<Type> comparer, Paging paging)
     {
-        var results = (paging.Ascending ? items.OrderBy(x => x, comparer) : items.OrderByDescending(x => x, comparer))
-                .Skip(paging.Start).Take(paging.Limit);
+        paging.Last = items.Count() <= paging.Start + paging.Limit;
+        var results = items.OrderBy(x => x, comparer).Skip(paging.Start).Take(paging.Limit);
         paging.Size = results.Count();
         return new Paged<Type>(results, paging);
     }

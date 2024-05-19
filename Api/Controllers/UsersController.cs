@@ -20,7 +20,7 @@ namespace Api.Controllers
 
         [HttpGet]
         [Route("search")]
-        public ActionResult<Paged<UserDto>> Search([FromBody] Paging paging)
+        public ActionResult<Paged<UserDto>> Search([FromQuery] Paging paging)
         {
             try
             {

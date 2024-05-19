@@ -1,17 +1,20 @@
 ﻿using Domain.Abstractions;
 using Domain.DataModel;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 
 namespace Api;
 
 public static class CustomStartup
 {
-    public static void PerformCustomStartupActions(this WebApplication app, bool resetDb)
+    public static void PerformCustomStartupActions(this WebApplication app, bool resetDb, bool generateDevAdminJwt)
     {
         if (resetDb)
             app.DeleteDevelopmentDatabase();
         app.CreateOrUpdateDevelopmentDatabase();
         app.SeedDatabaseIfEmpty();
+        if (app.Environment.IsDevelopment() && generateDevAdminJwt)
+            app.GenerateDevelopmentAdminJwt();
     }
 
     private static void DeleteDevelopmentDatabase(this WebApplication app)
@@ -57,6 +60,13 @@ public static class CustomStartup
         var weeks_in = now.AddDays(14);
         var week_ago = now.AddDays(-7);
         var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
+
+        if (app.Environment.IsDevelopment())
+        {
+            var devAdmin = new User("Dev", "Admin", "dev.admin@pw.edu.pl", now, "DevAdmin")
+            { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true };
+            uow.Repository<User>().Add(devAdmin);
+        }
 
         var ad0 = new User("AdFirst0", "AdLast0", "ad0@pw.edu.pl", now) { IsAdmin = true };
         var ad1 = new User("AdFirst1", "AdLast1", "ad1@pw.edu.pl", now) { IsAdmin = true };
@@ -105,5 +115,16 @@ public static class CustomStartup
         uow.Commit();
 
         app.Logger.LogInformation("Database was seeded with test data");
+    }
+
+    public static void GenerateDevelopmentAdminJwt(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var devAdmin = scope.ServiceProvider.GetRequiredService<IUnitOfWork>().Repository<User>()
+            .GetAll().Where(x => Equals(x.ExternalId, "DevAdmin")).SingleOrDefault();
+        if (devAdmin is null)
+            return;
+        var jwt = scope.ServiceProvider.GetRequiredService<IJwtHandler>().Encode(devAdmin.Guid);
+        app.Logger.LogDebug($"DevAdmin's JWT: {jwt}");
     }
 }

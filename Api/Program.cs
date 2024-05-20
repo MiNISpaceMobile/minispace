@@ -1,6 +1,7 @@
 using Api;
 using Api.Auth;
 using Domain.Abstractions;
+using Domain.Services;
 using Domain.Services.Abstractions;
 using Domain.Services.Implementations;
 using Infrastructure.Authenticators;
@@ -44,6 +45,7 @@ builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 /* Warning! Important! Will help you later!
  * 

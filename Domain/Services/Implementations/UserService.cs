@@ -17,11 +17,18 @@ public class UserService(IUnitOfWork uow)
 
     public User GetUser(Guid guid)
     {
-        AllowOnlyLoggedIn();
+        AllowOnlyAdmins();
 
         User student = uow.Repository<User>().GetOrThrow(guid);
 
         return student;
+    }
+
+    public User GetUser()
+    {
+        AllowOnlyLoggedIn();
+
+        return ActingUser!;
     }
 
     public User CreateUser(string firstName, string lastName, string email, DateTime dob, string? externalId = null)
@@ -36,7 +43,7 @@ public class UserService(IUnitOfWork uow)
         return student;
     }
 
-    public void UpdateUser(User newStudent)
+    public User UpdateUser(User newStudent)
     {
         AllowOnlyLoggedIn();
 
@@ -52,6 +59,8 @@ public class UserService(IUnitOfWork uow)
         student.EmailNotification = newStudent.EmailNotification;
 
         uow.Commit();
+
+        return student;
     }
 
     public void DeleteUser()
@@ -132,6 +141,32 @@ public class UserService(IUnitOfWork uow)
         }
 
         uow.Repository<FriendRequest>().Delete(request);
+        uow.Commit();
+    }
+
+    public IEnumerable<BaseNotification> GetNotifications()
+    {
+        AllowOnlyLoggedIn();
+
+        return ActingUser!.AllNotifications;
+    }
+
+    public void SeeAllNotifications()
+    {
+        AllowOnlyLoggedIn();
+
+        foreach (var notification in ActingUser!.AllNotifications)
+            notification.Seen = true;
+        uow.Commit();
+    }
+
+    public void SeeNotification(Guid guid)
+    {
+        BaseNotification notification = uow.Repository<BaseNotification>().GetOrThrow(guid);
+
+        AllowOnlyUser(notification.Target);
+
+        notification.Seen = true;
         uow.Commit();
     }
 }

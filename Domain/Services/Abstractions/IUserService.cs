@@ -9,9 +9,11 @@ public interface IUserService : IBaseService<IUserService>
 
     public User GetUser(Guid guid);
 
+    public User GetUser();
+
     public User CreateUser(string firstName, string lastName, string email, DateTime dob, string? externalId = null);
 
-    public void UpdateUser(User newStudent);
+    public User UpdateUser(User newStudent);
 
     public void DeleteUser();
 
@@ -27,4 +29,10 @@ public interface IUserService : IBaseService<IUserService>
     public FriendRequest? SendFriendRequest(Guid targetId);
 
     public void RespondFriendRequest(Guid requestId, bool accept);
+
+    public IEnumerable<BaseNotification> GetNotifications();
+
+    public void SeeAllNotifications();
+
+    public void SeeNotification(Guid guid);
 }

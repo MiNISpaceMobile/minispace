@@ -2,7 +2,7 @@
 
 public class UserNameComparer : IComparer<UserDto>
 {
-    public static readonly UserNameComparer Instance = new UserNameComparer();
+    public static readonly UserNameComparer Instance = new();
 
     private UserNameComparer() { }
 

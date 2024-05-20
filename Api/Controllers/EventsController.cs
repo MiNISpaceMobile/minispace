@@ -83,6 +83,14 @@ public class EventsController : ControllerBase
         Incoming
     }
 
+    private ListEventDto EventToListEventDto(Event e)
+    {
+        int? avPlaces = null;
+        if (e.Capacity is not null)
+            avPlaces = e.Capacity - e.Participants.Count;
+        return new ListEventDto(e.Guid, e.Title, e.StartDate, e.EndDate, e.Location, e.Participants.Count, e.Interested.Count, avPlaces, e.Fee, null);
+    }
+
     private List<Event> Filter(List<Event> events, string evNameFilter, string orgNameFilter,
         PriceFilter priceFilter, int minCapacityFilter, int maxCapacityFilter, StartTimeFilter startTimeFilter, bool onlyAvailablePlace)
     {
@@ -124,7 +132,7 @@ public class EventsController : ControllerBase
         }
 
         if (onlyAvailablePlace)
-            filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
+        filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
 
         return filtered;
     }

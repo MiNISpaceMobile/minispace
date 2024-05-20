@@ -1,6 +1,7 @@
 using Api;
 using Api.Auth;
 using Domain.Abstractions;
+using Domain.Services;
 using Domain.Services.Abstractions;
 using Domain.Services.Implementations;
 using Infrastructure.Authenticators;
@@ -50,6 +51,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 // Integrations:
 builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
 builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 /* Warning! Important! Will help you later!
  * 

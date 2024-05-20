@@ -8,6 +8,8 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
 {
     private PostService postService = new PostService(uow);
 
+    public List<Event> GetAll() => uow.Repository<Event>().GetAll().ToList();
+
     public Event GetEvent(Guid guid)
     {
         AllowEveryone();

@@ -9,6 +9,7 @@ using Infrastructure.DatabaseContexts;
 using Infrastructure.JwtHandlers;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
+using Microsoft.AspNetCore.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
@@ -58,13 +59,18 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddAuthentication(nameof(JwtAuthScheme))
                 .AddScheme<JwtAuthScheme.Options, JwtAuthScheme.Handler>(nameof(JwtAuthScheme), null);
 
+builder.Services.AddExceptionHandler<MinispaceExceptionHandler>();
+
 var app = builder.Build();
+
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseExceptionHandler(o => { });
 
 app.MapControllers();
 

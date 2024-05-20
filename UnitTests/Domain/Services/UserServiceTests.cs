@@ -63,7 +63,7 @@ public class UserServiceTests
     [TestMethod]
     public void GetUser_Nonexistent_ThrowsInvalidGuid()
     {
-        var act = () => sut.AsUser(st0.Guid).GetUser(Guid.NewGuid());
+        var act = () => sut.AsUser(ad.Guid).GetUser(Guid.NewGuid());
 
         Assert.ThrowsException<InvalidGuidException<User>>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -72,7 +72,7 @@ public class UserServiceTests
     [TestMethod]
     public void GetUser_Unauthorized_ThrowsUserUnauthorized()
     {
-        var act = () => sut.AsUser(null).GetUser(st1.Guid);
+        var act = () => sut.AsUser(st0.Guid).GetUser(st1.Guid);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -81,7 +81,7 @@ public class UserServiceTests
     [TestMethod]
     public void GetUser_Correct_ReturnsUser()
     {
-        var result = sut.AsUser(st1.Guid).GetUser(st0.Guid);
+        var result = sut.AsUser(ad.Guid).GetUser(st0.Guid);
 
         Assert.AreSame(st0, result);
         Assert.AreEqual(0, uow.CommitCount);

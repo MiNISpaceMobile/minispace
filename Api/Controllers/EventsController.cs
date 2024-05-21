@@ -1,4 +1,6 @@
-﻿using Api.DTO.Events;
+﻿using Api.DTO;
+using Api.DTO.Events;
+using Api.DTO.Users;
 using Domain.Abstractions;
 using Domain.DataModel;
 using Domain.Services;
@@ -34,7 +36,25 @@ public class EventsController : ControllerBase
 
         var page = events.Skip(pageNr * pageSize).Take(pageSize);
 
-        return Ok(new { page = page.Select(e => EventToListEventDto(e)), isLastPage = isLastPage });
+        return Ok(new { page = page.Select(e => e.ToListEventDto()), isLastPage = isLastPage });
+    }
+
+    [HttpGet]
+    [Route("event")]
+    [Produces("application/json")]
+    public ActionResult GetEvent(Guid guid)
+    {
+        Event @event;
+        try
+        {
+            @event = eventService.GetEvent(guid);
+        }
+        catch (InvalidGuidException ex) 
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok(@event.ToDto());
     }
 
     public enum PriceFilter
@@ -48,14 +68,6 @@ public class EventsController : ControllerBase
         Ended,
         Current,
         Incoming
-    }
-
-    private ListEventDto EventToListEventDto(Event e)
-    {
-        int? avPlaces = null;
-        if (e.Capacity is not null)
-            avPlaces = e.Capacity - e.Participants.Count;
-        return new ListEventDto(e.Guid, e.Title, e.StartDate, e.EndDate, e.Location, e.Participants.Count, e.Interested.Count, avPlaces, e.Fee, null);
     }
 
     private List<Event> Filter(List<Event> events, string evNameFilter, string orgNameFilter,

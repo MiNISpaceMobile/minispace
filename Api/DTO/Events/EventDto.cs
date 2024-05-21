@@ -15,4 +15,8 @@ public record EventDto(
     int ParticipantCount,
     int InterestedCount,
     int ViewCount,
+    decimal? Fee,
+    int? Capacity,
+    int? Availableplaces,
+    // Image
     int? AverageAge);

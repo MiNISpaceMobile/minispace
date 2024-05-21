@@ -9,6 +9,7 @@ using Infrastructure.DatabaseContexts;
 using Infrastructure.JwtHandlers;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
@@ -19,7 +20,7 @@ builder.Configuration.AddJsonFile(Path.Join(Directory.GetCurrentDirectory(), "..
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => options.AddJwtAuthorization().AddDefaultValues());
 
-builder.Services.AddControllers()
+builder.Services.AddControllers(options => options.Filters.Add(new ProducesAttribute("application/json")))
                 .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 
 /* Add things to dependency injection below!

@@ -43,20 +43,24 @@ public class UserService(IUnitOfWork uow)
         return student;
     }
 
-    public User UpdateUser(User newStudent)
+    public User UpdateUser(string? firstName, string? lastName, string? email, string? description, DateTime? dob, bool? emailNotification)
     {
         AllowOnlyLoggedIn();
 
         User student = ActingUser!;
 
-        student.FirstName = newStudent.FirstName;
-        student.LastName = newStudent.LastName;
-        student.Email = newStudent.Email;
-
-        student.Description = newStudent.Description;
-        student.DateOfBirth = newStudent.DateOfBirth;
-
-        student.EmailNotification = newStudent.EmailNotification;
+        if (firstName is not null)
+            student.FirstName = firstName;
+        if (lastName is not null)
+            student.LastName = lastName;
+        if (email is not null)
+            student.Email = email;
+        if (description is not null)
+            student.Description = description;
+        if (dob.HasValue)
+            student.DateOfBirth = dob.Value;
+        if (emailNotification.HasValue)
+            student.EmailNotification = emailNotification.Value;
 
         uow.Commit();
 

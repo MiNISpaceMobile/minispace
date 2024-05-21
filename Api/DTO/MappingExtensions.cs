@@ -13,9 +13,6 @@ public static class MappingExtensions
         new(user.Guid, user.FirstName, user.LastName, user.Email, user.Description,
             user.DateOfBirth, user.IsAdmin, user.IsOrganizer, user.EmailNotification);
 
-    public static User ToModel(this UserDto dto) =>
-        new(dto.FirstName, dto.LastName, dto.Email, dto.DateOfBirth);
-
     public static CommentDto ToDto(this Comment comment) =>
         new(comment.Guid, comment.Author?.ToDto(), comment.Content);
 

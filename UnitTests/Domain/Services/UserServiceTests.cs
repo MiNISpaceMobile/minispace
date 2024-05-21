@@ -114,9 +114,7 @@ public class UserServiceTests
     [TestMethod]
     public void UpdateUser_NotLoggedIn_ThrowsUserUnauthorized()
     {
-        var newUser = new User("test", "test", "test", DateTime.Now);
-
-        var act = () => sut.AsUser(null).UpdateUser(newUser);
+        var act = () => sut.AsUser(null).UpdateUser(null, null, null, null, null, null);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -125,9 +123,7 @@ public class UserServiceTests
     [TestMethod]
     public void UpdateUser_Correct_UserUpdated()
     {
-        var newUser = new User("test", "test", "test", DateTime.UnixEpoch);
-
-        sut.AsUser(st1.Guid).UpdateUser(newUser);
+        sut.AsUser(st1.Guid).UpdateUser("test", null, null, null, DateTime.UnixEpoch, null);
 
         Assert.AreEqual("test", st1.FirstName);
         Assert.AreEqual(DateTime.UnixEpoch, st1.DateOfBirth);

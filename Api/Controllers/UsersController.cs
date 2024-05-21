@@ -49,9 +49,10 @@ namespace Api.Controllers
         [HttpPut]
         [Route("user")]
         [Authorize]
-        public ActionResult<UserDto> Put([FromBody] UserDto dto)
+        public ActionResult<UserDto> Put([FromBody] UpdateUserDto dto)
         {
-            var user = userService.AsUser(User.GetGuid()).UpdateUser(dto.ToModel());
+            var user = userService.AsUser(User.GetGuid()).UpdateUser(dto.FirstName, dto.LastName,
+                dto.Email, dto.Description, dto.DateOfBirth, dto.EmailNotifications);
             return Ok(user.ToDto());
         }
 

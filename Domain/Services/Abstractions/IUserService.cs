@@ -13,7 +13,7 @@ public interface IUserService : IBaseService<IUserService>
 
     public User CreateUser(string firstName, string lastName, string email, DateTime dob, string? externalId = null);
 
-    public User UpdateUser(User newStudent);
+    public User UpdateUser(string? firstName, string? lastName, string? email, string? description, DateTime? dob, bool? emailNotification);
 
     public void DeleteUser();
 

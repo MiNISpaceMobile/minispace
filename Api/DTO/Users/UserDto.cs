@@ -9,4 +9,5 @@ public record UserDto(
     DateTime DateOfBirth,
     bool IsAdmin,
     bool IsOrganizer,
-    bool EmailNotifications);
+    bool EmailNotifications,
+    string? ProfilePictureUrl = null);

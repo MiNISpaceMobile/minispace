@@ -22,6 +22,7 @@ public enum ReportState
 
 public enum ReportType
 {
+    Unknown,
     Event,
     Post,
     Comment

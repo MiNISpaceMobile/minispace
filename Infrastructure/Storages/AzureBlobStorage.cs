@@ -3,6 +3,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Domain.Abstractions;
 using Microsoft.Extensions.Configuration;
+using System.Runtime.CompilerServices;
 
 namespace Infrastructure.PictureStorages
 {
@@ -56,6 +57,8 @@ namespace Infrastructure.PictureStorages
             try
             {
                 var blob = client.GetBlobContainerClient(directory).GetBlobClient(filename);
+                if (file.Position != 0)
+                    file.Position = 0;
                 blob.Upload(file);
                 return blob.Uri.AbsoluteUri;
             }

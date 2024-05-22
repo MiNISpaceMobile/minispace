@@ -15,7 +15,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
     private string PictureIdFilename(int id) => $"{id}{pictureHandler.Extension}";
     private string ProfilePictureFilename => $"profile{pictureHandler.Extension}";
 
-    public void UploadUserProfilePicture(Stream source)
+    public string UploadUserProfilePicture(Stream source)
     {
         AllowAllUsers();
 
@@ -35,8 +35,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         try
         {
             ActingUser!.ProfilePictureUrl =
-                storage.UploadFile(picture, IStorage.UserDirectory(ActingUser!.Guid), ProfilePictureFilename);
-            uow.Commit();
+                storage.UploadFile(picture, IStorage.UserDirectory(ActingUser.Guid), ProfilePictureFilename);
         }
         catch
         {
@@ -47,6 +46,10 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
             if (!ReferenceEquals(picture, source))
                 picture.Dispose();
         }
+
+        uow.Commit();
+
+        return ActingUser.ProfilePictureUrl;
     }
 
     public void DeleteUserProfilePicture()
@@ -56,16 +59,17 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         try
         {
             storage.DeleteFile(IStorage.UserDirectory(ActingUser!.Guid), ProfilePictureFilename);
-            ActingUser.ProfilePictureUrl = null;
-            uow.Commit();
         }
         catch
         {
             throw new StorageException();
         }
+
+        ActingUser.ProfilePictureUrl = null;
+        uow.Commit();
     }
 
-    public void UploadEventPicture(Guid eventGuid, int index, Stream source)
+    public string UploadEventPicture(Guid eventGuid, int index, Stream source)
     {
         if (source.Length > MaxFileSize)
             throw new FileTooBigException();
@@ -90,6 +94,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
             throw new FileFormatException();
         }
 
+        string url;
         try
         {
             // Inserts uploaded picture at given index -> some pictures' indices need to be incremented
@@ -100,8 +105,8 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
             // Calculate Id that was not used by previous pictures
             int nextPictureId = @event.Pictures.Select(x => x.Id).DefaultIfEmpty().Max() + 1;
 
-            @event.Pictures.Add(new EventPicture(@event, index,
-                storage.UploadFile(picture, IStorage.EventDirectory(eventGuid), PictureIdFilename(nextPictureId))));
+            url = storage.UploadFile(picture, IStorage.EventDirectory(eventGuid), PictureIdFilename(nextPictureId));
+            @event.Pictures.Add(new EventPicture(@event, index, url));
         }
         catch
         {
@@ -114,6 +119,8 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         }
 
         uow.Commit();
+
+        return url;
     }
 
     public void DeleteEventPicture(Guid eventGuid, int index)
@@ -145,7 +152,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         uow.Commit();
     }
 
-    public void UploadPostPicture(Guid postGuid, int index, Stream source)
+    public string UploadPostPicture(Guid postGuid, int index, Stream source)
     {
         if (source.Length > MaxFileSize)
             throw new FileTooBigException();
@@ -170,6 +177,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
             throw new FileFormatException();
         }
 
+        string url;
         try
         {
             // Inserts uploaded picture at given index -> some pictures' indices need to be incremented
@@ -180,8 +188,8 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
             // Calculate Id that was not used by previous pictures
             int nextPictureId = post.Pictures.Select(x => x.Id).DefaultIfEmpty().Max() + 1;
 
-            post.Pictures.Add(new PostPicture(post, index,
-                storage.UploadFile(picture, IStorage.PostDirectory(postGuid), PictureIdFilename(nextPictureId))));
+            url = storage.UploadFile(picture, IStorage.PostDirectory(postGuid), PictureIdFilename(nextPictureId));
+            post.Pictures.Add(new PostPicture(post, index, url));
         }
         catch
         {
@@ -194,6 +202,8 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         }
 
         uow.Commit();
+
+        return url;
     }
 
     public void DeletePostPicture(Guid postGuid, int index)

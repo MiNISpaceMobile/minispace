@@ -44,15 +44,17 @@ public class PictureServiceTests
 
         dictionaryStorage.Storage[$"user-{st1.Guid}"] = new Dictionary<string, Stream>();
         dictionaryStorage.Storage[$"user-{st1.Guid}"]["profile"] = okFile;
-        st1.HasProfilePicture = true;
+        st1.ProfilePictureUrl = dictionaryStorage.RootUrl;
         dictionaryStorage.Storage[$"event-{ev0.Guid}"] = new Dictionary<string, Stream>();
         dictionaryStorage.Storage[$"event-{ev0.Guid}"]["0"] = okFile;
         dictionaryStorage.Storage[$"event-{ev0.Guid}"]["1"] = okFile;
-        ev0.PictureCount = 2;
+        ev0.Pictures.Add(new EventPicture(ev0, 0, dictionaryStorage.RootUrl) { Id = 0 });
+        ev0.Pictures.Add(new EventPicture(ev0, 1, dictionaryStorage.RootUrl) { Id = 1 });
         dictionaryStorage.Storage[$"post-{po0.Guid}"] = new Dictionary<string, Stream>();
         dictionaryStorage.Storage[$"post-{po0.Guid}"]["0"] = okFile;
         dictionaryStorage.Storage[$"post-{po0.Guid}"]["1"] = okFile;
-        po0.PictureCount = 2;
+        po0.Pictures.Add(new PostPicture(po0, 0, dictionaryStorage.RootUrl) { Id = 0 });
+        po0.Pictures.Add(new PostPicture(po0, 1, dictionaryStorage.RootUrl) { Id = 1 });
 
         sut = new PictureService(uow, dictionaryStorage, pictureHandler) { MaxFileSize = 5 };
     }
@@ -82,7 +84,7 @@ public class PictureServiceTests
         sut.AsUser(st0.Guid).UploadUserProfilePicture(okFile);
 
         Assert.AreSame(okFile, dictionaryStorage.Storage[$"user-{st0.Guid}"]["profile"]);
-        Assert.IsTrue(st0.HasProfilePicture);
+        Assert.IsNotNull(st0.ProfilePictureUrl);
         Assert.AreEqual(1, uow.CommitCount);
     }
     #endregion UploadUserProfilePicture
@@ -103,7 +105,7 @@ public class PictureServiceTests
         sut.AsUser(st1.Guid).DeleteUserProfilePicture();
 
         Assert.IsFalse(dictionaryStorage.Storage[$"user-{st1.Guid}"].ContainsKey("profile"));
-        Assert.IsFalse(st0.HasProfilePicture);
+        Assert.IsNull(st1.ProfilePictureUrl);
         Assert.AreEqual(1, uow.CommitCount);
     }
     #endregion DeleteUserProfilePicture
@@ -112,7 +114,7 @@ public class PictureServiceTests
     [TestMethod]
     public void UploadEventPicture_Unauthorized_ThrowsUserUnauthorized()
     {
-        var act = () => sut.AsUser(st1.Guid).UploadEventPicture(ev0.Guid, okFile);
+        var act = () => sut.AsUser(st1.Guid).UploadEventPicture(ev0.Guid, 0, okFile);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -121,7 +123,7 @@ public class PictureServiceTests
     [TestMethod]
     public void UploadEventPicture_FileTooBig_ThrowsFileTooBig()
     {
-        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, tooBigFile);
+        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, 0, tooBigFile);
 
         Assert.ThrowsException<FileTooBigException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -130,20 +132,31 @@ public class PictureServiceTests
     [TestMethod]
     public void UploadEventPicture_InvalidGuid_ThrowsInvalidGuid()
     {
-        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(Guid.NewGuid(), okFile);
+        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(Guid.NewGuid(), 0, okFile);
 
         Assert.ThrowsException<InvalidGuidException<Event>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
+    public void UploadEventPicture_InvalidIndex_ThrowsFileIndex()
+    {
+        int nextIndex = ev0.Pictures.Count;
+
+        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, nextIndex + 1, okFile);
+
+        Assert.ThrowsException<FileIndexException>(act);
+        Assert.AreEqual(0, uow.CommitCount);
+    }
+
+    [TestMethod]
     public void UploadEventPicture_LimitExceeded_ThrowsFileLimit()
     {
-        int startCount = ev0.PictureCount;
+        int startCount = ev0.Pictures.Count;
         for (int i = startCount; i < sut.MaxPicturesPerEvent; i++)
-            sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, okFile);
+            sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, i, okFile);
 
-        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, okFile);
+        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, sut.MaxPicturesPerEvent, okFile);
 
         Assert.ThrowsException<FileLimitExeption>(act);
         Assert.AreEqual(sut.MaxPicturesPerEvent - startCount, uow.CommitCount);
@@ -152,12 +165,13 @@ public class PictureServiceTests
     [TestMethod]
     public void UploadEventPicture_Correct_UploadsPicture()
     {
-        int nextIndex = ev0.PictureCount;
+        int nextIndex = ev0.Pictures.Count;
 
-        sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, okFile);
+        sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, 0, okFile);
 
-        Assert.IsTrue(dictionaryStorage.Storage[$"event-{ev0.Guid}"].ContainsKey($"{nextIndex}"));
-        Assert.AreEqual(nextIndex + 1, ev0.PictureCount);
+        for (int i = 0; i <= nextIndex; i++)
+            Assert.IsTrue(dictionaryStorage.Storage[$"event-{ev0.Guid}"].ContainsKey($"{i}"));
+        Assert.AreEqual(nextIndex + 1, ev0.Pictures.Count);
         Assert.AreEqual(1, uow.CommitCount);
     }
     #endregion UploadEventPicture
@@ -184,7 +198,7 @@ public class PictureServiceTests
     [TestMethod]
     public void DeleteEventPicture_InvalidIndex_ThrowsFileIndex()
     {
-        var act = () => sut.AsUser(st0.Guid).DeleteEventPicture(ev0.Guid, ev0.PictureCount);
+        var act = () => sut.AsUser(st0.Guid).DeleteEventPicture(ev0.Guid, ev0.Pictures.Count);
 
         Assert.ThrowsException<FileIndexException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -193,14 +207,17 @@ public class PictureServiceTests
     [TestMethod]
     public void DeleteEventPicture_Correct_DeletesPicture()
     {
-        int lastIndex = ev0.PictureCount - 1;
+        int lastIndex = ev0.Pictures.Count - 1;
 
         sut.AsUser(st0.Guid).DeleteEventPicture(ev0.Guid, 0);
 
-        Assert.IsFalse(dictionaryStorage.Storage[$"event-{ev0.Guid}"].ContainsKey($"{lastIndex}"));
-        for (int i = 0; i < lastIndex; i++)
+        Assert.IsFalse(dictionaryStorage.Storage[$"event-{ev0.Guid}"].ContainsKey($"{0}"));
+        for (int i = 1; i <= lastIndex; i++)
             Assert.IsTrue(dictionaryStorage.Storage[$"event-{ev0.Guid}"].ContainsKey($"{i}"));
-        Assert.AreEqual(lastIndex, ev0.PictureCount);
+        Assert.IsFalse(ev0.Pictures.Any(x => x.Index == lastIndex));
+        for (int i = 0; i < lastIndex; i++)
+            Assert.IsTrue(ev0.Pictures.Any(x => x.Index == i));
+        Assert.AreEqual(lastIndex, ev0.Pictures.Count);
         Assert.AreEqual(1, uow.CommitCount);
     }
     #endregion DeleteEventPicture
@@ -209,7 +226,7 @@ public class PictureServiceTests
     [TestMethod]
     public void UploadPostPicture_Unauthorized_ThrowsUserUnauthorized()
     {
-        var act = () => sut.AsUser(st1.Guid).UploadPostPicture(po0.Guid, okFile);
+        var act = () => sut.AsUser(st1.Guid).UploadPostPicture(po0.Guid, 0, okFile);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -218,7 +235,7 @@ public class PictureServiceTests
     [TestMethod]
     public void UploadPostPicture_FileTooBig_ThrowsFileTooBig()
     {
-        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, tooBigFile);
+        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, 0, tooBigFile);
 
         Assert.ThrowsException<FileTooBigException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -227,20 +244,33 @@ public class PictureServiceTests
     [TestMethod]
     public void UploadPostPicture_InvalidGuid_ThrowsInvalidGuid()
     {
-        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(Guid.NewGuid(), okFile);
+        int nextIndex = po0.Pictures.Count;
+
+        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(Guid.NewGuid(), nextIndex + 1, okFile);
 
         Assert.ThrowsException<InvalidGuidException<Post>>(act);
         Assert.AreEqual(0, uow.CommitCount);
     }
 
     [TestMethod]
+    public void UploadPostPicture_InvalidIndex_ThrowsFileIndex()
+    {
+        int nextIndex = po0.Pictures.Count;
+
+        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, nextIndex + 1, okFile);
+
+        Assert.ThrowsException<FileIndexException>(act);
+        Assert.AreEqual(0, uow.CommitCount);
+    }
+
+    [TestMethod]
     public void UploadPostPicture_LimitExceeded_ThrowsFileLimit()
     {
-        int startCount = po0.PictureCount;
+        int startCount = po0.Pictures.Count;
         for (int i = startCount; i < sut.MaxPicturesPerPost; i++)
-            sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, okFile);
+            sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, i, okFile);
 
-        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, okFile);
+        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, sut.MaxPicturesPerPost, okFile);
 
         Assert.ThrowsException<FileLimitExeption>(act);
         Assert.AreEqual(sut.MaxPicturesPerPost - startCount, uow.CommitCount);
@@ -249,12 +279,13 @@ public class PictureServiceTests
     [TestMethod]
     public void UploadPostPicture_Correct_UploadsPicture()
     {
-        int nextIndex = po0.PictureCount;
+        int nextIndex = po0.Pictures.Count;
 
-        sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, okFile);
+        sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, 0, okFile);
 
-        Assert.IsTrue(dictionaryStorage.Storage[$"post-{po0.Guid}"].ContainsKey($"{nextIndex}"));
-        Assert.AreEqual(nextIndex + 1, po0.PictureCount);
+        for (int i = 0; i <= nextIndex; i++)
+            Assert.IsTrue(dictionaryStorage.Storage[$"post-{po0.Guid}"].ContainsKey($"{i}"));
+        Assert.AreEqual(nextIndex + 1, po0.Pictures.Count);
         Assert.AreEqual(1, uow.CommitCount);
     }
     #endregion UploadPostPicture
@@ -281,7 +312,7 @@ public class PictureServiceTests
     [TestMethod]
     public void DeletePostPicture_InvalidIndex_ThrowsFileIndex()
     {
-        var act = () => sut.AsUser(st0.Guid).DeletePostPicture(po0.Guid, po0.PictureCount);
+        var act = () => sut.AsUser(st0.Guid).DeletePostPicture(po0.Guid, po0.Pictures.Count);
 
         Assert.ThrowsException<FileIndexException>(act);
         Assert.AreEqual(0, uow.CommitCount);
@@ -290,14 +321,17 @@ public class PictureServiceTests
     [TestMethod]
     public void DeletePostPicture_Correct_DeletesPicture()
     {
-        int lastIndex = po0.PictureCount - 1;
+        int lastIndex = po0.Pictures.Count - 1;
 
         sut.AsUser(st0.Guid).DeletePostPicture(po0.Guid, 0);
 
-        Assert.IsFalse(dictionaryStorage.Storage[$"post-{po0.Guid}"].ContainsKey($"{lastIndex}"));
-        for (int i = 0; i < lastIndex; i++)
+        Assert.IsFalse(dictionaryStorage.Storage[$"post-{po0.Guid}"].ContainsKey($"{0}"));
+        for (int i = 1; i < lastIndex; i++)
             Assert.IsTrue(dictionaryStorage.Storage[$"post-{po0.Guid}"].ContainsKey($"{i}"));
-        Assert.AreEqual(lastIndex, po0.PictureCount);
+        Assert.IsFalse(po0.Pictures.Any(x => x.Index == lastIndex));
+        for (int i = 0; i < lastIndex; i++)
+            Assert.IsTrue(po0.Pictures.Any(x => x.Index == i));
+        Assert.AreEqual(lastIndex, po0.Pictures.Count);
         Assert.AreEqual(1, uow.CommitCount);
     }
     #endregion DeletePostPicture

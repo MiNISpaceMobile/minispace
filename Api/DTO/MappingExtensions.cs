@@ -10,7 +10,7 @@ namespace Api.DTO;
 public static class MappingExtensions
 {
     public static UserDto ToDto(this User user) =>
-        new(user.Guid, user.FirstName, user.LastName, user.Email, user.HasProfilePicture);
+        new(user.Guid, user.FirstName, user.LastName, user.Email, user.ProfilePictureUrl);
 
     public static StudentDto ToDto(this Student Student) =>
         new(Student.Guid, Student.FirstName, Student.LastName, Student.Email,
@@ -23,11 +23,12 @@ public static class MappingExtensions
         new(comment.Guid, comment.Author?.ToUserDto(), comment.Content);
 
     public static PostDto ToDto(this Post post) =>
-        new(post.Guid, post.EventId, post.Author?.ToUserDto(), post.CreationDate, post.PictureCount);
+        new(post.Guid, post.EventId, post.Author?.ToUserDto(), post.CreationDate,
+            post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
     public static EventDto ToDto(this Event @event) =>
         new(@event.Guid, @event.Organizer?.ToUserDto(), @event.Title, @event.Description,
             @event.Category.ToString(), @event.PublicationDate, @event.StartDate, @event.EndDate,
-            @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount,
-            @event.AverageAge, @event.PictureCount);
+            @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount, @event.AverageAge,
+            @event.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 }

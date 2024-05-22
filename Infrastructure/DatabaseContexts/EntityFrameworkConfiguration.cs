@@ -48,6 +48,10 @@ public static class EntityFrameworkConfiguration
         model.Entity<SocialNotification>().Configure();
         model.Entity<FriendRequest>().Configure();
 
+        model.Entity<Picture>().Configure();
+        model.Entity<EventPicture>().Configure();
+        model.Entity<PostPicture>().Configure();
+
         using var conventionBlock = model.Model.DelayConventions();
 
         foreach (var entity in model.Model.GetEntityTypes())
@@ -272,6 +276,8 @@ public static class EntityFrameworkConfiguration
     {
         type.HasKey(x => x.Guid);
 
+        type.UseTphMappingStrategy();
+
         /* The following code is incompatible with navigations configured in BaseNotification subclasses
          * But it reflects the idea, which AllNotifications property serves
          */
@@ -321,4 +327,33 @@ public static class EntityFrameworkConfiguration
             .OnDelete(DeleteBehavior.Cascade);
     }
     #endregion Notifications
+
+    #region Pictures
+    public static void Configure(this EntityTypeBuilder<Picture> type)
+    {
+        type.HasKey(x => x.Id);
+
+        type.UseTphMappingStrategy();
+    }
+
+    public static void Configure(this EntityTypeBuilder<EventPicture> type)
+    {
+        type.HasBaseType<Picture>();
+
+        type.HasOne(x => x.Event)
+            .WithMany(x => x.Pictures)
+            .HasForeignKey(x => x.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    public static void Configure(this EntityTypeBuilder<PostPicture> type)
+    {
+        type.HasBaseType<Picture>();
+
+        type.HasOne(x => x.Post)
+            .WithMany(x => x.Pictures)
+            .HasForeignKey(x => x.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+    #endregion Pictures
 }

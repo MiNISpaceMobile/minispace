@@ -7,6 +7,8 @@ namespace Domain.Services.Implementations;
 
 public class UserService(IUnitOfWork uow) : BaseService<IUserService, UserService>(uow), IUserService
 {
+    // TODO: Delete user profile picture on delete User
+
     public User GetUser(Guid guid)
     {
         AllowOnlyAdmins();

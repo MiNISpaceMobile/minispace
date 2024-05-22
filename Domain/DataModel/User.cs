@@ -17,11 +17,7 @@ public abstract class User : BaseEntity
     public string LastName { get; set; }
     public string Email { get; set; }
 
-    public bool HasProfilePicture { get; set; }
-
-    // Profile Picture should be stored in external storage (Azure Blob?) under User Guid
-    // But maybe it will be easier to store it here (i.e. in database) base64-encoded
-    // public string? ProfilePicture { get; set; }
+    public string? ProfilePictureUrl { get; set; }
 
     // You *don't* store user passwords. You just store their hashes
     // I suggest we add salt to these hashes as it is an easy technique
@@ -42,8 +38,6 @@ public abstract class User : BaseEntity
         FirstName = firstName;
         LastName = lastName;
         Email = email;
-
-        HasProfilePicture = false;
 
         // SaltedPasswordHash = CalculatePasswordHash(password);
     }

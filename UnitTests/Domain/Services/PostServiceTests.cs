@@ -2,6 +2,7 @@
 using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
+using Infrastructure.Storages;
 using Infrastructure.UnitOfWorks;
 
 namespace UnitTests.Domain.Services;
@@ -33,7 +34,7 @@ public class PostServiceTests
 
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
 
-        sut = new PostService(uow).AsUser(st0.Guid);
+        sut = new PostService(uow, new DictionaryStorage()).AsUser(st0.Guid);
     }
 
     #region CreatePost

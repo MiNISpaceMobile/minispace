@@ -2,6 +2,7 @@
 using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
+using Infrastructure.Storages;
 using Infrastructure.UnitOfWorks;
 
 namespace UnitTests.Domain.Services;
@@ -32,8 +33,9 @@ public class EventServiceTests
         events = new List<Event> { ev0, ev1 };
 
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
+        DictionaryStorage storage = new DictionaryStorage();
 
-        sut = new EventService(uow).AsUser(st0.Guid);
+        sut = new EventService(uow, new PostService(uow, storage), storage).AsUser(st0.Guid);
     }
 
     #region GetEvent
@@ -41,11 +43,10 @@ public class EventServiceTests
     public void GetEvent_Nonexistent_ShouldThrowArgumentException()
     {
         // Arrange
-        EventService service = new EventService(uow);
         Guid guid = Guid.Parse("a0403bb2-3db8-4142-9270-959f962c01be");
 
         // Act
-        Action action = () => service.GetEvent(guid);
+        Action action = () => sut.GetEvent(guid);
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
@@ -55,11 +56,10 @@ public class EventServiceTests
     public void GetEvent_Last_NotNull()
     {
         // Arrange
-        EventService service = new EventService(uow);
         Guid guid = events.Last().Guid;
 
         // Act
-        Event result = service.GetEvent(guid);
+        Event result = sut.GetEvent(guid);
 
         // Assert
         Assert.IsNotNull(result);

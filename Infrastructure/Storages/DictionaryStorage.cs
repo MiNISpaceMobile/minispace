@@ -4,7 +4,7 @@ namespace Infrastructure.Storages;
 
 public class DictionaryStorage : IStorage
 {
-    public string RootUrl => "";
+    public string RootUrl => "dictionary";
 
     public Dictionary<string, Dictionary<string, Stream>> Storage { get; }
         = new Dictionary<string, Dictionary<string, Stream>>();
@@ -15,16 +15,18 @@ public class DictionaryStorage : IStorage
     public bool TryDeleteDirectory(string directory)
         => Storage.Remove(directory);
 
-    public void UploadFile(Stream file, string directory, string filename)
+    public string UploadFile(Stream file, string directory, string filename)
     {
         TryCreateDirectory(directory);
         Storage[directory][filename] = file;
+        return RootUrl;
     }
 
-    public void RenameFile(string directory, string oldFilename, string newFilename)
+    public string RenameFile(string directory, string oldFilename, string newFilename)
     {
         Storage[directory][newFilename] = Storage[directory][oldFilename];
         Storage[directory].Remove(oldFilename);
+        return RootUrl;
     }
 
     public void DeleteFile(string directory, string filename)

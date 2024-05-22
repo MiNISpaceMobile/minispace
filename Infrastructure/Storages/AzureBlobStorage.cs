@@ -50,12 +50,14 @@ namespace Infrastructure.PictureStorages
             return true;
         }
 
-        public void UploadFile(Stream file, string directory, string filename)
+        public string UploadFile(Stream file, string directory, string filename)
         {
             TryCreateDirectory(directory);
             try
             {
-                client.GetBlobContainerClient(directory).GetBlobClient(filename).Upload(file);
+                var blob = client.GetBlobContainerClient(directory).GetBlobClient(filename);
+                blob.Upload(file);
+                return blob.Uri.AbsoluteUri;
             }
             catch
             {
@@ -63,13 +65,15 @@ namespace Infrastructure.PictureStorages
             }
         }
 
-        public void RenameFile(string directory, string oldFilename, string newFilename)
+        public string RenameFile(string directory, string oldFilename, string newFilename)
         {
             try
             {
                 var source = client.GetBlobContainerClient(directory).GetBlobClient(oldFilename);
-                client.GetBlobContainerClient(directory).GetBlobClient(newFilename).SyncCopyFromUri(source.Uri);
+                var target = client.GetBlobContainerClient(directory).GetBlobClient(newFilename);
+                target.SyncCopyFromUri(source.Uri);
                 source.Delete();
+                return target.Uri.AbsoluteUri;
             }
             catch
             {

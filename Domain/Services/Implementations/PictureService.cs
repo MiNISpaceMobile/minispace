@@ -12,11 +12,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
     public int MaxPicturesPerEvent { get; set; } = 10;
     public int MaxPicturesPerPost { get; set; } = 3;
 
-    private string UserDirectory(Guid guid) => $"user-{guid}";
-    private string EventDirectory(Guid guid) => $"event-{guid}";
-    private string PostDirectory(Guid guid) => $"post-{guid}";
-    private string IndexFilename(int index) => $"{index}{pictureHandler.Extension}";
-
+    private string PictureIdFilename(int id) => $"{id}{pictureHandler.Extension}";
     private string ProfilePictureFilename => $"profile{pictureHandler.Extension}";
 
     public void UploadUserProfilePicture(Stream source)
@@ -28,17 +24,29 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
 
         Stream picture;
         try
-        { picture = pictureHandler.ConvertIfNeeded(source); }
+        {
+            picture = pictureHandler.ConvertIfNeeded(source);
+        }
         catch
-        { throw new FileFormatException(); }
+        {
+            throw new FileFormatException();
+        }
 
         try
-        { storage.UploadFile(picture, UserDirectory(ActingUser!.Guid), ProfilePictureFilename); }
+        {
+            ActingUser!.ProfilePictureUrl =
+                storage.UploadFile(picture, IStorage.UserDirectory(ActingUser!.Guid), ProfilePictureFilename);
+            uow.Commit();
+        }
         catch
-        { throw new StorageException(); }
-
-        ActingUser.HasProfilePicture = true;
-        uow.Commit();
+        {
+            throw new StorageException();
+        }
+        finally
+        {
+            if (!ReferenceEquals(picture, source))
+                picture.Dispose();
+        }
     }
 
     public void DeleteUserProfilePicture()
@@ -46,15 +54,18 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         AllowAllUsers();
 
         try
-        { storage.DeleteFile(UserDirectory(ActingUser!.Guid), ProfilePictureFilename); }
+        {
+            storage.DeleteFile(IStorage.UserDirectory(ActingUser!.Guid), ProfilePictureFilename);
+            ActingUser.ProfilePictureUrl = null;
+            uow.Commit();
+        }
         catch
-        { throw new StorageException(); }
-
-        ActingUser.HasProfilePicture = false;
-        uow.Commit();
+        {
+            throw new StorageException();
+        }
     }
 
-    public void UploadEventPicture(Guid eventGuid, Stream source)
+    public void UploadEventPicture(Guid eventGuid, int index, Stream source)
     {
         if (source.Length > MaxFileSize)
             throw new FileTooBigException();
@@ -63,21 +74,45 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
 
         AllowOnlyUser(@event.Organizer);
 
-        if (@event.PictureCount == MaxPicturesPerEvent)
+        if (index < 0 || index > @event.Pictures.Count)
+            throw new FileIndexException();
+
+        if (index == MaxPicturesPerEvent)
             throw new FileLimitExeption();
 
         Stream picture;
         try
-        { picture = pictureHandler.ConvertIfNeeded(source); }
+        {
+            picture = pictureHandler.ConvertIfNeeded(source);
+        }
         catch
-        { throw new FileFormatException(); }
+        {
+            throw new FileFormatException();
+        }
 
         try
-        { storage.UploadFile(picture, EventDirectory(eventGuid), IndexFilename(@event.PictureCount)); }
-        catch
-        { throw new StorageException(); }
+        {
+            // Inserts uploaded picture at given index -> some pictures' indices need to be incremented
+            foreach (var eventPicture in @event.Pictures)
+                if (eventPicture.Index >= index)
+                    eventPicture.Index++;
 
-        @event.PictureCount++;
+            // Calculate Id that was not used by previous pictures
+            int nextPictureId = @event.Pictures.Select(x => x.Id).DefaultIfEmpty().Max() + 1;
+
+            @event.Pictures.Add(new EventPicture(@event, index,
+                storage.UploadFile(picture, IStorage.EventDirectory(eventGuid), PictureIdFilename(nextPictureId))));
+        }
+        catch
+        {
+            throw new StorageException();
+        }
+        finally
+        {
+            if (!ReferenceEquals(picture, source))
+                picture.Dispose();
+        }
+
         uow.Commit();
     }
 
@@ -87,26 +122,30 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
 
         AllowOnlyUser(@event.Organizer);
 
-        if (index < 0 || index >= @event.PictureCount)
+        if (index < 0 || index >= @event.Pictures.Count)
             throw new FileIndexException();
 
-        var directory = EventDirectory(eventGuid);
+        EventPicture picture = @event.Pictures.Single(x => x.Index == index);
+
         try
-        { storage.DeleteFile(directory, IndexFilename(index)); }
+        {
+            storage.DeleteFile(IStorage.EventDirectory(eventGuid), PictureIdFilename(picture.Id));
+        }
         catch
-        { throw new StorageException(); }
+        {
+            throw new StorageException();
+        }
 
-        @event.PictureCount--;
+        // Deletes picture at given index -> some pictures' indices need to be decremented
+        foreach (var eventPicture in @event.Pictures)
+            if (eventPicture.Index >= index)
+                eventPicture.Index--;
+
+        @event.Pictures.Remove(picture);
         uow.Commit();
-
-        for (int i = index; i < @event.PictureCount; i++)
-            try
-            { storage.RenameFile(directory, IndexFilename(i + 1), IndexFilename(i)); }
-            catch
-            { throw new StorageException(); }
     }
 
-    public void UploadPostPicture(Guid postGuid, Stream source)
+    public void UploadPostPicture(Guid postGuid, int index, Stream source)
     {
         if (source.Length > MaxFileSize)
             throw new FileTooBigException();
@@ -115,21 +154,45 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
 
         AllowOnlyUser(post.Author);
 
-        if (post.PictureCount == MaxPicturesPerPost)
+        if (index < 0 || index > post.Pictures.Count)
+            throw new FileIndexException();
+
+        if (index == MaxPicturesPerPost)
             throw new FileLimitExeption();
 
         Stream picture;
         try
-        { picture = pictureHandler.ConvertIfNeeded(source); }
+        {
+            picture = pictureHandler.ConvertIfNeeded(source);
+        }
         catch
-        { throw new FileFormatException(); }
+        {
+            throw new FileFormatException();
+        }
 
         try
-        { storage.UploadFile(picture, PostDirectory(postGuid), IndexFilename(post.PictureCount)); }
-        catch
-        { throw new StorageException(); }
+        {
+            // Inserts uploaded picture at given index -> some pictures' indices need to be incremented
+            foreach (var eventPicture in post.Pictures)
+                if (eventPicture.Index >= index)
+                    eventPicture.Index++;
 
-        post.PictureCount++;
+            // Calculate Id that was not used by previous pictures
+            int nextPictureId = post.Pictures.Select(x => x.Id).DefaultIfEmpty().Max() + 1;
+
+            post.Pictures.Add(new PostPicture(post, index,
+                storage.UploadFile(picture, IStorage.PostDirectory(postGuid), PictureIdFilename(nextPictureId))));
+        }
+        catch
+        {
+            throw new StorageException();
+        }
+        finally
+        {
+            if (!ReferenceEquals(picture, source))
+                picture.Dispose();
+        }
+
         uow.Commit();
     }
 
@@ -139,22 +202,26 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
 
         AllowOnlyUser(post.Author);
 
-        if (index < 0 || index >= post.PictureCount)
+        if (index < 0 || index >= post.Pictures.Count)
             throw new FileIndexException();
 
-        var directory = PostDirectory(postGuid);
+        PostPicture picture = post.Pictures.Single(x => x.Index == index);
+
         try
-        { storage.DeleteFile(directory, IndexFilename(index)); }
+        {
+            storage.DeleteFile(IStorage.PostDirectory(postGuid), PictureIdFilename(picture.Id));
+        }
         catch
-        { throw new StorageException(); }
+        {
+            throw new StorageException();
+        }
 
-        post.PictureCount--;
+        // Deletes picture at given index -> some pictures' indices need to be decremented
+        foreach (var eventPicture in post.Pictures)
+            if (eventPicture.Index >= index)
+                eventPicture.Index--;
+
+        post.Pictures.Remove(picture);
         uow.Commit();
-
-        for (int i = index; i < post.PictureCount; i++)
-            try
-            { storage.RenameFile(directory, IndexFilename(i + 1), IndexFilename(i)); }
-            catch
-            { throw new StorageException(); }
     }
 }

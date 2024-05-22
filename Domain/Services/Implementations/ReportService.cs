@@ -24,20 +24,20 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
-    public ReportType CreateReport<TargetType, ReportType>(Guid targetId, string title,
-        string details, ReportCategory category)
-        where TargetType : BaseEntity
-        where ReportType : Report
+    public Report CreateReport(Guid targetId, string title, string details, ReportCategory category, ReportType type)
     {
         AllowAllUsers();
+        User user = ActingUser!;
 
-        var author = ActingUser!;
+        var report = type switch
+        {
+            ReportType.Event => CreateSpecificReport<Event>(targetId, user, title, details, category),
+            ReportType.Post => CreateSpecificReport<Post>(targetId, user, title, details, category),
+            ReportType.Comment => CreateSpecificReport<Comment>(targetId, user, title, details, category),
+            _ => throw new InvalidOperationException("Wrong ReportType")
+        };
 
-        var target = uow.Repository<TargetType>().GetOrThrow(targetId);
-
-        var report = (ReportType)CreateSpecificReport(target, author, title, details, category);
-
-        uow.Repository<ReportType>().Add(report);
+        uow.Repository<Report>().Add(report);
 
         uow.Commit();
 
@@ -72,10 +72,11 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         uow.Commit();
     }
 
-    private static Report CreateSpecificReport<TargetType>(TargetType target, User author, string title,
+    private Report CreateSpecificReport<TargetType>(Guid targetId, User author, string title,
         string details, ReportCategory category)
         where TargetType : BaseEntity
     {
+        var target = uow.Repository<TargetType>().GetOrThrow(targetId);
         return target switch
         {
             Event @event => new EventReport(@event, author, title, details, category),

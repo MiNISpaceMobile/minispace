@@ -1,4 +1,5 @@
 ﻿using Domain.BaseTypes;
+using System.Text.Json.Serialization;
 
 namespace Domain.DataModel;
 
@@ -20,9 +21,9 @@ public enum ReportState
     Failure, // An Admin has failed to deal with it (Responder and Feedback)
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<ReportType>))]
 public enum ReportType
 {
-    Unknown,
     Event,
     Post,
     Comment
@@ -40,7 +41,7 @@ public abstract class Report : BaseEntity
     public string Title { get; set; }
     public string Details { get; set; }
     public ReportCategory Category { get; set; }
-    public abstract ReportType ReportType { get; }
+    public ReportType ReportType { get; protected set; }
     public string? Feedback { get; set; }
     public DateTime CreationDate { get; set; }
     public DateTime UpdateDate { get; set; }
@@ -72,7 +73,6 @@ public class EventReport : Report
     public Guid ReportedEventId { get; private set; }
     public virtual Event ReportedEvent { get; set; }
 
-    public override ReportType ReportType => ReportType.Event;
     public override Guid TargetId => ReportedEventId;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
@@ -83,6 +83,7 @@ public class EventReport : Report
         : base(author, title, details, category)
     {
         ReportedEvent = reportedEvent;
+        ReportType = ReportType.Event;
     }
 }
 
@@ -92,7 +93,6 @@ public class PostReport : Report
     public virtual Post ReportedPost { get; set; }
 
     public override Guid TargetId => ReportedPostId;
-    public override ReportType ReportType => ReportType.Post;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected PostReport() { }
@@ -102,6 +102,7 @@ public class PostReport : Report
         : base(author, title, details, category)
     {
         ReportedPost = reportedPost;
+        ReportType = ReportType.Post;
     }
 }
 
@@ -111,7 +112,6 @@ public class CommentReport : Report
     public virtual Comment ReportedComment { get; set; }
 
     public override Guid TargetId => ReportedCommentId;
-    public override ReportType ReportType => ReportType.Comment;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected CommentReport() { }
@@ -121,5 +121,6 @@ public class CommentReport : Report
         : base(author, title, details, category)
     {
         ReportedComment = reportedComment;
+        ReportType = ReportType.Comment;
     }
 }

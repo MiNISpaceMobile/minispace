@@ -17,11 +17,32 @@ public class ReportsController(IReportService reportService) : ControllerBase
     {
         try
         {
-            return reportService
+            var report = reportService
                 .AsUser(User.GetGuid())
                 .CreateReport(request.TargetId, request.Title, request.Details,
                 request.ReportCategory, request.ReportType)
                 .ToDto();
+
+            return Ok(report);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet]
+    [Produces("application/json")]
+    public ActionResult<IEnumerable<ReportDto>> GetReports([FromQuery] GetReports request)
+    {
+        try
+        {
+            var reports = reportService
+                .AsUser(User.GetGuid())
+                .GetReports(request.Types, request.Open, request.Closed, request.Ascending)
+                .Select(report => report.ToDto());
+
+            return Ok(reports);
         }
         catch (Exception e)
         {
@@ -35,10 +56,12 @@ public class ReportsController(IReportService reportService) : ControllerBase
     {
         try
         {
-            return reportService
+            var report = reportService
                 .AsUser(User.GetGuid())
                 .ReviewReport(id, request.Feedback, request.State)
                 .ToDto();
+
+            return Ok(report);
         }
         catch (Exception e)
         {

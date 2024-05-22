@@ -24,6 +24,30 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
+    public IEnumerable<Report> GetReports(ICollection<ReportType> types, bool open, bool closed, bool ascending)
+    {
+        AllowOnlyUser(ActingUser);
+
+        if (types.Count == 0 || (open == false && closed == false))
+            return [];
+
+        var reports = uow.Repository<Report>().GetAll();
+
+        // Student gets only his reports, administrator gets all
+        if (ActingUser is Student)
+            reports = reports.Where(report => report.AuthorId == ActingUser.Guid);
+
+        reports = reports.Where(report => types.Contains(report.ReportType));
+
+        if (open ^ closed)
+            reports = reports.Where(report => open ? 
+            report.State == ReportState.Waiting || report.State == ReportState.Accepted : 
+            !(report.State == ReportState.Waiting || report.State == ReportState.Accepted));
+
+        return ascending ? reports.OrderBy(report => report.UpdateDate)
+            : reports.OrderByDescending(report => report.UpdateDate);
+    }
+
     public Report CreateReport(Guid targetId, string title, string details, ReportCategory category, ReportType type)
     {
         AllowAllUsers();
@@ -56,6 +80,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         report.Responder = (Administrator)ActingUser!;
         report.Feedback = feedback;
         report.State = state;
+        report.UpdateDate = DateTime.Now;
 
         uow.Commit();
 

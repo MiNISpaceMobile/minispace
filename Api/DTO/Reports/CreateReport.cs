@@ -7,4 +7,4 @@ public record CreateReport(
     string Title,
     string Details,
     ReportCategory ReportCategory,
-    ReportType EntityType);
+    ReportType ReportType);

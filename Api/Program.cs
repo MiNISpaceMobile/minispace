@@ -1,6 +1,7 @@
 using Api;
 using Api.Auth;
 using Domain.Abstractions;
+using Domain.Services;
 using Infrastructure.Authenticators;
 using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;
@@ -40,6 +41,7 @@ builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
 builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 /* Warning! Important! Will help you later!
  * 

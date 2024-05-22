@@ -33,7 +33,7 @@ public class ReportsController(IReportService reportService) : ControllerBase
 
     [HttpGet]
     [Produces("application/json")]
-    public ActionResult<IEnumerable<ReportDto>> GetReports([FromQuery] GetReports request)
+    public ActionResult<PagedResponse<ReportDto>> GetReports([FromQuery] GetReports request)
     {
         try
         {

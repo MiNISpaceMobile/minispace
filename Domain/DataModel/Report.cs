@@ -20,6 +20,13 @@ public enum ReportState
     Failure, // An Admin has failed to deal with it (Responder and Feedback)
 }
 
+public enum ReportType
+{
+    Event,
+    Post,
+    Comment
+}
+
 public abstract class Report : BaseEntity
 {
     public Guid? AuthorId { get; private set; }
@@ -32,7 +39,10 @@ public abstract class Report : BaseEntity
     public string Title { get; set; }
     public string Details { get; set; }
     public ReportCategory Category { get; set; }
+    public abstract ReportType ReportType { get; }
     public string? Feedback { get; set; }
+    public DateTime CreationDate { get; set; }
+    public DateTime UpdateDate { get; set; }
 
     public ReportState State { get; set; }
     public bool IsOpen => State == ReportState.Waiting || State == ReportState.Accepted;
@@ -51,6 +61,8 @@ public abstract class Report : BaseEntity
         Category = category;
 
         State = ReportState.Waiting;
+        CreationDate = DateTime.Now;
+        UpdateDate = CreationDate;
     }
 }
 
@@ -59,6 +71,7 @@ public class EventReport : Report
     public Guid ReportedEventId { get; private set; }
     public virtual Event ReportedEvent { get; set; }
 
+    public override ReportType ReportType => ReportType.Event;
     public override Guid TargetId => ReportedEventId;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
@@ -78,6 +91,7 @@ public class PostReport : Report
     public virtual Post ReportedPost { get; set; }
 
     public override Guid TargetId => ReportedPostId;
+    public override ReportType ReportType => ReportType.Post;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected PostReport() { }
@@ -96,6 +110,7 @@ public class CommentReport : Report
     public virtual Comment ReportedComment { get; set; }
 
     public override Guid TargetId => ReportedCommentId;
+    public override ReportType ReportType => ReportType.Comment;
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected CommentReport() { }

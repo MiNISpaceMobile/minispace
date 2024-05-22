@@ -1,6 +1,7 @@
 ﻿using Api.DTO.Comments;
 using Api.DTO.Events;
 using Api.DTO.Posts;
+using Api.DTO.Reports;
 using Api.DTO.Students;
 using Api.DTO.Users;
 using Domain.DataModel;
@@ -29,4 +30,9 @@ public static class MappingExtensions
         new(@event.Guid, @event.Organizer?.ToUserDto(), @event.Title, @event.Description,
             @event.Category.ToString(), @event.PublicationDate, @event.StartDate, @event.EndDate,
             @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount, @event.AverageAge);
+
+    public static ReportDto ToDto(this Report report) =>
+        new(report.Guid, report.Author?.ToDto(), report.Responder?.ToDto(), report.TargetId, report.Title,
+            report.Details, report.Category.ToString(), report.CreationDate, report.UpdateDate,
+            report.Feedback, report.State.ToString(), report.ReportType.ToString());
 }

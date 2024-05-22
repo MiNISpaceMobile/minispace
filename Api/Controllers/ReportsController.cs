@@ -28,4 +28,21 @@ public class ReportsController(IReportService reportService) : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpPatch("{id}")]
+    [Produces("application/json")]
+    public ActionResult<ReportDto> ReviewReport([FromBody] ReviewReport request)
+    {
+        try
+        {
+            return reportService
+                .AsUser(User.GetGuid())
+                .ReviewReport(request.ReportGuid, request.Feedback, request.State)
+                .ToDto();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 }

@@ -44,18 +44,18 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
-    public Report UpdateReport(Report newReport)
+    public Report ReviewReport(Guid reportGuid, string? feedback, ReportState state)
     {
         AllowOnlyAdmins();
 
-        var report = uow.Repository<Report>().GetOrThrow(newReport.Guid);
+        var report = uow.Repository<Report>().GetOrThrow(reportGuid);
 
         if (!report.IsOpen)
             throw new InvalidOperationException("Report is closed");
 
         report.Responder = (Administrator)ActingUser!;
-        report.Feedback = newReport.Feedback;
-        report.State = newReport.State;
+        report.Feedback = feedback;
+        report.State = state;
 
         uow.Commit();
 

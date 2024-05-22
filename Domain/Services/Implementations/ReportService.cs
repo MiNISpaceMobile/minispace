@@ -24,12 +24,13 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
-    public IEnumerable<Report> GetReports(ICollection<ReportType> types, bool open, bool closed, bool ascending)
+    public PagedResponse<Report> GetReports(ICollection<ReportType> types, bool open, bool closed,
+        bool ascending, int pageIndex, int pageSize)
     {
         AllowOnlyUser(ActingUser);
 
         if (types.Count == 0 || (open == false && closed == false))
-            return [];
+            return new PagedResponse<Report>(Enumerable.Empty<Report>().AsQueryable(), pageIndex, pageSize);
 
         var reports = uow.Repository<Report>().GetAll();
 
@@ -40,12 +41,14 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         reports = reports.Where(report => types.Contains(report.ReportType));
 
         if (open ^ closed)
-            reports = reports.Where(report => open ? 
-            report.State == ReportState.Waiting || report.State == ReportState.Accepted : 
+            reports = reports.Where(report => open ?
+            report.State == ReportState.Waiting || report.State == ReportState.Accepted :
             !(report.State == ReportState.Waiting || report.State == ReportState.Accepted));
 
-        return ascending ? reports.OrderBy(report => report.UpdateDate)
+        reports = ascending ? reports.OrderBy(report => report.UpdateDate)
             : reports.OrderByDescending(report => report.UpdateDate);
+
+        return new PagedResponse<Report>(reports, pageIndex, pageSize);
     }
 
     public Report CreateReport(Guid targetId, string title, string details, ReportCategory category, ReportType type)

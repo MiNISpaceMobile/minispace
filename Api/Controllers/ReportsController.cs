@@ -39,8 +39,9 @@ public class ReportsController(IReportService reportService) : ControllerBase
         {
             var reports = reportService
                 .AsUser(User.GetGuid())
-                .GetReports(request.Types, request.Open, request.Closed, request.Ascending)
-                .Select(report => report.ToDto());
+                .GetReports(request.Types, request.Open, request.Closed, request.Ascending,
+                request.PageIndex, request.PageSize)
+                .Map(report => report.ToDto());
 
             return Ok(reports);
         }
@@ -62,6 +63,23 @@ public class ReportsController(IReportService reportService) : ControllerBase
                 .ToDto();
 
             return Ok(report);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public ActionResult DeleteReport([FromRoute] Guid id)
+    {
+        try
+        {
+            reportService
+                .AsUser(User.GetGuid())
+                .DeleteReport(id);
+
+            return NoContent();
         }
         catch (Exception e)
         {

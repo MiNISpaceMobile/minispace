@@ -6,4 +6,6 @@ public record GetReports(
     ICollection<ReportType> Types,
     bool Open = true, 
     bool Closed = true,
-    bool Ascending = false);
+    bool Ascending = false,
+    int PageIndex = 0,
+    int PageSize = 5);

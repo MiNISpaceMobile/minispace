@@ -31,13 +31,13 @@ public class ReportsController(IReportService reportService) : ControllerBase
 
     [HttpPatch("{id}")]
     [Produces("application/json")]
-    public ActionResult<ReportDto> ReviewReport([FromBody] ReviewReport request)
+    public ActionResult<ReportDto> ReviewReport([FromRoute] Guid id, [FromBody] ReviewReport request)
     {
         try
         {
             return reportService
                 .AsUser(User.GetGuid())
-                .ReviewReport(request.ReportGuid, request.Feedback, request.State)
+                .ReviewReport(id, request.Feedback, request.State)
                 .ToDto();
         }
         catch (Exception e)

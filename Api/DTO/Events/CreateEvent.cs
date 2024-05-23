@@ -1,7 +1,6 @@
 ﻿namespace Api.DTO.Events;
 
 public record CreateEvent(
-    Guid OrganizerGuid,
     string Title,
     string Description,
     string EventCategory,

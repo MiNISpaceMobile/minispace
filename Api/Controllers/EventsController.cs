@@ -69,6 +69,25 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
+    [HttpPost]
+    [Authorize]
+    [Route("create")]
+    public ActionResult CreateEvent(CreateEvent newEvent)
+    {
+        EventCategory cat;
+        if (!Enum.TryParse(newEvent.EventCategory, out cat))
+            return BadRequest("Nonexistent category");
+        try
+        {
+            eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, cat, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
+        }
+        catch (UserUnauthorizedException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        return Ok();
+    }
+
     public enum PriceFilter
     {
         Any,
@@ -124,7 +143,7 @@ public class EventsController : ControllerBase
         }
 
         if (onlyAvailablePlace)
-        filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
+            filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
 
         return filtered;
     }

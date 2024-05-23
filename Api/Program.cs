@@ -2,12 +2,15 @@ using Api;
 using Api.Auth;
 using Domain.Abstractions;
 using Domain.Services;
+using Domain.Services.Abstractions;
+using Domain.Services.Implementations;
 using Infrastructure.Authenticators;
 using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;
 using Infrastructure.JwtHandlers;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
@@ -16,9 +19,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile(Path.Join(Directory.GetCurrentDirectory(), "../../minispace-secrets.json"), true);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options => options.AddJwtAuthorization().AddDefaultValues());
+builder.Services.AddSwaggerGen(options => options.AddJwtAuthorization().AddDefaultValues().EnableAnnotations());
 
-builder.Services.AddControllers()
+builder.Services.AddControllers(options => options.Filters.Add(new ProducesAttribute("application/json")))
                 .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 
 /* Add things to dependency injection below!
@@ -42,6 +45,7 @@ builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
 builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 /* Warning! Important! Will help you later!
  * 
@@ -57,6 +61,8 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddAuthentication(nameof(JwtAuthScheme))
                 .AddScheme<JwtAuthScheme.Options, JwtAuthScheme.Handler>(nameof(JwtAuthScheme), null);
 
+builder.Services.AddExceptionHandler<MinispaceExceptionHandler>();
+
 var app = builder.Build();
 
 app.UseSwagger();
@@ -65,9 +71,11 @@ app.UseSwaggerUI();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseExceptionHandler(o => { });
+
 app.MapControllers();
 
 // Our own function that setups a few things
-app.PerformCustomStartupActions(resetDb: true);
+app.PerformCustomStartupActions(resetDb: true, generateDevAdminJwt: true);
 
 app.Run();

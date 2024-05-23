@@ -8,9 +8,9 @@ public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, Comm
 {
     public Comment CreateComment(Guid postGuid, string content, Guid inResponseToGuid = new Guid(), DateTime? creationDate = null)
     {
-        AllowOnlyStudents();
+        AllowOnlyLoggedIn();
 
-        Student author = (Student)ActingUser!;
+        User author = ActingUser!;
 
         Post post = uow.Repository<Post>().GetOrThrow(postGuid);
         Comment? inResponseTo = uow.Repository<Comment>().Get(inResponseToGuid);

@@ -12,7 +12,7 @@ public class EventServiceTests
 #pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork uow;
     private List<Event> events;
-    private List<Student> students;
+    private List<User> students;
 
     private IEventService sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
@@ -22,8 +22,8 @@ public class EventServiceTests
     {
         DateTime now = DateTime.Now;
 
-        Student st0 = new Student("tester0", "tester0@minispace.pw.edu.pl", "you_should_be_testing") { IsOrganizer = true };
-        students = new List<Student> { st0 };
+        User st0 = new User("tester0", "tester0@minispace.pw.edu.pl", "you_should_be_testing", now) { IsOrganizer = true };
+        students = new List<User> { st0 };
 
         Event ev0 = new Event(st0, "event0", "description0", EventCategory.Uncategorized, now, now, now, "here", null, null)
         { Guid = Guid.Parse("79b46c1c-96a6-4972-8f6f-ffd7edc33597") };
@@ -112,7 +112,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
         student.SubscribedEvents.Add(@event);
         @event.Interested.Add(student);
         // Event posts
@@ -200,7 +200,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
         @event.Participants.Add(student);
 
         // Act
@@ -216,7 +216,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
 
         // Act
         var result = sut.TryAddParticipant(@event.Guid);
@@ -231,7 +231,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
         @event.Capacity = 100;
 
         // Act
@@ -261,7 +261,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
         @event.Interested.Add(student);
 
         // Act
@@ -277,7 +277,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
 
         // Act
         var result = sut.TryAddInterested(@event.Guid);
@@ -307,7 +307,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
 
         // Act
         var result = sut.TryRemoveParticipant(@event.Guid);
@@ -321,7 +321,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
         @event.Participants.Add(student);
         student.SubscribedEvents.Add(@event);
 
@@ -353,7 +353,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
 
         // Act
         var result = sut.TryRemoveInterested(@event.Guid);
@@ -367,7 +367,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student student = students.Last();
+        User student = students.Last();
         @event.Interested.Add(student);
         student.SubscribedEvents.Add(@event);
 
@@ -411,7 +411,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student author = students.First();
+        User author = students.First();
         Feedback feedback = new Feedback(author, @event, "a");
         @event.Feedback.Add(feedback);
 
@@ -427,7 +427,7 @@ public class EventServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student author = students.First();
+        User author = students.First();
 
         // Act
         Feedback result = sut.AddFeedback(@event.Guid, "a");

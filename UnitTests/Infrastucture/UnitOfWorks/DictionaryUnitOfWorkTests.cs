@@ -23,8 +23,8 @@ public class DictionaryUnitOfWorkTests
     {
         DateTime now = DateTime.Now;
 
-        var ad = new Administrator("ad", "ad", "ad");
-        var st = new Student("st", "st", "st");
+        var ad = new User("ad", "ad", "ad", now);
+        var st = new User("st", "st", "st", now);
 
         var ev = new Event(st, "ev", "ev", EventCategory.Uncategorized, now, now, now, "ev", null, null);
         var po = new Post(st, ev, "po");
@@ -37,14 +37,10 @@ public class DictionaryUnitOfWorkTests
         sut = new DictionaryUnitOfWork([ad, st, ev, po, co, er, pr, cr]);
 
         Assert.IsNotNull(sut);
-        Assert.AreEqual(sut.Tables.Count, 10);
+        Assert.AreEqual(sut.Tables.Count, 8);
 
         Assert.IsTrue(sut.Tables.ContainsKey(typeof(User)));
         Assert.AreEqual(2, sut.Tables[typeof(User)].Count);
-        Assert.IsTrue(sut.Tables.ContainsKey(typeof(Administrator)));
-        Assert.AreEqual(1, sut.Tables[typeof(Administrator)].Count);
-        Assert.IsTrue(sut.Tables.ContainsKey(typeof(Student)));
-        Assert.AreEqual(1, sut.Tables[typeof(Student)].Count);
         Assert.IsTrue(sut.Tables.ContainsKey(typeof(Event)));
         Assert.AreEqual(1, sut.Tables[typeof(Event)].Count);
         Assert.IsTrue(sut.Tables.ContainsKey(typeof(Post)));

@@ -5,6 +5,7 @@ using Domain.DataModel;
 using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Api.Controllers
 {
@@ -22,6 +23,7 @@ namespace Api.Controllers
         [HttpGet]
         [Route("users")]
         [Authorize]
+        [SwaggerOperation("List users - admin only")]
         public ActionResult<Paged<UserDto>> GetUsers([FromQuery] Paging paging)
         {
             var users = userService.AsUser(User.GetGuid()).GetUsers();
@@ -31,17 +33,9 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        [Route("user/{target}")]
-        [Authorize]
-        public ActionResult<UserDto> Get([FromRoute] Guid target)
-        {
-            var user = userService.AsUser(User.GetGuid()).GetUser(target);
-            return Ok(user.ToDto());
-        }
-
-        [HttpGet]
         [Route("user")]
         [Authorize]
+        [SwaggerOperation("Get acting user data")]
         public ActionResult<UserDto> Get()
         {
             var user = userService.AsUser(User.GetGuid()).GetUser();
@@ -51,6 +45,7 @@ namespace Api.Controllers
         [HttpPut]
         [Route("user")]
         [Authorize]
+        [SwaggerOperation("Update acting user data")]
         public ActionResult<UserDto> Put([FromBody] UpdateUserDto dto)
         {
             var user = userService.AsUser(User.GetGuid()).UpdateUser(dto.FirstName, dto.LastName,
@@ -61,15 +56,27 @@ namespace Api.Controllers
         [HttpDelete]
         [Route("user")]
         [Authorize]
+        [SwaggerOperation("Delete acting user account")]
         public ActionResult Delete()
         {
             userService.AsUser(User.GetGuid()).DeleteUser();
             return Ok();
         }
 
+        [HttpGet]
+        [Route("user/{target}")]
+        [Authorize]
+        [SwaggerOperation("Get target user data - admin only")]
+        public ActionResult<UserDto> Get([FromRoute] Guid target)
+        {
+            var user = userService.AsUser(User.GetGuid()).GetUser(target);
+            return Ok(user.ToDto());
+        }
+
         [HttpPatch]
         [Route("user/{target}/roles")]
         [Authorize]
+        [SwaggerOperation("Update target user roles - admin only")]
         public ActionResult<(bool IsAdmin, bool IsOrganizer)> Patch([FromRoute] Guid target, [FromQuery] bool? isAdmin, [FromQuery] bool? isOrganizer)
         {
             var roles = userService.AsUser(User.GetGuid()).UserRoles(target, isAdmin, isOrganizer);
@@ -79,6 +86,7 @@ namespace Api.Controllers
         [HttpPost]
         [Route("friend-requests")]
         [Authorize]
+        [SwaggerOperation("Send a friend request")]
         public ActionResult PostFriendRequest([FromQuery] Guid targetUser)
         {
             userService.AsUser(User.GetGuid()).SendFriendRequest(targetUser);
@@ -88,6 +96,7 @@ namespace Api.Controllers
         [HttpGet]
         [Route("friend-requests/sent")]
         [Authorize]
+        [SwaggerOperation("List sent friend requests")]
         public ActionResult<Paged<FriendRequestDto>> GetSentFriendRequests([FromQuery] Paging paging)
         {
             var outgoing = userService.AsUser(User.GetGuid()).GetUser().SentFriendRequests;
@@ -99,6 +108,7 @@ namespace Api.Controllers
         [HttpGet]
         [Route("friend-requests/received")]
         [Authorize]
+        [SwaggerOperation("List received friend requests")]
         public ActionResult<Paged<FriendRequestDto>> GetReceivedFriendRequests([FromQuery] Paging paging)
         {
             var outgoing = userService.AsUser(User.GetGuid()).GetUser().ReceivedFriendRequests;
@@ -110,6 +120,7 @@ namespace Api.Controllers
         [HttpPatch]
         [Route("friend-request/{target}")]
         [Authorize]
+        [SwaggerOperation("Accept / reject friend request")]
         public ActionResult PatchFriendRequest([FromRoute] Guid target, [FromQuery] bool accept)
         {
             userService.AsUser(User.GetGuid()).RespondFriendRequest(target, accept);
@@ -119,6 +130,7 @@ namespace Api.Controllers
         [HttpDelete]
         [Route("friend-request/{target}")]
         [Authorize]
+        [SwaggerOperation("Cancel friend request")]
         public ActionResult DeleteFriendRequest([FromRoute] Guid target)
         {
             userService.AsUser(User.GetGuid()).CancelFriendRequest(target);
@@ -126,8 +138,9 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        [Route("user/notifications")]
+        [Route("notifications")]
         [Authorize]
+        [SwaggerOperation("List received notifications")]
         public ActionResult<Paged<NotificationDto>> GetNotifications([FromQuery] Paging paging)
         {
             var notifications = userService.AsUser(User.GetGuid()).GetNotifications();
@@ -137,8 +150,9 @@ namespace Api.Controllers
         }
 
         [HttpPatch]
-        [Route("user/notifications")]
+        [Route("notifications")]
         [Authorize]
+        [SwaggerOperation("Mark all notifications as seen")]
         public ActionResult PatchNotifications()
         {
             userService.AsUser(User.GetGuid()).SeeAllNotifications();
@@ -148,6 +162,7 @@ namespace Api.Controllers
         [HttpPatch]
         [Route("notification/{target}")]
         [Authorize]
+        [SwaggerOperation("Mark a notification as seen")]
         public ActionResult PatchNotification([FromRoute] Guid target)
         {
             userService.AsUser(User.GetGuid()).SeeNotification(target);

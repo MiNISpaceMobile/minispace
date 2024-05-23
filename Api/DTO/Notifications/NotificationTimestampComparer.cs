@@ -1,12 +1,12 @@
 ﻿namespace Api.DTO.Notifications;
 
-public class NotificationTimestampComparer : IComparer<NotificationDto>
+public class BaseNotificationTimestampComparer : IComparer<BaseNotificationDto>
 {
-    public static readonly NotificationTimestampComparer Instance = new();
+    public static readonly BaseNotificationTimestampComparer Instance = new();
 
-    private NotificationTimestampComparer() { }
+    private BaseNotificationTimestampComparer() { }
 
-    public int Compare(NotificationDto? x, NotificationDto? y)
+    public int Compare(BaseNotificationDto? x, BaseNotificationDto? y)
     {
         return -x!.Timestamp.CompareTo(y!.Timestamp);
     }

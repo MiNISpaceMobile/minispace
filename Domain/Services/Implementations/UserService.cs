@@ -93,16 +93,16 @@ public class UserService(IUnitOfWork uow)
         return (user.IsAdmin, user.IsOrganizer);
     }
 
-    public FriendRequest? SendFriendRequest(Guid targetId)
+    public FriendRequest? SendFriendRequest(Guid targetUserId)
     {
         AllowOnlyLoggedIn();
 
         User author = ActingUser!;
 
-        if (author.Guid == targetId)
+        if (author.Guid == targetUserId)
             throw new FriendTargetException("Can't befriend self");
 
-        User target = uow.Repository<User>().GetOrThrow(targetId);
+        User target = uow.Repository<User>().GetOrThrow(targetUserId);
 
         FriendRequest? opposite = target.SentFriendRequests.Where(r => r.Target == author).SingleOrDefault();
         if (opposite is not null) // Author already received a FriendRequest from target
@@ -143,6 +143,16 @@ public class UserService(IUnitOfWork uow)
             target.Friends.Add(author);
             author.Friends.Add(target);
         }
+
+        uow.Repository<FriendRequest>().Delete(request);
+        uow.Commit();
+    }
+
+    public void CancelFriendRequest(Guid requestId)
+    {
+        FriendRequest request = uow.Repository<FriendRequest>().GetOrThrow(requestId);
+
+        AllowOnlyUser(request.Target);
 
         uow.Repository<FriendRequest>().Delete(request);
         uow.Commit();

@@ -26,9 +26,11 @@ public interface IUserService : IBaseService<IUserService>
      * unless an opposite FriendRequest was already pending
      * in which case it is accepted, deleted and function returns null
      */
-    public FriendRequest? SendFriendRequest(Guid targetId);
+    public FriendRequest? SendFriendRequest(Guid targetUserId);
 
     public void RespondFriendRequest(Guid requestId, bool accept);
+
+    public void CancelFriendRequest(Guid requestId);
 
     public IEnumerable<BaseNotification> GetNotifications();
 

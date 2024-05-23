@@ -1,9 +1,8 @@
 ﻿namespace Api.DTO.Notifications;
 
-public record NotificationDto(
+public record FriendRequestDto(
     Guid Guid,
+    Guid Target,
     Guid Source,
-    string Type,
-    bool Seen,
     DateTime Timestamp
     ) : BaseNotificationDto(Guid, Timestamp);

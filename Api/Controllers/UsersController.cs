@@ -1,6 +1,7 @@
 ﻿using Api.DTO;
 using Api.DTO.Notifications;
 using Api.DTO.Users;
+using Domain.DataModel;
 using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,12 +20,13 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        [Route("users/search")]
+        [Route("users")]
         [Authorize]
         public ActionResult<Paged<UserDto>> GetUsers([FromQuery] Paging paging)
         {
             var users = userService.AsUser(User.GetGuid()).GetUsers();
-            var paged = Paged<UserDto>.PageFrom(users.Select(u => u.ToDto()), UserNameComparer.Instance, paging);
+            var paged = Paged<UserDto>.PageFrom(users.Select(u => u.ToDto()),
+                UserNameComparer.Instance, paging);
             return Ok(paged);
         }
 
@@ -83,6 +85,28 @@ namespace Api.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Route("friend-requests/sent")]
+        [Authorize]
+        public ActionResult<Paged<FriendRequestDto>> GetSentFriendRequests([FromQuery] Paging paging)
+        {
+            var outgoing = userService.AsUser(User.GetGuid()).GetUser().SentFriendRequests;
+            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto()),
+                BaseNotificationTimestampComparer.Instance, paging);
+            return Ok(paged);
+        }
+
+        [HttpGet]
+        [Route("friend-requests/received")]
+        [Authorize]
+        public ActionResult<Paged<FriendRequestDto>> GetReceivedFriendRequests([FromQuery] Paging paging)
+        {
+            var outgoing = userService.AsUser(User.GetGuid()).GetUser().ReceivedFriendRequests;
+            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto()),
+                BaseNotificationTimestampComparer.Instance, paging);
+            return Ok(paged);
+        }
+
         [HttpPatch]
         [Route("friend-request/{target}")]
         [Authorize]
@@ -92,13 +116,23 @@ namespace Api.Controllers
             return Ok();
         }
 
+        [HttpDelete]
+        [Route("friend-request/{target}")]
+        [Authorize]
+        public ActionResult DeleteFriendRequest([FromRoute] Guid target)
+        {
+            userService.AsUser(User.GetGuid()).CancelFriendRequest(target);
+            return Ok();
+        }
+
         [HttpGet]
         [Route("user/notifications")]
         [Authorize]
         public ActionResult<Paged<NotificationDto>> GetNotifications([FromQuery] Paging paging)
         {
             var notifications = userService.AsUser(User.GetGuid()).GetNotifications();
-            var paged = Paged<NotificationDto>.PageFrom(notifications.Select(x => x.ToDto()), NotificationTimestampComparer.Instance, paging);
+            var paged = Paged<NotificationDto>.PageFrom(notifications.Select(x => x.ToDto()),
+                BaseNotificationTimestampComparer.Instance, paging);
             return Ok(paged);
         }
 
@@ -120,6 +154,6 @@ namespace Api.Controllers
             return Ok();
         }
 
-        // TODO: Add cyclic cleaning of seen notifications 
+        // TODO: Add cyclic cleaning of seen notifications other than friend requests
     }
 }

@@ -27,4 +27,7 @@ public static class MappingExtensions
     public static NotificationDto ToDto(this BaseNotification notification) =>
         new(notification.Guid, notification.SourceId, notification.TypeString,
             notification.Seen, notification.Timestamp);
+
+    public static FriendRequestDto ToDto(this FriendRequest friendRequest) =>
+        new(friendRequest.Guid, friendRequest.TargetId, friendRequest.AuthorId, friendRequest.Timestamp);
 }

@@ -1,14 +1,9 @@
 ﻿using Domain.BaseTypes;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Domain.DataModel;
 
-public abstract class User : BaseEntity
+public class User : BaseEntity
 {
-    public static byte[] CalculatePasswordHash(string password, string salt)
-        => SHA512.HashData(Encoding.UTF8.GetBytes($"{password}{salt}"));
-
     // USOS is the source of ExternalId in our case
     public string? ExternalId { get; private set; }
     public DateTime CreationDate { get; private set; }
@@ -16,21 +11,48 @@ public abstract class User : BaseEntity
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string Email { get; set; }
+    public string Description { get; set; }
 
     public string? ProfilePictureUrl { get; set; }
 
-    // You *don't* store user passwords. You just store their hashes
-    // I suggest we add salt to these hashes as it is an easy technique
-    // which additionally increases security in case of a breach
-    // We can use CreationDate as salt, because it never changes
-    // public byte[] SaltedPasswordHash { get; set; }
+    public DateTime DateOfBirth { get; set; }
+    public int Age
+    {
+        get
+        {
+            int age = DateTime.Now.Year - DateOfBirth.Year;
+            if (DateTime.Now.DayOfYear < DateOfBirth.DayOfYear)
+                age--;
+            return age;
+        }
+    }
+
+    public bool IsAdmin { get; set; }
+    public bool IsOrganizer { get; set; }
+
+
+    /* When adding A as B's friend you also need to add B as A's friend!
+     * It does NOT happened automatically!
+     */
+    public virtual ICollection<User> Friends { get; }
+
+    public virtual ICollection<Event> OrganizedEvents { get; }
+    public virtual ICollection<Event> SubscribedEvents { get; }
+    public virtual ICollection<Event> JoinedEvents { get; }
+
+    public bool EmailNotification { get; set; }
+    public IEnumerable<BaseNotification> AllNotifications
+        => Enumerable.Concat<BaseNotification>(PersonalNotifications, SocialNotifications).Concat(ReceivedFriendRequests);
+    public virtual ICollection<Notification> PersonalNotifications { get; }
+    public virtual ICollection<SocialNotification> SocialNotifications { get; }
+    public virtual ICollection<FriendRequest> ReceivedFriendRequests { get; }
+    public virtual ICollection<FriendRequest> SentFriendRequests { get; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
-    // Entity Framework likes empty constructors, but we shouldn't use them
     protected User() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public User(string firstName, string lastName, string email, string? externalId, DateTime? creationDate)
+    public User(string firstName, string lastName, string email, DateTime dob, string? externalId = null, DateTime? creationDate = null)
     {
         ExternalId = externalId;
         CreationDate = creationDate ?? DateTime.Now;
@@ -38,24 +60,24 @@ public abstract class User : BaseEntity
         FirstName = firstName;
         LastName = lastName;
         Email = email;
+        Description = "";
 
-        // SaltedPasswordHash = CalculatePasswordHash(password);
+        DateOfBirth = dob;
+
+        IsAdmin = false;
+        IsOrganizer = false;
+
+        Friends = new List<User>();
+
+        OrganizedEvents = new List<Event>();
+        SubscribedEvents = new List<Event>();
+        JoinedEvents = new List<Event>();
+
+        EmailNotification = true;
+
+        PersonalNotifications = new List<Notification>();
+        SocialNotifications = new List<SocialNotification>();
+        ReceivedFriendRequests = new List<FriendRequest>();
+        SentFriendRequests = new List<FriendRequest>();
     }
-
-    public byte[] CalculatePasswordHash(string password) => CalculatePasswordHash(password, CreationDate.ToString("s"));
-
-    //public bool UpdatePassword(string password)
-    //{
-    //    var newHash = CalculatePasswordHash(password);
-
-    //    if (SaltedPasswordHash.SequenceEqual(newHash))
-    //        return false;
-
-    //    SaltedPasswordHash = newHash;
-
-    //    return true;
-    //}
-
-    //public bool CheckPassword(string password)
-    //    => SaltedPasswordHash.SequenceEqual(CalculatePasswordHash(password));
 }

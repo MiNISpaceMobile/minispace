@@ -6,12 +6,14 @@ namespace Api;
 
 public static class CustomStartup
 {
-    public static void PerformCustomStartupActions(this WebApplication app, bool resetDb)
+    public static void PerformCustomStartupActions(this WebApplication app, bool resetDb, bool generateDevAdminJwt)
     {
         if (resetDb)
             app.DeleteDevelopmentDatabase();
         app.CreateOrUpdateDevelopmentDatabase();
         app.SeedDatabaseIfEmpty();
+        if (app.Environment.IsDevelopment() && generateDevAdminJwt)
+            app.GenerateDevelopmentAdminJwt();
     }
 
     private static void DeleteDevelopmentDatabase(this WebApplication app)
@@ -58,22 +60,28 @@ public static class CustomStartup
         var week_ago = now.AddDays(-7);
         var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
 
-        var ad0 = new Administrator("AdFirst0", "AdLast0", "ad0@pw.edu.pl")
-            { Guid = Guid.Parse("d1f78079-dab3-4ee3-b8c2-73b217377d89") };
-        var ad1 = new Administrator("AdFirst1", "AdLast1", "ad1@pw.edu.pl")
-            { Guid = Guid.Parse("2fbe3558-20d7-4872-8048-c6dbdd13a813") };
-        var ad2 = new Administrator("AdFirst2", "AdLast2", "ad2@pw.edu.pl")
-            { Guid = Guid.Parse("01c018c1-9dcc-42ba-9b53-123e33be0db2") };
-        Administrator[] administrators = [ad0, ad1, ad2];
+        if (app.Environment.IsDevelopment())
+        {
+            var devAdmin = new User("Dev", "Admin", "dev.admin@pw.edu.pl", now, "DevAdmin")
+            { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true };
+            uow.Repository<User>().Add(devAdmin);
+        }
 
-        var st0 = new Student("StFirst0", "StLast0", "st0@pw.edu.pl")
-            { Guid = Guid.Parse("e59669d5-7621-4685-8275-cb3432a1aa0f"), IsOrganizer = true };
-        var st1 = new Student("StFirst1", "StLast1", "st1@pw.edu.pl")
-            { Guid = Guid.Parse("1cf19aa7-af25-4129-b01b-507c3816a347"), DateOfBirth = years_ago };
-        var st2 = new Student("StFirst2", "StLast2", "st2@pw.edu.pl")
-            { Guid = Guid.Parse("08a5310b-02ec-4166-b102-f38face8cb27"), EmailNotification = false };
-        st0.Friends.Add(st2); st2.Friends.Add(st0);
-        Student[] students = [st0, st1, st2];
+        var ad0 = new User("AdFirst0", "AdLast0", "ad0@pw.edu.pl", now)
+        { Guid = Guid.Parse("d1f78079-dab3-4ee3-b8c2-73b217377d89"), IsAdmin = true };
+        var ad1 = new User("AdFirst1", "AdLast1", "ad1@pw.edu.pl", now)
+        { Guid = Guid.Parse("2fbe3558-20d7-4872-8048-c6dbdd13a813"), IsAdmin = true };
+        var ad2 = new User("AdFirst2", "AdLast2", "ad2@pw.edu.pl", now)
+        { Guid = Guid.Parse("01c018c1-9dcc-42ba-9b53-123e33be0db2"), IsAdmin = true };
+        
+        var st0 = new User("StFirst0", "StLast0", "st0@pw.edu.pl", now)
+        { Guid = Guid.Parse("e59669d5-7621-4685-8275-cb3432a1aa0f"), IsOrganizer = true };
+        var st1 = new User("StFirst1", "StLast1", "st1@pw.edu.pl", now)
+        { Guid = Guid.Parse("1cf19aa7-af25-4129-b01b-507c3816a347"), DateOfBirth = years_ago };
+        var st2 = new User("StFirst2", "StLast2", "st2@pw.edu.pl", now)
+        { Guid = Guid.Parse("08a5310b-02ec-4166-b102-f38face8cb27"), EmailNotification = false };
+
+        User[] users = [ad0, ad1, ad2, st0, st1, st2];
 
         var ev0 = new Event(st0, "Ev0", "Des0", EventCategory.Uncategorized, week_ago, now, week_in, "Loc1", null, null)
             { Guid = Guid.Parse("3a788a02-e7e9-4c96-b268-96eb9f71b98c"), ViewCount = 2 };
@@ -114,15 +122,25 @@ public static class CustomStartup
             { Guid = Guid.Parse("1efef05d-6ee6-48be-b636-dde8f82e8679") };
         Report[] reports = [re0, re1, re2];
 
-        uow.Repository<Administrator>().AddMany(administrators);
         uow.Repository<Comment>().AddMany(comments);
         uow.Repository<Event>().AddMany(events);
         uow.Repository<Post>().AddMany(posts);
         uow.Repository<Report>().AddMany(reports);
-        uow.Repository<Student>().AddMany(students);
+        uow.Repository<User>().AddMany(users);
 
         uow.Commit();
 
         app.Logger.LogInformation("Database was seeded with test data");
+    }
+
+    public static void GenerateDevelopmentAdminJwt(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var devAdmin = scope.ServiceProvider.GetRequiredService<IUnitOfWork>().Repository<User>()
+            .GetAll().Where(x => Equals(x.ExternalId, "DevAdmin")).SingleOrDefault();
+        if (devAdmin is null)
+            return;
+        var jwt = scope.ServiceProvider.GetRequiredService<IJwtHandler>().Encode(devAdmin.Guid);
+        app.Logger.LogDebug($"DevAdmin's JWT: {jwt}");
     }
 }

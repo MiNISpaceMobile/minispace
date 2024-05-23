@@ -5,4 +5,9 @@ public record UserDto(
     string FirstName,
     string LastName,
     string Email,
+    string Description,
+    DateTime DateOfBirth,
+    bool IsAdmin,
+    bool IsOrganizer,
+    bool EmailNotifications,
     string? ProfilePictureUrl);

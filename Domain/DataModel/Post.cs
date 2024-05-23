@@ -5,7 +5,7 @@ namespace Domain.DataModel;
 public class Post : BaseEntity
 {
     public Guid? AuthorId { get; private set; }
-    public virtual Student? Author { get; set; }
+    public virtual User? Author { get; set; }
     public Guid EventId { get; private set; }
     public virtual Event Event { get; set; }
 
@@ -20,7 +20,7 @@ public class Post : BaseEntity
     protected Post() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Post(Student author, Event @event, string content, DateTime? creationDate = null)
+    public Post(User author, Event @event, string content, DateTime? creationDate = null)
     {
         Author = author;
 

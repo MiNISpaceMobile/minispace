@@ -13,7 +13,7 @@ public class PostServiceTests
 #pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork uow;
     private List<Event> events;
-    private List<Student> students;
+    private List<User> students;
 
     private IPostService sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
@@ -23,8 +23,8 @@ public class PostServiceTests
     {
         DateTime now = DateTime.Now;
 
-        Student st0 = new Student("tester0", "tester0@minispace.pw.edu.pl", "you_should_be_testing");
-        students = new List<Student> { st0 };
+        User st0 = new User("tester0", "tester0@minispace.pw.edu.pl", "you_should_be_testing", now);
+        students = new List<User> { st0 };
 
         Event ev0 = new Event(st0, "event0", "description0", EventCategory.Uncategorized, now, now, now, "here", null, null)
         { Guid = Guid.Parse("79b46c1c-96a6-4972-8f6f-ffd7edc33597") };
@@ -43,7 +43,7 @@ public class PostServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student author = students.Last();
+        User author = students.Last();
         string content = string.Empty;
 
         // Act
@@ -58,7 +58,7 @@ public class PostServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student author = students.Last();
+        User author = students.Last();
         string content = "a";
 
         // Act
@@ -89,7 +89,7 @@ public class PostServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student author = students.Last();
+        User author = students.Last();
         string content = "a";
         Post post = new Post(author, @event, content);
         uow.Repository<Post>().Add(post);
@@ -120,7 +120,7 @@ public class PostServiceTests
     {
         // Arrange
         Event @event = events.Last();
-        Student author = students.Last();
+        User author = students.Last();
         string content = "a";
         Post post = new Post(author, @event, content);
         uow.Repository<Post>().Add(post);
@@ -135,7 +135,7 @@ public class PostServiceTests
     }
     #endregion
 
-    bool AreEqual(Post p, Student author, Event @event, string content)
+    bool AreEqual(Post p, User author, Event @event, string content)
     {
         return p.Author == author && p.Event == @event && p.Content == content;
     }

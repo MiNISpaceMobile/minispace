@@ -12,7 +12,7 @@ public enum EventCategory
 public class Feedback
 {
     public Guid AuthorId { get; private set; }
-    public virtual Student Author { get; set; }
+    public virtual User Author { get; set; }
 
     public Guid EventId { get; private set; }
     public virtual Event Event { get; set; }
@@ -23,7 +23,7 @@ public class Feedback
     protected Feedback() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Feedback(Student author, Event @event, string content)
+    public Feedback(User author, Event @event, string content)
     {
         Author = author;
         Event = @event;
@@ -35,7 +35,7 @@ public class Feedback
 public class Event : BaseEntity
 {
     public Guid? OrganizerId { get; private set; }
-    public virtual Student? Organizer { get; set; }
+    public virtual User? Organizer { get; set; }
 
     public string Title { get; set; }
     public string Description { get; set; }
@@ -49,8 +49,8 @@ public class Event : BaseEntity
     public int? Capacity { get; set; }
     public decimal? Fee { get; set; }
 
-    public virtual ICollection<Student> Interested { get; }
-    public virtual ICollection<Student> Participants { get; }
+    public virtual ICollection<User> Interested { get; }
+    public virtual ICollection<User> Participants { get; }
 
     public virtual ICollection<Post> Posts { get; }
     public virtual ICollection<Feedback> Feedback { get; }
@@ -61,8 +61,8 @@ public class Event : BaseEntity
     {
         get
         {
-            var ages = Participants.Where(p => p.DateOfBirth is not null).Select(p => (int)p.Age!);
-            return !ages.Any() ? null : ages.Sum() / ages.Count();
+            var ages = Participants.Select(p => p.Age);
+            return ages.Any() ? ages.Sum() / ages.Count() : null;
         }
     }
 
@@ -70,7 +70,7 @@ public class Event : BaseEntity
     protected Event() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Event(Student organizer, string title, string description, EventCategory category, DateTime publicationDate,
+    public Event(User organizer, string title, string description, EventCategory category, DateTime publicationDate,
                  DateTime startDate, DateTime endDate, string location, int? capacity, decimal? fee)
     {
         Organizer = organizer;
@@ -87,8 +87,8 @@ public class Event : BaseEntity
         Capacity = capacity;
         Fee = fee;
 
-        Participants = new List<Student>();
-        Interested = new List<Student>();
+        Participants = new List<User>();
+        Interested = new List<User>();
 
         Posts = new List<Post>();
         Feedback = new List<Feedback>();

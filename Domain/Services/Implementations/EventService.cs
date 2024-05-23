@@ -20,7 +20,7 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     {
         AllowOnlyOrganizers();
 
-        Student author = (Student)ActingUser!;
+        User author = ActingUser!;
 
         Event @event = new Event(author, title, description, category, publicationDate,
             startDate, endDate, location, capacity, fee);
@@ -85,9 +85,9 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     /// <exception cref="InvalidGuidException"></exception>
     public bool TryAddParticipant(Guid eventGuid)
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
 
-        Student student = (Student)ActingUser!;
+        User student = ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
@@ -118,9 +118,9 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     /// <exception cref="InvalidGuidException"></exception>
     public bool TryAddInterested(Guid eventGuid)
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
 
-        Student student = (Student)ActingUser!;
+        User student = ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
         
@@ -148,9 +148,9 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     /// <exception cref="InvalidGuidException"></exception>
     public bool TryRemoveParticipant(Guid eventGuid)
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
 
-        Student student = (Student)ActingUser!;
+        User student = ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
@@ -177,9 +177,9 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
     /// <exception cref="InvalidGuidException"></exception>
     public bool TryRemoveInterested(Guid eventGuid)
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
 
-        Student student = (Student)ActingUser!;
+        User student = ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
@@ -197,9 +197,9 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
 
     public Feedback AddFeedback(Guid eventGuid, string content)
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
 
-        Student author = (Student)ActingUser!;
+        User author = ActingUser!;
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 

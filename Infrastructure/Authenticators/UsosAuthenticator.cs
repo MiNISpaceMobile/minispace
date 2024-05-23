@@ -54,13 +54,13 @@ public class UsosAuthenticator : Domain.Abstractions.IAuthenticator
         public string LastName { get; set; }
 
         [JsonPropertyName("email")]
-        public string? Email { get; set; }
+        public string Email { get; set; }
 
         [JsonPropertyName("birth_date")]
-        public DateTime? DateOfBirth { get; set; }
+        public DateTime DateOfBirth { get; set; }
 
         [JsonConstructor]
-        public UserResponse(string id, string firstName, string lastName, string email, DateTime? dateOfBirth)
+        public UserResponse(string id, string firstName, string lastName, string email, DateTime dateOfBirth)
         {
             Id = id;
             FirstName = firstName;
@@ -108,8 +108,8 @@ public class UsosAuthenticator : Domain.Abstractions.IAuthenticator
         User? user = uow.Repository<User>().GetAll().Where(x => string.Equals(x.ExternalId, userResponse.Id)).SingleOrDefault();
         if (user is null) // first time user
         {
-            user = new Student(userResponse.FirstName, userResponse.LastName, userResponse.Email ?? "", userResponse.Id) { DateOfBirth = userResponse.DateOfBirth };
-            uow.Repository<Student>().Add((Student)user);
+            user = new User(userResponse.FirstName, userResponse.LastName, userResponse.Email, userResponse.DateOfBirth, userResponse.Id);
+            uow.Repository<User>().Add(user);
             uow.Commit();
         }
         // TODO: Update user data on login?

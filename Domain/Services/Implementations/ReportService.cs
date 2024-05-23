@@ -29,7 +29,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         where TargetType : BaseEntity
         where ReportType : Report
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
 
         var author = ActingUser!;
 
@@ -53,7 +53,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         if (!report.IsOpen)
             throw new InvalidOperationException("Report is closed");
 
-        report.Responder = (Administrator)ActingUser!;
+        report.Responder = ActingUser!;
         report.Feedback = newReport.Feedback;
         report.State = newReport.State;
 

@@ -27,7 +27,7 @@ public enum FriendRequestNotificationType
 public abstract class BaseNotification : BaseEntity
 {
     public Guid TargetId { get; private set; }
-    public virtual Student Target { get; set; }
+    public virtual User Target { get; set; }
 
     public abstract Guid SourceId { get; protected set; }
     public abstract string TypeString { get; }
@@ -39,7 +39,7 @@ public abstract class BaseNotification : BaseEntity
     protected BaseNotification() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public BaseNotification(Student target, DateTime? timestamp = null)
+    public BaseNotification(User target, DateTime? timestamp = null)
     {
         Target = target;
 
@@ -59,7 +59,7 @@ public class Notification : BaseNotification
     protected Notification() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Notification(Student target, BaseEntity source, NotificationType type, DateTime? timestamp = null)
+    public Notification(User target, BaseEntity source, NotificationType type, DateTime? timestamp = null)
         : base(target, timestamp)
     {
         SourceId = source.Guid;
@@ -71,7 +71,7 @@ public class Notification : BaseNotification
 public class SocialNotification : BaseNotification
 {
     public Guid FriendId { get; private set; }
-    public virtual Student Friend { get; set; }
+    public virtual User Friend { get; set; }
 
     public SocialNotificationType Type { get; set; }
 
@@ -82,7 +82,7 @@ public class SocialNotification : BaseNotification
     protected SocialNotification() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public SocialNotification(Student target, Student friend, BaseEntity source, SocialNotificationType type, DateTime? timestamp = null)
+    public SocialNotification(User target, User friend, BaseEntity source, SocialNotificationType type, DateTime? timestamp = null)
         : base(target, timestamp)
     {
         Friend = friend;
@@ -96,7 +96,7 @@ public class SocialNotification : BaseNotification
 public class FriendRequest : BaseNotification
 {
     public Guid AuthorId { get; private set; }
-    public virtual Student Author { get; set; }
+    public virtual User Author { get; set; }
 
     public override Guid SourceId
     {
@@ -109,7 +109,7 @@ public class FriendRequest : BaseNotification
     protected FriendRequest() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public FriendRequest(Student target, Student author, DateTime? timestamp = null)
+    public FriendRequest(User target, User author, DateTime? timestamp = null)
         : base(target, timestamp)
     {
         Author = author;

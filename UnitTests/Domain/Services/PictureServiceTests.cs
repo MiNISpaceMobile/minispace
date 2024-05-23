@@ -14,8 +14,8 @@ public class PictureServiceTests
     private Stream tooBigFile;
     private Stream okFile;
 
-    private Student st0;
-    private Student st1;
+    private User st0;
+    private User st1;
     private Event ev0;
     private Post po0;
 
@@ -33,8 +33,8 @@ public class PictureServiceTests
 
         var now = DateTime.Now;
 
-        st0 = new Student("st0", "st0", "st0") { IsOrganizer = true };
-        st1 = new Student("st0", "st0", "st0");
+        st0 = new User("st0", "st0", "st0", now) { IsOrganizer = true };
+        st1 = new User("st0", "st0", "st0", now);
         ev0 = new Event(st0, "ev0", "ev0", EventCategory.Uncategorized, now, now, now, "ev0", null, null);
         po0 = new Post(st0, ev0, "po0");
 

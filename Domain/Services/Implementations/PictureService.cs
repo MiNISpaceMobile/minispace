@@ -17,7 +17,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
 
     public string UploadUserProfilePicture(Stream source)
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
 
         if (source.Length > MaxFileSize)
             throw new FileTooBigException();
@@ -54,7 +54,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
 
     public void DeleteUserProfilePicture()
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
 
         try
         {

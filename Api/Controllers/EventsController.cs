@@ -4,6 +4,7 @@ using Api.DTO.Users;
 using Domain.Abstractions;
 using Domain.DataModel;
 using Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +25,7 @@ public class EventsController : ControllerBase
     [HttpGet]
     [Produces("application/json")]
     public ActionResult GetEvents(int pageNr, int pageSize, string evNameFilter = "", string orgNameFilter = "", 
-        PriceFilter priceFilter = PriceFilter.Any, int minCapacityFilter = 0, int maxCapacityFilter = int.MaxValue, StartTimeFilter startTimeFilter = StartTimeFilter.Current, bool onlyAvailablePlace = false)
+        PriceFilter priceFilter = PriceFilter.Any, int minCapacityFilter = 0, int maxCapacityFilter = int.MaxValue, StartTimeFilter startTimeFilter = StartTimeFilter.Any, bool onlyAvailablePlace = false)
     {
         var events = eventService.GetAll();
         events = Filter(events, evNameFilter, orgNameFilter, priceFilter, minCapacityFilter, maxCapacityFilter, startTimeFilter, onlyAvailablePlace);
@@ -57,6 +58,25 @@ public class EventsController : ControllerBase
         return Ok(@event.ToDto());
     }
 
+    [HttpPost]
+    [Authorize]
+    [Route("create")]
+    public ActionResult CreateEvent(CreateEvent newEvent)
+    {
+        EventCategory cat;
+        if (!Enum.TryParse(newEvent.EventCategory, out cat))
+            return BadRequest("Nonexistent category");
+        try
+        {
+            eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, cat, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
+        }
+        catch (UserUnauthorizedException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        return Ok();
+    }
+
     public enum PriceFilter
     {
         Any,
@@ -65,6 +85,7 @@ public class EventsController : ControllerBase
     }
     public enum StartTimeFilter
     {
+        Any,
         Ended,
         Current,
         Incoming
@@ -106,9 +127,12 @@ public class EventsController : ControllerBase
             case StartTimeFilter.Incoming:
                 filtered = filtered.FindAll(e => e.StartDate > DateTime.Now);
                 break;
+            default:
+                break;
         }
 
-        filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
+        if (onlyAvailablePlace)
+            filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
 
         return filtered;
     }

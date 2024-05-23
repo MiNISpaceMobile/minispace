@@ -34,40 +34,51 @@ public abstract class BaseService<ServiceInterface, ServiceImplementaion> : IBas
 
     protected void AllowOnlyAdmins()
     {
-        if (ActingUser is Administrator)
+        AllowOnlyLoggedIn();
+
+        if (ActingUser!.IsAdmin)
             return;
-        throw new UserUnauthorizedException("Not an admin");
+
+        throw new UserUnauthorizedException("Acting user is not an admin");
     }
-    protected void AllowOnlyOrganizers()
+    protected void AllowOnlyOrganizers(bool alsoAllowAdmins = true)
     {
-        if ((ActingUser as Student)?.IsOrganizer ?? false)
+        AllowOnlyLoggedIn();
+
+        if (ActingUser!.IsOrganizer)
             return;
-        throw new UserUnauthorizedException("Not an organizer");
-    }
-    protected void AllowOnlyStudents()
-    {
-        if (ActingUser is Student)
+        if (alsoAllowAdmins && ActingUser.IsAdmin)
             return;
-        throw new UserUnauthorizedException("Not a student");
+
+        throw new UserUnauthorizedException("Acting user is not an organizer");
     }
-    protected void AllowAllUsers()
+    protected void AllowOnlyLoggedIn()
     {
         if (ActingUser is not null)
             return;
-        throw new UserUnauthorizedException("Not logged in");
+
+        throw new UserUnauthorizedException("Acting user is not logged in");
     }
-    protected void AllowOnlyNotLoggedIn(bool allowAdmins = true)
+    protected void AllowOnlyNotLoggedIn(bool alsoAllowAdmins = true)
     {
-        if ((allowAdmins && ActingUser is Administrator) || ActingUser is null)
+        if (ActingUser is null)
             return;
-        throw new UserUnauthorizedException("Logged in");
+        if (alsoAllowAdmins && ActingUser.IsAdmin)
+            return;
+
+        throw new UserUnauthorizedException("This action is only for non-logged in users");
     }
     // If passed in User is null, then NO non-admin is authorized
     // Passing in (null, false) will result in Exception no matter the ActingUser
-    protected void AllowOnlyUser(User? authorized, bool allowAdmins = true)
+    protected void AllowOnlyUser(User? authorized, bool alsoAllowAdmins = true)
     {
-        if ((allowAdmins && ActingUser is Administrator) || (authorized is not null && Equals(ActingUser, authorized)))
+        AllowOnlyLoggedIn();
+
+        if (Equals(ActingUser, authorized))
             return;
+        if (alsoAllowAdmins && ActingUser!.IsAdmin)
+            return;
+
         throw new UserUnauthorizedException();
     }
     // Empty function, which checks nothing, but is explicit about it

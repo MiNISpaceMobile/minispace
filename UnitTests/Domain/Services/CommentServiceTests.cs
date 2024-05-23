@@ -11,7 +11,7 @@ public class CommentServiceTests
 {
 #pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork uow;
-    private List<Student> students;
+    private List<User> students;
     private List<Post> posts;
 
     private ICommentService sut;
@@ -22,8 +22,8 @@ public class CommentServiceTests
     {
         DateTime now = DateTime.Now;
 
-        Student st0 = new Student("tester0", "tester0@minispace.pw.edu.pl", "you_should_be_testing");
-        students = new List<Student> { st0 };
+        User st0 = new User("tester0", "tester0@minispace.pw.edu.pl", "you_should_be_testing", now);
+        students = new List<User> { st0 };
 
         Event @event = new Event(st0, "event0", "description0", EventCategory.Uncategorized, now, now, now, "here", null, null);
         Post po0 = new Post(st0, @event, "content0")
@@ -43,7 +43,7 @@ public class CommentServiceTests
     {
         // Arrange
         Post post = posts.Last();
-        Student author = students.Last();
+        User author = students.Last();
         string content = string.Empty;
 
         // Act
@@ -58,7 +58,7 @@ public class CommentServiceTests
     {
         // Arrange
         Post post = posts.Last();
-        Student author = students.Last();
+        User author = students.Last();
         string content = "a";
 
         // Act
@@ -89,7 +89,7 @@ public class CommentServiceTests
     {
         // Arrange
         Post post = posts.Last();
-        Student author = students.Last();
+        User author = students.Last();
         string content = "a";
         Comment comment = new Comment(author, post, content, null);
         uow.Repository<Comment>().Add(comment);
@@ -120,7 +120,7 @@ public class CommentServiceTests
     {
         // Arrange
         Post post = posts.Last();
-        Student author = students.Last();
+        User author = students.Last();
         string content = "a";
         Comment comment = new Comment(author, post, content, null);
         uow.Repository<Comment>().Add(comment);
@@ -135,7 +135,7 @@ public class CommentServiceTests
     }
     #endregion
 
-    bool AreEqual(Comment c, Student author, Post post, string content)
+    bool AreEqual(Comment c, User author, Post post, string content)
     {
         return c.Author == author && c.Post == post && c.Content == content;
     }

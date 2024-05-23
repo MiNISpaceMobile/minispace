@@ -34,18 +34,17 @@ public class TestController : ControllerBase
     [HttpGet]
     [Route("admins")]
     [Produces("application/json")]
-    public ActionResult<IEnumerable<Administrator>> GetAdmins()
+    public ActionResult<IEnumerable<User>> GetAdmins()
     {
-        return Ok(uow.Repository<Administrator>().GetAll());
+        return Ok(uow.Repository<User>().GetAll().Where(x => x.IsAdmin));
     }
 
     [HttpGet]
     [Route("students")]
     [Produces("application/json")]
-    public ActionResult<IEnumerable<Student>> GetStudents()
+    public ActionResult<IEnumerable<User>> GetStudents()
     {
-        var s = uow.Repository<Student>().GetAll().ToArray();
-        return Ok(s);
+        return Ok(uow.Repository<User>().GetAll().Where(x => !x.IsAdmin));
     }
 
     [HttpGet]

@@ -34,7 +34,7 @@ public abstract class Report : BaseEntity
     public Guid? AuthorId { get; private set; }
     public virtual User? Author { get; set; }
     public Guid? ResponderId { get; private set; }
-    public virtual Administrator? Responder { get; set; }
+    public virtual User? Responder { get; set; }
 
     public abstract Guid TargetId { get; }
 

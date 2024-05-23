@@ -9,7 +9,12 @@ public class Paging
     public const int DefLimit = 10;
     public const int MaxLimit = 100;
 
-    public int Limit { get; set; }
+    private int limit;
+    public int Limit
+    {
+        get => limit;
+        set => limit = Math.Clamp(value, MinLimit, MaxLimit);
+    }
     public int Start { get; set; }
     [BindNever]
     public int? Size { get; set; }
@@ -23,7 +28,7 @@ public class Paging
     [JsonConstructor]
     public Paging(int? limit, int? start, int? size, bool? last)
     {
-        Limit = Math.Clamp(limit ?? DefLimit, MinLimit, MaxLimit);
+        Limit = limit ?? DefLimit;
         Start = start ?? 0;
         Size = null; // size is for response only
         Last = null; // last is for response only

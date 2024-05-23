@@ -1,6 +1,6 @@
 ﻿using Api.DTO;
 using Api.DTO.Reports;
-using Domain.Services;
+using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,7 +20,7 @@ public class ReportsController(IReportService reportService) : ControllerBase
             var report = reportService
                 .AsUser(User.GetGuid())
                 .CreateReport(request.TargetId, request.Title, request.Details,
-                request.ReportCategory, request.ReportType)
+                              request.ReportCategory, request.ReportType)
                 .ToDto();
 
             return Ok(report);
@@ -33,17 +33,18 @@ public class ReportsController(IReportService reportService) : ControllerBase
 
     [HttpGet]
     [Produces("application/json")]
-    public ActionResult<PagedResponse<ReportDto>> GetReports([FromQuery] GetReports request)
+    public ActionResult<Paged<ReportDto>> GetReports([FromQuery] GetReports request, [FromQuery] Paging paging)
     {
         try
         {
             var reports = reportService
                 .AsUser(User.GetGuid())
-                .GetReports(request.Types, request.Open, request.Closed, request.Ascending,
-                request.PageIndex, request.PageSize)
-                .Map(report => report.ToDto());
+                .GetReports(request.Types, request.Open, request.Closed)
+                .Select(report => report.ToDto());
+            var comparer = ReportUpdateDateComparer.Instance(request.Ascending);
+            var paged = Paged<ReportDto>.PageFrom(reports, comparer, paging);
 
-            return Ok(reports);
+            return Ok(paged);
         }
         catch (Exception e)
         {

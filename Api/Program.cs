@@ -3,7 +3,6 @@ using Api.Auth;
 using Domain.Abstractions;
 using Domain.Services.Abstractions;
 using Domain.Services.Implementations;
-using Domain.Services;
 using Infrastructure.Authenticators;
 using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;

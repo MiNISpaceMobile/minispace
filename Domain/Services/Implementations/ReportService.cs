@@ -1,8 +1,9 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Domain.DataModel;
+using Domain.Services.Abstractions;
 
-namespace Domain.Services;
+namespace Domain.Services.Implementations;
 
 public class ReportService(IUnitOfWork uow) : BaseService<IReportService, ReportService>(uow), IReportService
 {
@@ -24,18 +25,17 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
-    public PagedResponse<Report> GetReports(ICollection<ReportType> types, bool open, bool closed,
-        bool ascending, int pageIndex, int pageSize)
+    public IEnumerable<Report> GetReports(ICollection<ReportType> types, bool open, bool closed)
     {
         AllowOnlyUser(ActingUser);
 
         if (types.Count == 0 || (open == false && closed == false))
-            return new PagedResponse<Report>(Enumerable.Empty<Report>().AsQueryable(), pageIndex, pageSize);
+            return [];
 
         var reports = uow.Repository<Report>().GetAll();
 
         // Student gets only his reports, administrator gets all
-        if (ActingUser is Student)
+        if (!ActingUser!.IsAdmin)
             reports = reports.Where(report => report.AuthorId == ActingUser.Guid);
 
         reports = reports.Where(report => types.Contains(report.ReportType));
@@ -45,15 +45,12 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
             report.State == ReportState.Waiting || report.State == ReportState.Accepted :
             !(report.State == ReportState.Waiting || report.State == ReportState.Accepted));
 
-        reports = ascending ? reports.OrderBy(report => report.UpdateDate)
-            : reports.OrderByDescending(report => report.UpdateDate);
-
-        return new PagedResponse<Report>(reports, pageIndex, pageSize);
+        return reports;
     }
 
     public Report CreateReport(Guid targetId, string title, string details, ReportCategory category, ReportType type)
     {
-        AllowAllUsers();
+        AllowOnlyLoggedIn();
         User user = ActingUser!;
 
         var report = type switch
@@ -80,7 +77,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         if (!report.IsOpen)
             throw new InvalidOperationException("Report is closed");
 
-        report.Responder = (Administrator)ActingUser!;
+        report.Responder = ActingUser;
         report.Feedback = feedback;
         report.State = state;
         report.UpdateDate = DateTime.Now;

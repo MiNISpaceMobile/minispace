@@ -3,10 +3,8 @@ using Api.DTO.Events;
 using Api.DTO.Notifications;
 using Api.DTO.Posts;
 using Api.DTO.Reports;
-using Api.DTO.Students;
 using Api.DTO.Users;
 using Domain.DataModel;
-using Domain.Services;
 
 namespace Api.DTO;
 
@@ -38,15 +36,4 @@ public static class MappingExtensions
         new(report.Guid, report.Author?.ToDto(), report.Responder?.ToDto(), report.TargetId, report.Title,
             report.Details, report.Category.ToString(), report.CreationDate, report.UpdateDate,
             report.Feedback, report.State.ToString(), report.ReportType.ToString());
-
-    public static PagedResponse<R> Map<T, R>(this PagedResponse<T> paged, Func<T, R> mappingFunction) =>
-        new()
-        {
-            Items = paged.Items.Select(mappingFunction),
-            PageIndex = paged.PageIndex,
-            PageSize = paged.PageSize,
-            TotalCount = paged.TotalCount,
-            TotalPages = paged.TotalPages,
-            IsLast = paged.IsLast
-        };
 }

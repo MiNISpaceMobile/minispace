@@ -70,7 +70,7 @@ namespace Api.Controllers
         [Route("event/{target}")]
         [Produces("text/plain")]
         [Authorize]
-        public ActionResult<string> PostEventPicture([FromRoute] Guid target, [FromBody] IFormFile picture, [FromQuery] int index)
+        public ActionResult<string> PostEventPicture([FromRoute] Guid target, IFormFile picture, [FromQuery] int index)
         {
             try
             {
@@ -121,7 +121,7 @@ namespace Api.Controllers
         [Route("post/{target}")]
         [Produces("text/plain")]
         [Authorize]
-        public ActionResult<string> PostPostPicture([FromRoute] Guid target, [FromBody] IFormFile picture, [FromQuery] int index)
+        public ActionResult<string> PostPostPicture([FromRoute] Guid target, IFormFile picture, [FromQuery] int index)
         {
             try
             {

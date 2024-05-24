@@ -77,6 +77,21 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
+    [HttpDelete]
+    [Authorize]
+    [Route("delete")]
+    public ActionResult DeleteEvent(Guid eventGuid)
+    {
+        var e = eventService.AsUser(User.GetGuid()).GetEvent(eventGuid);
+        if (e is null)
+            return BadRequest("Invalid event guid");
+        if (e.OrganizerId != User.GetGuid())
+            return BadRequest("Unauthorized access");
+
+        eventService.AsUser(User.GetGuid()).DeleteEvent(eventGuid);
+        return Ok();
+    }
+
     public enum PriceFilter
     {
         Any,

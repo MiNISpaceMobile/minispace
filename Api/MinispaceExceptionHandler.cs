@@ -12,6 +12,8 @@ public class MinispaceExceptionHandler : IExceptionHandler
 
         if (exception is UserUnauthorizedException)
             httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+        else if (exception is StorageException)
+            httpContext.Response.StatusCode = StatusCodes.Status424FailedDependency;
         else
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
 

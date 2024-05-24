@@ -1,5 +1,4 @@
-﻿using Domain.Services;
-using Domain.Services.Abstractions;
+﻿using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,24 +21,9 @@ namespace Api.Controllers
         [Authorize]
         public ActionResult<string> PostUserProfilePicture(IFormFile picture)
         {
-            try
-            {
-                using Stream s = picture.OpenReadStream();
-                string url = pictureService.AsUser(User.GetGuid()).UploadUserProfilePicture(s);
-                return Ok(url);
-            }
-            catch (UserUnauthorizedException e)
-            {
-                return Forbid(e.Message);
-            }
-            catch (StorageException e)
-            {
-                return this.FailedDependency(e.Message);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            using Stream s = picture.OpenReadStream();
+            string url = pictureService.AsUser(User.GetGuid()).UploadUserProfilePicture(s);
+            return Ok(url);
         }
 
         [HttpDelete]
@@ -47,23 +31,8 @@ namespace Api.Controllers
         [Authorize]
         public ActionResult DeleteUserProfilePicture()
         {
-            try
-            {
-                pictureService.AsUser(User.GetGuid()).DeleteUserProfilePicture();
-                return Ok();
-            }
-            catch (UserUnauthorizedException e)
-            {
-                return Forbid(e.Message);
-            }
-            catch (StorageException e)
-            {
-                return this.FailedDependency(e.Message);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            pictureService.AsUser(User.GetGuid()).DeleteUserProfilePicture();
+            return Ok();
         }
 
         [HttpPost]
@@ -72,24 +41,9 @@ namespace Api.Controllers
         [Authorize]
         public ActionResult<string> PostEventPicture([FromRoute] Guid target, IFormFile picture, [FromQuery] int index)
         {
-            try
-            {
-                using Stream s = picture.OpenReadStream();
-                string url = pictureService.AsUser(User.GetGuid()).UploadEventPicture(target, index, s);
-                return Ok(url);
-            }
-            catch (UserUnauthorizedException e)
-            {
-                return Forbid(e.Message);
-            }
-            catch (StorageException e)
-            {
-                return this.FailedDependency(e.Message);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            using Stream s = picture.OpenReadStream();
+            string url = pictureService.AsUser(User.GetGuid()).UploadEventPicture(target, index, s);
+            return Ok(url);
         }
 
         [HttpDelete]
@@ -98,23 +52,8 @@ namespace Api.Controllers
         [Authorize]
         public ActionResult DeleteEventPicture([FromRoute] Guid target, [FromQuery] int index)
         {
-            try
-            {
-                pictureService.AsUser(User.GetGuid()).DeleteEventPicture(target, index);
-                return Ok();
-            }
-            catch (UserUnauthorizedException e)
-            {
-                return Forbid(e.Message);
-            }
-            catch (StorageException e)
-            {
-                return this.FailedDependency(e.Message);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            pictureService.AsUser(User.GetGuid()).DeleteEventPicture(target, index);
+            return Ok();
         }
 
         [HttpPost]
@@ -123,24 +62,9 @@ namespace Api.Controllers
         [Authorize]
         public ActionResult<string> PostPostPicture([FromRoute] Guid target, IFormFile picture, [FromQuery] int index)
         {
-            try
-            {
-                using Stream s = picture.OpenReadStream();
-                string url = pictureService.AsUser(User.GetGuid()).UploadPostPicture(target, index, s);
-                return Ok(url);
-            }
-            catch (UserUnauthorizedException e)
-            {
-                return Forbid(e.Message);
-            }
-            catch (StorageException e)
-            {
-                return this.FailedDependency(e.Message);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            using Stream s = picture.OpenReadStream();
+            string url = pictureService.AsUser(User.GetGuid()).UploadPostPicture(target, index, s);
+            return Ok(url);
         }
 
         [HttpDelete]
@@ -149,23 +73,8 @@ namespace Api.Controllers
         [Authorize]
         public ActionResult DeletePostPicture([FromRoute] Guid target, [FromQuery] int index)
         {
-            try
-            {
-                pictureService.AsUser(User.GetGuid()).DeletePostPicture(target, index);
-                return Ok();
-            }
-            catch (UserUnauthorizedException e)
-            {
-                return Forbid(e.Message);
-            }
-            catch (StorageException e)
-            {
-                return this.FailedDependency(e.Message);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            pictureService.AsUser(User.GetGuid()).DeletePostPicture(target, index);
+            return Ok();
         }
     }
 }

@@ -81,7 +81,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         if (index < 0 || index > @event.Pictures.Count)
             throw new FileIndexException();
 
-        if (index == MaxPicturesPerEvent)
+        if (@event.Pictures.Count == MaxPicturesPerEvent)
             throw new FileLimitExeption();
 
         Stream picture;
@@ -164,7 +164,7 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         if (index < 0 || index > post.Pictures.Count)
             throw new FileIndexException();
 
-        if (index == MaxPicturesPerPost)
+        if (post.Pictures.Count == MaxPicturesPerPost)
             throw new FileLimitExeption();
 
         Stream picture;
@@ -181,9 +181,9 @@ public class PictureService(IUnitOfWork uow, IStorage storage, IPictureHandler p
         try
         {
             // Inserts uploaded picture at given index -> some pictures' indices need to be incremented
-            foreach (var eventPicture in post.Pictures)
-                if (eventPicture.Index >= index)
-                    eventPicture.Index++;
+            foreach (var postPicture in post.Pictures)
+                if (postPicture.Index >= index)
+                    postPicture.Index++;
 
             // Calculate Id that was not used by previous pictures
             int nextPictureId = post.Pictures.Select(x => x.Id).DefaultIfEmpty().Max() + 1;

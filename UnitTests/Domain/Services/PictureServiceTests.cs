@@ -154,9 +154,9 @@ public class PictureServiceTests
     {
         int startCount = ev0.Pictures.Count;
         for (int i = startCount; i < sut.MaxPicturesPerEvent; i++)
-            sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, i, okFile);
+            sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, 0, okFile);
 
-        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, sut.MaxPicturesPerEvent, okFile);
+        var act = () => sut.AsUser(st0.Guid).UploadEventPicture(ev0.Guid, 0, okFile);
 
         Assert.ThrowsException<FileLimitExeption>(act);
         Assert.AreEqual(sut.MaxPicturesPerEvent - startCount, uow.CommitCount);
@@ -268,9 +268,9 @@ public class PictureServiceTests
     {
         int startCount = po0.Pictures.Count;
         for (int i = startCount; i < sut.MaxPicturesPerPost; i++)
-            sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, i, okFile);
+            sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, 0, okFile);
 
-        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, sut.MaxPicturesPerPost, okFile);
+        var act = () => sut.AsUser(st0.Guid).UploadPostPicture(po0.Guid, 0, okFile);
 
         Assert.ThrowsException<FileLimitExeption>(act);
         Assert.AreEqual(sut.MaxPicturesPerPost - startCount, uow.CommitCount);

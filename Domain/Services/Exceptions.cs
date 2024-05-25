@@ -45,7 +45,7 @@ public class EmptyContentException : MinispaceException
 /// <summary>
 /// Thrown when trying to upload a file (picture), that is too big
 /// </summary>
-public class FileTooBigException : Exception
+public class FileTooBigException : MinispaceException
 {
     public FileTooBigException() : base("File is too big") { }
     public FileTooBigException(string message) : base(message) { }
@@ -54,7 +54,7 @@ public class FileTooBigException : Exception
 /// <summary>
 /// Thrown when trying to upload a file (picture), but already maximum number of them was uploaded
 /// </summary>
-public class FileLimitExeption : Exception
+public class FileLimitExeption : MinispaceException
 {
     public FileLimitExeption() : base("Limit of files exceeded") { }
     public FileLimitExeption(string message) : base(message) { }
@@ -63,7 +63,7 @@ public class FileLimitExeption : Exception
 /// <summary>
 /// Thrown when trying to upload a file (picture), that cannot be converted to required format
 /// </summary>
-public class FileFormatException : Exception
+public class FileFormatException : MinispaceException
 {
     public FileFormatException() : base("File is not in valid format") { }
     public FileFormatException(string message) : base(message) { }
@@ -72,7 +72,7 @@ public class FileFormatException : Exception
 /// <summary>
 /// Thrown when trying to delete a file (picture), that does not exist
 /// </summary>
-public class FileIndexException : Exception
+public class FileIndexException : MinispaceException
 {
     public FileIndexException() : base("File with this index does not exist") { }
     public FileIndexException(string message) : base(message) { }
@@ -81,7 +81,7 @@ public class FileIndexException : Exception
 /// <summary>
 /// Thrown when operation failed for storage-related reasons
 /// </summary>
-public class StorageException : Exception
+public class StorageException : MinispaceException
 {
     public StorageException() : base("File storage failed to fulfill the request") { }
     public StorageException(string message) : base(message) { }

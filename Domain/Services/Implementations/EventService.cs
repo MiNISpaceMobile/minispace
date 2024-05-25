@@ -4,10 +4,9 @@ using Domain.DataModel;
 
 namespace Domain.Services;
 
-public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventService>(uow), IEventService
+public class EventService(IUnitOfWork uow, IPostService postService, IStorage storage)
+    : BaseService<IEventService, EventService>(uow), IEventService
 {
-    private PostService postService = new PostService(uow);
-
     public Event GetEvent(Guid guid)
     {
         AllowEveryone();
@@ -47,6 +46,9 @@ public class EventService(IUnitOfWork uow) : BaseService<IEventService, EventSer
             TryRemoveInterested(@event.Guid);
 
         uow.Repository<Event>().TryDelete(guid);
+
+        // Remove all pictures and other potential related files
+        storage.TryDeleteDirectory(IStorage.EventDirectory(guid));
 
         uow.Commit();
     }

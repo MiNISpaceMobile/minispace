@@ -10,4 +10,4 @@ public record UserDto(
     bool IsAdmin,
     bool IsOrganizer,
     bool EmailNotifications,
-    string? ProfilePictureUrl = null);
+    string? ProfilePictureUrl);

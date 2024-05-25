@@ -32,7 +32,6 @@ public class Feedback
     }
 }
 
-
 public class Event : BaseEntity
 {
     public Guid? OrganizerId { get; private set; }
@@ -50,11 +49,12 @@ public class Event : BaseEntity
     public int? Capacity { get; set; }
     public decimal? Fee { get; set; }
 
-    public virtual ICollection<User> Interested { get; set; }
-    public virtual ICollection<User> Participants { get; set; }
+    public virtual ICollection<User> Interested { get; }
+    public virtual ICollection<User> Participants { get; }
 
-    public virtual ICollection<Post> Posts { get; set; }
-    public virtual ICollection<Feedback> Feedback { get; set; }
+    public virtual ICollection<Post> Posts { get; }
+    public virtual ICollection<Feedback> Feedback { get; }
+    public virtual ICollection<EventPicture> Pictures { get; }
 
     public int ViewCount { get; set; }
     public int? AverageAge
@@ -92,6 +92,7 @@ public class Event : BaseEntity
 
         Posts = new List<Post>();
         Feedback = new List<Feedback>();
+        Pictures = new List<EventPicture>();
 
         ViewCount = 0;
     }

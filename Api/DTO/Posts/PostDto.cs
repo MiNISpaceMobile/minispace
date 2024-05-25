@@ -5,5 +5,5 @@ namespace Api.DTO.Posts;
 public record PostDto(
     Guid Guid,
     Guid EventGuid,
-    UserDto? Author,
+    PublicUserDto? Author,
     DateTime CreationDate);

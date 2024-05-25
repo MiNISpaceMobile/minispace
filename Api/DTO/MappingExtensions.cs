@@ -9,7 +9,10 @@ namespace Api.DTO;
 
 public static class MappingExtensions
 {
-    public static UserDto ToDto(this User user) =>
+    public static PublicUserDto ToDto(this User user) =>
+        new(user.Guid, user.FirstName, user.LastName, user.Description);
+
+    public static PrivateUserDto ToPrivateDto(this User user) =>
         new(user.Guid, user.FirstName, user.LastName, user.Email, user.Description,
             user.DateOfBirth, user.IsAdmin, user.IsOrganizer, user.EmailNotification);
 
@@ -29,5 +32,5 @@ public static class MappingExtensions
             notification.Seen, notification.Timestamp);
 
     public static FriendRequestDto ToDto(this FriendRequest friendRequest) =>
-        new(friendRequest.Guid, friendRequest.TargetId, friendRequest.AuthorId, friendRequest.Timestamp);
+        new(friendRequest.Guid, friendRequest.TargetId, friendRequest.Timestamp, friendRequest.Author.ToDto());
 }

@@ -8,6 +8,13 @@ namespace Domain.Services.Implementations;
 public class UserService(IUnitOfWork uow)
     : BaseService<IUserService, UserService>(uow), IUserService
 {
+    private User OnlyPublicData(User user)
+        => new User(user.FirstName, user.LastName, "", DateTime.MinValue)
+        { Guid = user.Guid, Description = user.Description };
+
+    private IEnumerable<User> OnlyPublicData(IEnumerable<User> users)
+        => users.Select(x => OnlyPublicData(x));
+
     public IEnumerable<User> GetUsers()
     {
         AllowOnlyAdmins();
@@ -15,13 +22,14 @@ public class UserService(IUnitOfWork uow)
         return uow.Repository<User>().GetAll();
     }
 
-    public User GetUser(Guid guid)
+    public IEnumerable<User> SearchUsers(string firstName, string lastName)
     {
-        AllowOnlyAdmins();
+        AllowOnlyLoggedIn();
 
-        User student = uow.Repository<User>().GetOrThrow(guid);
+        var users = uow.Repository<User>().GetAll()
+            .Where(x => string.Equals(firstName, x.FirstName) && string.Equals(lastName, x.LastName));
 
-        return student;
+        return OnlyPublicData(users);
     }
 
     public User GetUser()
@@ -29,6 +37,20 @@ public class UserService(IUnitOfWork uow)
         AllowOnlyLoggedIn();
 
         return ActingUser!;
+    }
+
+    public User GetUser(Guid guid, bool includePrivate = false)
+    {
+        if (includePrivate)
+            AllowOnlyUser(ActingUser);
+        else
+            AllowOnlyLoggedIn();
+
+        User user = uow.Repository<User>().GetOrThrow(guid);
+        if (!includePrivate)
+            user = OnlyPublicData(user);
+
+        return user;
     }
 
     public User CreateUser(string firstName, string lastName, string email, DateTime dob, string? externalId = null)

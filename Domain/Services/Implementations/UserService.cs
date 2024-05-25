@@ -41,12 +41,13 @@ public class UserService(IUnitOfWork uow)
 
     public User GetUser(Guid guid, bool includePrivate = false)
     {
+        User user = uow.Repository<User>().GetOrThrow(guid);
+
         if (includePrivate)
-            AllowOnlyUser(ActingUser);
+            AllowOnlyUser(user);
         else
             AllowOnlyLoggedIn();
 
-        User user = uow.Repository<User>().GetOrThrow(guid);
         if (!includePrivate)
             user = OnlyPublicData(user);
 

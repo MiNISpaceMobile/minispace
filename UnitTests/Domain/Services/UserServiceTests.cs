@@ -2,6 +2,7 @@
 using Domain.Services;
 using Domain.Services.Abstractions;
 using Domain.Services.Implementations;
+using Infrastructure.Storages;
 using Infrastructure.UnitOfWorks;
 
 namespace UnitTests.Domain.Services;
@@ -37,7 +38,7 @@ public class UserServiceTests
         st2.SentFriendRequests.Add(fr);
 
         uow = new DictionaryUnitOfWork([ad, st0, st1, st2, fr]);
-        sut = new UserService(uow);
+        sut = new UserService(uow, new DictionaryStorage());
     }
 
     #region GetUsers

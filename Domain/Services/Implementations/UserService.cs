@@ -5,7 +5,7 @@ using Domain.Services.Abstractions;
 
 namespace Domain.Services.Implementations;
 
-public class UserService(IUnitOfWork uow)
+public class UserService(IUnitOfWork uow, IStorage storage)
     : BaseService<IUserService, UserService>(uow), IUserService
 {
     private User OnlyPublicData(User user)
@@ -94,9 +94,8 @@ public class UserService(IUnitOfWork uow)
     {
         AllowOnlyLoggedIn();
 
-        User student = ActingUser!;
-
-        uow.Repository<User>().Delete(student);
+        uow.Repository<User>().Delete(ActingUser!);
+        storage.TryDeleteDirectory(IStorage.UserDirectory(ActingUser!.Guid));
         uow.Commit();
     }
 

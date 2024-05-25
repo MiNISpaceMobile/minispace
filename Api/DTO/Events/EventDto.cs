@@ -15,4 +15,5 @@ public record EventDto(
     int ParticipantCount,
     int InterestedCount,
     int ViewCount,
-    int? AverageAge);
+    int? AverageAge,
+    IEnumerable<string> PictureUrls);

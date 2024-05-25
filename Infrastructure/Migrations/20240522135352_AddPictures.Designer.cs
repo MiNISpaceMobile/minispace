@@ -3,6 +3,7 @@ using System;
 using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    partial class SqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240522135352_AddPictures")]
+    partial class AddPictures
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,7 +24,7 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
 
-            modelBuilder.Entity("CommentUser", b =>
+            modelBuilder.Entity("CommentStudent", b =>
                 {
                     b.Property<Guid>("CommentGuid")
                         .HasColumnType("TEXT");
@@ -33,7 +36,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("LikersGuid");
 
-                    b.ToTable("CommentUser");
+                    b.ToTable("CommentStudent");
                 });
 
             modelBuilder.Entity("Domain.DataModel.BaseNotification", b =>
@@ -289,20 +292,15 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
+                    b.Property<string>("Discriminator")
                         .IsRequired()
+                        .HasMaxLength(13)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("EmailNotification")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ExternalId")
                         .HasColumnType("TEXT");
@@ -311,12 +309,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsOrganizer")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -332,9 +324,13 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("User");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("User");
+
+                    b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("EventUser", b =>
+            modelBuilder.Entity("EventStudent", b =>
                 {
                     b.Property<Guid>("InterestedGuid")
                         .HasColumnType("TEXT");
@@ -346,10 +342,10 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SubscribedEventsGuid");
 
-                    b.ToTable("EventUser");
+                    b.ToTable("EventStudent");
                 });
 
-            modelBuilder.Entity("EventUser1", b =>
+            modelBuilder.Entity("EventStudent1", b =>
                 {
                     b.Property<Guid>("JoinedEventsGuid")
                         .HasColumnType("TEXT");
@@ -361,22 +357,22 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ParticipantsGuid");
 
-                    b.ToTable("EventUser1");
+                    b.ToTable("EventStudent1");
                 });
 
-            modelBuilder.Entity("UserUser", b =>
+            modelBuilder.Entity("StudentStudent", b =>
                 {
                     b.Property<Guid>("FriendsGuid")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserGuid")
+                    b.Property<Guid>("StudentGuid")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("FriendsGuid", "UserGuid");
+                    b.HasKey("FriendsGuid", "StudentGuid");
 
-                    b.HasIndex("UserGuid");
+                    b.HasIndex("StudentGuid");
 
-                    b.ToTable("UserUser");
+                    b.ToTable("StudentStudent");
                 });
 
             modelBuilder.Entity("Domain.DataModel.FriendRequest", b =>
@@ -494,7 +490,34 @@ namespace Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("PostReport");
                 });
 
-            modelBuilder.Entity("CommentUser", b =>
+            modelBuilder.Entity("Domain.DataModel.Administrator", b =>
+                {
+                    b.HasBaseType("Domain.DataModel.User");
+
+                    b.HasDiscriminator().HasValue("Administrator");
+                });
+
+            modelBuilder.Entity("Domain.DataModel.Student", b =>
+                {
+                    b.HasBaseType("Domain.DataModel.User");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EmailNotification")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsOrganizer")
+                        .HasColumnType("INTEGER");
+
+                    b.HasDiscriminator().HasValue("Student");
+                });
+
+            modelBuilder.Entity("CommentStudent", b =>
                 {
                     b.HasOne("Domain.DataModel.Comment", null)
                         .WithMany()
@@ -502,7 +525,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
                         .HasForeignKey("LikersGuid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -511,7 +534,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Comment", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Author")
+                    b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -536,7 +559,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Event", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Organizer")
+                    b.HasOne("Domain.DataModel.Student", "Organizer")
                         .WithMany("OrganizedEvents")
                         .HasForeignKey("OrganizerId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -546,7 +569,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Feedback", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Author")
+                    b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -565,7 +588,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Post", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Author")
+                    b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -588,7 +611,7 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Domain.DataModel.User", "Responder")
+                    b.HasOne("Domain.DataModel.Administrator", "Responder")
                         .WithMany()
                         .HasForeignKey("ResponderId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -598,9 +621,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("Responder");
                 });
 
-            modelBuilder.Entity("EventUser", b =>
+            modelBuilder.Entity("EventStudent", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
                         .HasForeignKey("InterestedGuid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -613,7 +636,7 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventUser1", b =>
+            modelBuilder.Entity("EventStudent1", b =>
                 {
                     b.HasOne("Domain.DataModel.Event", null)
                         .WithMany()
@@ -621,37 +644,37 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
                         .HasForeignKey("ParticipantsGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("UserUser", b =>
+            modelBuilder.Entity("StudentStudent", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
                         .HasForeignKey("FriendsGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
-                        .HasForeignKey("UserGuid")
+                        .HasForeignKey("StudentGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.DataModel.FriendRequest", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Author")
+                    b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany("SentFriendRequests")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", "Target")
+                    b.HasOne("Domain.DataModel.Student", "Target")
                         .WithMany("ReceivedFriendRequests")
                         .HasForeignKey("TargetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -664,7 +687,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Notification", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Target")
+                    b.HasOne("Domain.DataModel.Student", "Target")
                         .WithMany("PersonalNotifications")
                         .HasForeignKey("TargetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -675,13 +698,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.SocialNotification", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Friend")
+                    b.HasOne("Domain.DataModel.Student", "Friend")
                         .WithMany()
                         .HasForeignKey("FriendId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", "Target")
+                    b.HasOne("Domain.DataModel.Student", "Target")
                         .WithMany("SocialNotifications")
                         .HasForeignKey("TargetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -768,7 +791,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("Pictures");
                 });
 
-            modelBuilder.Entity("Domain.DataModel.User", b =>
+            modelBuilder.Entity("Domain.DataModel.Student", b =>
                 {
                     b.Navigation("OrganizedEvents");
 

@@ -10,5 +10,5 @@ public record PrivateUserDto(
     bool IsAdmin,
     bool IsOrganizer,
     bool EmailNotifications,
-    string? ProfilePictureUrl = null
+    string? ProfilePictureUrl
     ) : PublicUserDto(Guid, FirstName, LastName, Description, ProfilePictureUrl);

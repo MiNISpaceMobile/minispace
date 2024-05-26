@@ -134,7 +134,7 @@ namespace Api.Controllers
         public ActionResult<Paged<FriendRequestDto>> GetSentFriendRequests([FromQuery] Paging paging)
         {
             var outgoing = userService.AsUser(User.GetGuid()).GetUser().SentFriendRequests;
-            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto()),
+            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto(false)),
                 BaseNotificationTimestampComparer.Instance, paging);
             return Ok(paged);
         }
@@ -146,7 +146,7 @@ namespace Api.Controllers
         public ActionResult<Paged<FriendRequestDto>> GetReceivedFriendRequests([FromQuery] Paging paging)
         {
             var outgoing = userService.AsUser(User.GetGuid()).GetUser().ReceivedFriendRequests;
-            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto()),
+            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto(true)),
                 BaseNotificationTimestampComparer.Instance, paging);
             return Ok(paged);
         }

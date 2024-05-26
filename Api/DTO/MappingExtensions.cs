@@ -33,6 +33,7 @@ public static class MappingExtensions
         new(notification.Guid, notification.SourceId, notification.TypeString,
             notification.Seen, notification.Timestamp);
 
-    public static FriendRequestDto ToDto(this FriendRequest friendRequest) =>
-        new(friendRequest.Guid, friendRequest.TargetId, friendRequest.Timestamp, friendRequest.Author.ToDto());
+    public static FriendRequestDto ToDto(this FriendRequest friendRequest, bool asReceived) =>
+        new(friendRequest.Guid, friendRequest.Timestamp,
+            asReceived ? friendRequest.Author.ToDto() : friendRequest.Target.ToDto());
 }

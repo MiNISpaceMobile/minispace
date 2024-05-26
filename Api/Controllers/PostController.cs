@@ -43,4 +43,14 @@ public class PostController : ControllerBase
         var @event = eventService.AsUser(User.GetGuid()).GetEvent(eventGuid);
         return Paged<PostDto>.PageFrom(@event.Posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
     }
+
+    [HttpPost]
+    [Authorize]
+    [Route("create")]
+    [SwaggerOperation("Create post")]
+    public ActionResult CreatePost(CreatePost post)
+    {
+        postService.AsUser(User.GetGuid()).CreatePost(post.EventGuid, post.Content);
+        return Ok();
+    }
 }

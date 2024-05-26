@@ -63,7 +63,7 @@ public static class CustomStartup
         if (app.Environment.IsDevelopment())
         {
             var devAdmin = new User("Dev", "Admin", "dev.admin@pw.edu.pl", now, "DevAdmin")
-            { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true };
+            { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true, IsOrganizer = true };
             uow.Repository<User>().Add(devAdmin);
         }
 

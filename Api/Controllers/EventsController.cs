@@ -24,24 +24,20 @@ public class EventsController : ControllerBase
 
     [HttpGet]
     [Produces("application/json")]
-    public ActionResult GetEvents(int pageNr, int pageSize, string evNameFilter = "", string orgNameFilter = "", 
+    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, string evNameFilter = "", string orgNameFilter = "", 
         PriceFilter priceFilter = PriceFilter.Any, int minCapacityFilter = 0, int maxCapacityFilter = int.MaxValue, StartTimeFilter startTimeFilter = StartTimeFilter.Any, bool onlyAvailablePlace = false)
     {
         var events = eventService.GetAll();
         events = Filter(events, evNameFilter, orgNameFilter, priceFilter, minCapacityFilter, maxCapacityFilter, startTimeFilter, onlyAvailablePlace);
 
-        bool isLastPage = false;
-        int pagesCount = (int)Math.Ceiling((double)events.Count / pageSize) - 1;
-        if (pageNr >= pagesCount)
-            isLastPage = true;
+        var paged = Paged<ListEventDto>.PageFrom(events.Select(e => e.ToListEventDto()),
+            EventStateComparer.Instance, paging);
 
-        var page = events.Skip(pageNr * pageSize).Take(pageSize);
-
-        return Ok(new { page = page.Select(e => e.ToListEventDto()), isLastPage = isLastPage });
+        return Ok(paged);
     }
 
     [HttpGet]
-    [Route("event")]
+    [Route("details")]
     [Produces("application/json")]
     public ActionResult GetEvent(Guid guid)
     {

@@ -53,4 +53,14 @@ public class PostController : ControllerBase
         postService.AsUser(User.GetGuid()).CreatePost(post.EventGuid, post.Content);
         return Ok();
     }
+
+    [HttpDelete]
+    [Authorize]
+    [Route("delete")]
+    [SwaggerOperation("Delete post")]
+    public ActionResult DeleteEvent(Guid postGuid)
+    {
+        postService.AsUser(User.GetGuid()).DeletePost(postGuid);
+        return Ok();
+    }
 }

@@ -26,7 +26,7 @@ public static class MappingExtensions
         if (@event.Capacity is not null)
             avPlaces = @event.Capacity - @event.Participants.Count;
         return new(@event.Guid, @event.Organizer?.ToDto(), @event.Title, @event.Description,
-            @event.Category.ToString(), @event.PublicationDate, @event.StartDate, @event.EndDate,
+            @event.Category.ToString(), @event.StartDate, @event.EndDate,
             @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount, @event.Fee, @event.Capacity, avPlaces, @event.AverageAge,
             @event.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
     }

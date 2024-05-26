@@ -8,7 +8,6 @@ public record EventDto(
     string Title,
     string Description,
     string EventCategory,
-    DateTime PublicationDate,
     DateTime StartDate,
     DateTime EndDate,
     string Location,

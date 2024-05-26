@@ -7,7 +7,13 @@ namespace Domain.Services;
 public class EventService(IUnitOfWork uow, IPostService postService, IStorage storage)
     : BaseService<IEventService, EventService>(uow), IEventService
 {
-    public List<Event> GetAll() => uow.Repository<Event>().GetAll().ToList();
+    private PostService postService = new PostService(uow);
+
+    public List<Event> GetAll()
+    {
+        AllowEveryone();
+        return uow.Repository<Event>().GetAll().ToList();
+    }
 
     public Event GetEvent(Guid guid)
     {

@@ -69,29 +69,6 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
-    [HttpPost]
-    [Authorize]
-    [Route("create")]
-    [SwaggerOperation("Create post")]
-    public ActionResult CreateEvent(CreateEvent newEvent)
-    {
-        EventCategory cat;
-        if (!Enum.TryParse(newEvent.EventCategory, out cat))
-            return BadRequest("Nonexistent category");
-        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, cat, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
-        return Ok();
-    }
-
-    [HttpDelete]
-    [Authorize]
-    [Route("delete")]
-    [SwaggerOperation("Delete post")]
-    public ActionResult DeleteEvent(Guid eventGuid)
-    {
-        eventService.AsUser(User.GetGuid()).DeleteEvent(eventGuid);
-        return Ok();
-    }
-
     public enum PriceFilter
     {
         Any,

@@ -52,6 +52,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
 builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();
 builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IPostService, PostService>();
 
 /* Warning! Important! Will help you later!
  * 

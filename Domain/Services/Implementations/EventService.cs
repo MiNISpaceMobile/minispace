@@ -7,8 +7,6 @@ namespace Domain.Services;
 public class EventService(IUnitOfWork uow, IPostService postService, IStorage storage)
     : BaseService<IEventService, EventService>(uow), IEventService
 {
-    private PostService postService = new PostService(uow);
-
     public List<Event> GetAll()
     {
         AllowEveryone();

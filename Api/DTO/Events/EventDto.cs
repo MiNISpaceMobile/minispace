@@ -18,4 +18,5 @@ public record EventDto(
     int? Capacity,
     int? Availableplaces,
     int? AverageAge,
+    float? Rating,
     IEnumerable<string> PictureUrls);

@@ -4,6 +4,7 @@ using Api.DTO.Notifications;
 using Api.DTO.Posts;
 using Api.DTO.Users;
 using Domain.DataModel;
+using Microsoft.Extensions.Logging;
 
 namespace Api.DTO;
 
@@ -27,7 +28,7 @@ public static class MappingExtensions
             avPlaces = @event.Capacity - @event.Participants.Count;
         return new(@event.Guid, @event.Organizer?.ToDto(), @event.Title, @event.Description,
             @event.Category.ToString(), @event.StartDate, @event.EndDate,
-            @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount, @event.Fee, @event.Capacity, avPlaces, @event.AverageAge,
+            @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount, @event.Fee, @event.Capacity, avPlaces, @event.AverageAge, null,
             @event.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
     }
 
@@ -36,7 +37,7 @@ public static class MappingExtensions
         int? avPlaces = null;
         if (e.Capacity is not null)
             avPlaces = e.Capacity - e.Participants.Count;
-        return new ListEventDto(e.Guid, e.Title, e.StartDate, e.EndDate, e.Location, e.Participants.Count, e.Interested.Count, avPlaces, e.Fee, null);
+        return new ListEventDto(e.Guid, e.Title, e.StartDate, e.EndDate, e.Location, e.Participants.Count, e.Interested.Count, avPlaces, e.Fee, null, e.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
     }
 
     public static NotificationDto ToDto(this BaseNotification notification) =>

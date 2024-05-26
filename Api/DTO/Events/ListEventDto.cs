@@ -11,5 +11,5 @@ public record ListEventDto(
     int InterestedCount,
     int? AvailablePlaces,
     decimal? Fee,
-    // Image
-    float? Rating);
+    float? Rating,
+    IEnumerable<string> PictureUrls);

@@ -72,33 +72,22 @@ public class EventsController : ControllerBase
     [HttpPost]
     [Authorize]
     [Route("create")]
+    [SwaggerOperation("Create post")]
     public ActionResult CreateEvent(CreateEvent newEvent)
     {
         EventCategory cat;
         if (!Enum.TryParse(newEvent.EventCategory, out cat))
             return BadRequest("Nonexistent category");
-        try
-        {
-            eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, cat, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
-        }
-        catch (UserUnauthorizedException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, cat, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
         return Ok();
     }
 
     [HttpDelete]
     [Authorize]
     [Route("delete")]
+    [SwaggerOperation("Delete post")]
     public ActionResult DeleteEvent(Guid eventGuid)
     {
-        var e = eventService.AsUser(User.GetGuid()).GetEvent(eventGuid);
-        if (e is null)
-            return BadRequest("Invalid event guid");
-        if (e.OrganizerId != User.GetGuid())
-            return BadRequest("Unauthorized access");
-
         eventService.AsUser(User.GetGuid()).DeleteEvent(eventGuid);
         return Ok();
     }

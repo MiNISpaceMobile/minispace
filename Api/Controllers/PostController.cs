@@ -14,21 +14,33 @@ namespace Api.Controllers;
 public class PostController : ControllerBase
 {
     private IPostService postService;
+    private IEventService eventService;
 
-    public PostController(IPostService postService)
+    public PostController(IPostService postService, IEventService eventService)
     {
         this.postService = postService;
+        this.eventService = eventService;
     }
 
     [HttpGet]
     [Authorize]
     [Route("user")]
-    [SwaggerOperation("List user's posts")]
-    public ActionResult<Paged<PostDto>> GetUsersPosts([FromQuery] Paging paging, Guid userGuid, bool showAlsoInterested)
+    [SwaggerOperation("List user's subscribed events' posts")]
+    public ActionResult<Paged<PostDto>> GetUserEventsPosts([FromQuery] Paging paging, Guid userGuid, bool showAlsoInterested)
     {
         var posts = postService.AsUser(User.GetGuid()).GetUsersPosts(userGuid);
         if (!showAlsoInterested)
             posts = posts.FindAll(p => p.Event.Participants.FirstOrDefault(part => part.Guid == userGuid) is not null);
         return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
+    }
+
+    [HttpGet]
+    [Authorize]
+    [Route("event")]
+    [SwaggerOperation("List event's posts")]
+    public ActionResult<Paged<PostDto>> GetEventPosts([FromQuery] Paging paging, Guid eventGuid)
+    {
+        var @event = eventService.AsUser(User.GetGuid()).GetEvent(eventGuid);
+        return Paged<PostDto>.PageFrom(@event.Posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
     }
 }

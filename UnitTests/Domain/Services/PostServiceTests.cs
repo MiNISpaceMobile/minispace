@@ -135,6 +135,39 @@ public class PostServiceTests
     }
     #endregion
 
+    #region GetUsersPosts
+    [TestMethod]
+    public void GetUsersPosts_NonexistentUser_ShouldThrowInvalidGuidException()
+    {
+        // Arrange
+
+        // Act
+        var action = () => sut.GetUsersPosts(new Guid());
+
+        // Assert
+        Assert.ThrowsException<InvalidGuidException<User>>(action);
+    }
+
+    [TestMethod]
+    public void GetUsersPosts_CorrectInput_ShouldReturnUsetsPosts()
+    {
+        // Arrange
+        var user = students.Last();
+        string content = "a";
+        foreach (var e in events)
+        {
+            e.Posts.Add(new Post(user, e, content));
+            user.SubscribedEvents.Add(e);
+        }
+
+        // Act
+        var result = sut.GetUsersPosts(user.Guid);
+
+        // Assert
+        Assert.AreEqual(events.Count, result.Count);
+    }
+    #endregion
+
     bool AreEqual(Post p, User author, Event @event, string content)
     {
         return p.Author == author && p.Event == @event && p.Content == content;

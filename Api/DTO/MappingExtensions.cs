@@ -5,6 +5,7 @@ using Api.DTO.Posts;
 using Api.DTO.Users;
 using Domain.DataModel;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace Api.DTO;
 
@@ -18,7 +19,7 @@ public static class MappingExtensions
         new(comment.Guid, comment.Author?.ToDto(), comment.Content);
 
     public static PostDto ToDto(this Post post) =>
-        new(post.Guid, post.EventId, post.Author?.ToDto(), post.CreationDate,
+        new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
     public static EventDto ToDto(this Event @event)

@@ -91,10 +91,13 @@ public static class CustomStartup
             { Guid = Guid.Parse("acbcd26e-877c-45cf-a697-ff4a3c70980a"), ViewCount = 2 };
         ev0.Participants.Add(st0); ev0.Participants.Add(st1);
         ev0.Interested.Add(st0);
+        st0.SubscribedEvents.Add(ev0); st1.SubscribedEvents.Add(ev0);
         ev1.Participants.Add(st0);
         ev1.Interested.Add(st0); ev1.Interested.Add(st2);
+        st0.SubscribedEvents.Add(ev1); st2.SubscribedEvents.Add(ev1);
         ev2.Participants.Add(st1);
         ev2.Interested.Add(st1); ev2.Interested.Add(st2);
+        st1.SubscribedEvents.Add(ev2); st2.SubscribedEvents.Add(ev2);
         Event[] events = [ev0, ev1, ev2];
 
         var po0 = new Post(st0, ev0, "Po0")

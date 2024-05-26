@@ -7,6 +7,7 @@ using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Api.Controllers;
 
@@ -23,7 +24,7 @@ public class EventsController : ControllerBase
 
 
     [HttpGet]
-    [Produces("application/json")]
+    [SwaggerOperation("List all events")]
     public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, string evNameFilter = "", string orgNameFilter = "", 
         PriceFilter priceFilter = PriceFilter.Any, int minCapacityFilter = 0, int maxCapacityFilter = int.MaxValue, StartTimeFilter startTimeFilter = StartTimeFilter.Any, bool onlyAvailablePlace = false)
     {
@@ -38,52 +39,32 @@ public class EventsController : ControllerBase
 
     [HttpGet]
     [Route("details")]
-    [Produces("application/json")]
+    [SwaggerOperation("Details of given event")]
     public ActionResult GetEvent(Guid guid)
     {
-        Event @event;
-        try
-        {
-            @event = eventService.GetEvent(guid);
-        }
-        catch (InvalidGuidException ex) 
-        {
-            return BadRequest(ex.Message);
-        }
-
+        var @event = eventService.GetEvent(guid);
         return Ok(@event.ToDto());
     }
 
     [HttpPost]
     [Authorize]
     [Route("create")]
+    [SwaggerOperation("Create post")]
     public ActionResult CreateEvent(CreateEvent newEvent)
     {
         EventCategory cat;
         if (!Enum.TryParse(newEvent.EventCategory, out cat))
             return BadRequest("Nonexistent category");
-        try
-        {
-            eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, cat, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
-        }
-        catch (UserUnauthorizedException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, cat, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
         return Ok();
     }
 
     [HttpDelete]
     [Authorize]
     [Route("delete")]
+    [SwaggerOperation("Delete post")]
     public ActionResult DeleteEvent(Guid eventGuid)
     {
-        var e = eventService.AsUser(User.GetGuid()).GetEvent(eventGuid);
-        if (e is null)
-            return BadRequest("Invalid event guid");
-        if (e.OrganizerId != User.GetGuid())
-            return BadRequest("Unauthorized access");
-
         eventService.AsUser(User.GetGuid()).DeleteEvent(eventGuid);
         return Ok();
     }

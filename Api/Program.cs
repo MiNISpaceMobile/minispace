@@ -44,6 +44,7 @@ builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
 builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEventService, EventService>();
 

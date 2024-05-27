@@ -100,9 +100,9 @@ public static class CustomStartup
         co1.Likers.Add(st1);
         Comment[] comments = [co0, co1, co2];
 
-        var re0 = new CommentReport(co2, st1, "Re0", "Des0", ReportCategory.Behaviour);
-        var re1 = new EventReport(ev0, st0, "Re1", "Des1", ReportCategory.Bug);
-        var re2 = new PostReport(po2, st2, "Re2", "Des2", ReportCategory.Behaviour);
+        var re0 = new CommentReport(co2, st1, "Re0", "Des0");
+        var re1 = new EventReport(ev0, st0, "Re1", "Des1");
+        var re2 = new PostReport(po2, st2, "Re2", "Des2");
         Report[] reports = [re0, re1, re2];
 
         uow.Repository<Comment>().AddMany(comments);

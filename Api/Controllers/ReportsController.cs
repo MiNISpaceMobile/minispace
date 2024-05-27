@@ -25,7 +25,7 @@ public class ReportsController(IReportService reportService) : ControllerBase
     }
 
     [HttpGet]
-    [SwaggerOperation("Get list of reports satisfying given filters")]
+    [SwaggerOperation("Get reports - user gets only his reports, admin gets all reports")]
     public ActionResult<Paged<ReportDto>> GetReports([FromQuery] GetReports request, [FromQuery] Paging paging)
     {
         var reports = reportService
@@ -40,11 +40,11 @@ public class ReportsController(IReportService reportService) : ControllerBase
 
     [HttpPatch("{id}")]
     [SwaggerOperation("Review report - admin only")]
-    public ActionResult<ReportDto> ReviewReport([FromRoute] Guid id, [FromBody] ReviewReport request)
+    public ActionResult<ReportDto> ReviewReport([FromRoute] Guid id, string? feedback)
     {
         var report = reportService
             .AsUser(User.GetGuid())
-            .ReviewReport(id, request.Feedback)
+            .ReviewReport(id, feedback)
             .ToDto();
 
         return Ok(report);

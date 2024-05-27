@@ -1,5 +1,4 @@
 ﻿using Domain.BaseTypes;
-using System.Text.Json.Serialization;
 
 namespace Domain.DataModel;
 

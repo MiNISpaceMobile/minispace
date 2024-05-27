@@ -56,7 +56,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
             ReportType.Event => CreateSpecificReport<Event>(targetId, user, title, details),
             ReportType.Post => CreateSpecificReport<Post>(targetId, user, title, details),
             ReportType.Comment => CreateSpecificReport<Comment>(targetId, user, title, details),
-            _ => throw new InvalidOperationException("Wrong ReportType")
+            _ => throw new InvalidDomainEnumException("Wrong ReportType")
         };
 
         uow.Repository<Report>().Add(report);
@@ -73,7 +73,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         var report = uow.Repository<Report>().GetOrThrow(reportGuid);
 
         if (!report.IsOpen)
-            throw new InvalidOperationException("Report is closed");
+            throw new ClosedReportException("Report is closed");
 
         report.Responder = ActingUser;
         report.Feedback = feedback;
@@ -104,7 +104,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
             Event @event => new EventReport(@event, author, title, details),
             Post post => new PostReport(post, author, title, details),
             Comment comment => new CommentReport(comment, author, title, details),
-            _ => throw new InvalidOperationException("Reporting this entity is not possible")
+            _ => throw new InvalidDomainEnumException("Reporting this entity is not possible")
         };
     }
 }

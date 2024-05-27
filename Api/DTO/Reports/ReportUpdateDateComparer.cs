@@ -13,7 +13,7 @@ public class ReportUpdateDateComparer : IComparer<ReportDto>
 
     public int Compare(ReportDto? x, ReportDto? y)
     {
-        var result = x!.UpdateDate.CompareTo(y.UpdateDate);
+        var result = x!.UpdateDate.CompareTo(y!.UpdateDate);
         return Ascending ? result : -result;
     }
 }

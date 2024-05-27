@@ -8,28 +8,26 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.ComponentModel;
 
 namespace Api.Controllers;
 
 [Route("events")]
 [ApiController]
-public class EventsController : ControllerBase
+public class EventsController(IEventService eventService) : ControllerBase
 {
-    private IEventService eventService;
-
-    public EventsController(IEventService eventService)
-    {
-        this.eventService = eventService;
-    }
-
-
     [HttpGet]
     [SwaggerOperation("List all events")]
-    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, string evNameFilter = "", string orgNameFilter = "", 
-        PriceFilter priceFilter = PriceFilter.Any, int minCapacityFilter = 0, int maxCapacityFilter = int.MaxValue, StartTimeFilter startTimeFilter = StartTimeFilter.Any, bool onlyAvailablePlace = false)
+    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging,
+        [FromQuery] IEnumerable<ParticipantsType>? participants = null,
+        [FromQuery] IEnumerable<TimeType>? time = null,
+        [FromQuery] string evNameFilter = "",
+        string orgNameFilter = "", 
+        PriceFilter priceFilter = PriceFilter.Any,
+        StartTimeFilter startTimeFilter = StartTimeFilter.Any, bool onlyAvailablePlace = false)
     {
         var events = eventService.GetAll();
-        events = Filter(events, evNameFilter, orgNameFilter, priceFilter, minCapacityFilter, maxCapacityFilter, startTimeFilter, onlyAvailablePlace);
+        events = Filter(events, evNameFilter, orgNameFilter, priceFilter, time, onlyAvailablePlace, participants);
 
         var paged = Paged<ListEventDto>.PageFrom(events.Select(e => e.ToListEventDto()),
             EventStateComparer.Instance, paging);
@@ -110,6 +108,20 @@ public class EventsController : ControllerBase
         return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(eventGuid, rating));
     }
 
+    public enum ParticipantsType
+    {
+        To50,
+        From50To100,
+        Above100
+    }
+
+    public enum TimeType
+    {
+        Past,
+        Current,
+        Future
+    }
+
     public enum PriceFilter
     {
         Any,
@@ -125,7 +137,7 @@ public class EventsController : ControllerBase
     }
 
     private List<Event> Filter(List<Event> events, string evNameFilter, string orgNameFilter,
-        PriceFilter priceFilter, int minCapacityFilter, int maxCapacityFilter, StartTimeFilter startTimeFilter, bool onlyAvailablePlace)
+        PriceFilter priceFilter, IEnumerable<TimeType>? time, bool onlyAvailablePlace, IEnumerable<ParticipantsType>? participants)
     {
         List<Event> filtered = events;
 
@@ -147,22 +159,54 @@ public class EventsController : ControllerBase
         else if (priceFilter == PriceFilter.Paid)
             filtered = filtered.FindAll(e => e.Fee is not null);
 
-        filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity >= minCapacityFilter && e.Capacity <= maxCapacityFilter));
-
-        switch (startTimeFilter)
+        // Number of participants filter
+        if(participants is not null && participants.Any() && participants.Count() < 3)
         {
-            case StartTimeFilter.Ended:
-                filtered = filtered.FindAll(e => e.EndDate < DateTime.Now);
-                break;
-            case StartTimeFilter.Current:
-                filtered = filtered.FindAll(e => e.StartDate <= DateTime.Now && e.EndDate >= DateTime.Now);
-                break;
-            case StartTimeFilter.Incoming:
-                filtered = filtered.FindAll(e => e.StartDate > DateTime.Now);
-                break;
-            default:
-                break;
+            if(participants.Count() == 1)
+            {
+                filtered = participants.First() switch
+                {
+                    ParticipantsType.To50 => filtered.FindAll(x => x.Participants.Count <= 50 && x.Participants.Count >= 0),
+                    ParticipantsType.From50To100 => filtered.FindAll(x => x.Participants.Count >= 50 && x.Participants.Count <= 100),
+                    ParticipantsType.Above100 => filtered.FindAll(x => x.Participants.Count >= 100),
+                    _ => throw new InvalidOperationException()
+                };
+            }
+            else
+            {
+                if (!participants.Contains(ParticipantsType.To50))
+                    filtered = filtered.FindAll(x => x.Participants.Count >= 50);
+                else if (!participants.Contains(ParticipantsType.Above100))
+                    filtered = filtered.FindAll(x => x.Participants.Count >= 0 && x.Participants.Count <= 100);
+                else if (!participants.Contains(ParticipantsType.From50To100))
+                    filtered = filtered.FindAll(x => (x.Participants.Count >= 0 && x.Participants.Count <= 50) || (x.Participants.Count >= 100));
+            }
         }
+
+        // Time filter
+        if (time is not null && time.Any() && time.Count() < 3)
+        {
+            if (time.Count() == 1)
+            {
+                filtered = time.First() switch
+                {
+                    TimeType.Past => filtered.FindAll(x => x.EndDate <= DateTime.Now),
+                    TimeType.Current => filtered.FindAll(x => x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now),
+                    TimeType.Future => filtered.FindAll(x => x.StartDate >= DateTime.Now),
+                    _ => throw new InvalidOperationException()
+                };
+            }
+            else
+            {
+                if (!time.Contains(TimeType.Past))
+                    filtered = filtered.FindAll(x => x.EndDate >= DateTime.Now);
+                else if (!time.Contains(TimeType.Future))
+                    filtered = filtered.FindAll(x => x.StartDate <= DateTime.Now);
+                else if (!time.Contains(TimeType.Current))
+                    filtered = filtered.FindAll(x => (x.EndDate <= DateTime.Now) || (x.StartDate >= DateTime.Now));
+            }
+        }
+        
 
         if (onlyAvailablePlace)
             filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));

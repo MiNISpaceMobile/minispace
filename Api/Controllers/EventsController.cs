@@ -49,7 +49,7 @@ public class EventsController : ControllerBase
     [HttpPost]
     [Authorize]
     [Route("create")]
-    [SwaggerOperation("Create post")]
+    [SwaggerOperation("Create event")]
     public ActionResult CreateEvent(CreateEvent newEvent)
     {
         EventCategory cat;
@@ -62,7 +62,7 @@ public class EventsController : ControllerBase
     [HttpDelete]
     [Authorize]
     [Route("delete")]
-    [SwaggerOperation("Delete post")]
+    [SwaggerOperation("Delete event")]
     public ActionResult DeleteEvent(Guid eventGuid)
     {
         eventService.AsUser(User.GetGuid()).DeleteEvent(eventGuid);

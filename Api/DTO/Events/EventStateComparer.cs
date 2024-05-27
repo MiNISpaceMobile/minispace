@@ -12,15 +12,15 @@ public class EventStateComparer : IComparer<ListEventDto>
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
-    public int Compare(ListEventDto x, ListEventDto y)
+    public int Compare(ListEventDto? x, ListEventDto? y)
     {
-        if (x.EndDate > DateTime.Now && y.EndDate > DateTime.Now)
-            return x.StartDate.CompareTo(y.StartDate);
-        else if (x.EndDate > DateTime.Now)
+        if (x!.EndDate > DateTime.Now && y!.EndDate > DateTime.Now)
+            return x!.StartDate.CompareTo(y!.StartDate);
+        else if (x!.EndDate > DateTime.Now)
             return -1;
-        else if (y.EndDate > DateTime.Now)
+        else if (y!.EndDate > DateTime.Now)
             return 1;
         else
-            return -x.EndDate.CompareTo(y.EndDate);
+            return -x!.EndDate.CompareTo(y!.EndDate);
     }
 }

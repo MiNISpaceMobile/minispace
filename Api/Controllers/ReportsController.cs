@@ -3,6 +3,7 @@ using Api.DTO.Reports;
 using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Api.Controllers;
 
@@ -12,79 +13,51 @@ namespace Api.Controllers;
 public class ReportsController(IReportService reportService) : ControllerBase
 {
     [HttpPost]
-    [Produces("application/json")]
+    [SwaggerOperation("Create report")]
     public ActionResult<ReportDto> CreateReport([FromBody] CreateReport request)
     {
-        try
-        {
-            var report = reportService
-                .AsUser(User.GetGuid())
-                .CreateReport(request.TargetId, request.Title, request.Details,
-                              request.ReportType)
-                .ToDto();
+        var report = reportService
+            .AsUser(User.GetGuid())
+            .CreateReport(request.TargetId, request.Title, request.Details, request.ReportType)
+            .ToDto();
 
-            return Ok(report);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        return Ok(report);
     }
 
     [HttpGet]
-    [Produces("application/json")]
+    [SwaggerOperation("Get list of reports satisfying given filters")]
     public ActionResult<Paged<ReportDto>> GetReports([FromQuery] GetReports request, [FromQuery] Paging paging)
     {
-        try
-        {
-            var reports = reportService
-                .AsUser(User.GetGuid())
-                .GetReports(request.Types, request.Open, request.Closed)
-                .Select(report => report.ToDto());
-            var comparer = ReportUpdateDateComparer.Instance(request.Ascending);
-            var paged = Paged<ReportDto>.PageFrom(reports, comparer, paging);
+        var reports = reportService
+            .AsUser(User.GetGuid())
+            .GetReports(request.Types, request.Open, request.Closed)
+            .Select(report => report.ToDto());
+        var comparer = ReportUpdateDateComparer.Instance(request.Ascending);
+        var paged = Paged<ReportDto>.PageFrom(reports, comparer, paging);
 
-            return Ok(paged);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        return Ok(paged);
     }
 
     [HttpPatch("{id}")]
-    [Produces("application/json")]
+    [SwaggerOperation("Review report - admin only")]
     public ActionResult<ReportDto> ReviewReport([FromRoute] Guid id, [FromBody] ReviewReport request)
     {
-        try
-        {
-            var report = reportService
-                .AsUser(User.GetGuid())
-                .ReviewReport(id, request.Feedback)
-                .ToDto();
+        var report = reportService
+            .AsUser(User.GetGuid())
+            .ReviewReport(id, request.Feedback)
+            .ToDto();
 
-            return Ok(report);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        return Ok(report);
     }
 
     [HttpDelete("{id}")]
+    [SwaggerOperation("Delete reports")]
     public ActionResult DeleteReport([FromRoute] Guid id)
     {
-        try
-        {
-            reportService
-                .AsUser(User.GetGuid())
-                .DeleteReport(id);
+        reportService
+            .AsUser(User.GetGuid())
+            .DeleteReport(id);
 
-            return NoContent();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        return NoContent();
     }
 }

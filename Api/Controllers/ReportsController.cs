@@ -27,7 +27,7 @@ public class ReportsController(IReportService reportService) : ControllerBase
 
     [HttpGet("{id}")]
     [SwaggerOperation("Get report by id")]
-    public ActionResult<Paged<ReportDto>> GetByGuid([FromRoute] Guid id)
+    public ActionResult<ReportDto> GetByGuid([FromRoute] Guid id)
     {
         var report = reportService
             .AsUser(User.GetGuid())

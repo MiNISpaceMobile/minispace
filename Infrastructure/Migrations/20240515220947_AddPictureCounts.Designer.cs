@@ -3,6 +3,7 @@ using System;
 using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    partial class SqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240515220947_AddPictureCounts")]
+    partial class AddPictureCounts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,7 +24,7 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
 
-            modelBuilder.Entity("CommentUser", b =>
+            modelBuilder.Entity("CommentStudent", b =>
                 {
                     b.Property<Guid>("CommentGuid")
                         .HasColumnType("TEXT");
@@ -33,7 +36,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("LikersGuid");
 
-                    b.ToTable("CommentUser");
+                    b.ToTable("CommentStudent");
                 });
 
             modelBuilder.Entity("Domain.DataModel.BaseNotification", b =>
@@ -133,6 +136,9 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("OrganizerId")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PictureCount")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("PublicationDate")
                         .HasColumnType("TEXT");
 
@@ -172,33 +178,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Feedback");
                 });
 
-            modelBuilder.Entity("Domain.DataModel.Picture", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Index")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Picture");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Picture");
-
-                    b.UseTphMappingStrategy();
-                });
-
             modelBuilder.Entity("Domain.DataModel.Post", b =>
                 {
                     b.Property<Guid>("Guid")
@@ -218,6 +197,9 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PictureCount")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Guid");
 
                     b.HasIndex("AuthorId");
@@ -236,7 +218,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("AuthorId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CreationDate")
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Details")
@@ -251,23 +236,17 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Feedback")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsOpen")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid?>("ResponderId")
+                        .HasColumnType("TEXT");
 
-                    b.Property<string>("ReportType")
+                    b.Property<string>("State")
                         .IsRequired()
                         .HasMaxLength(32)
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("ResponderId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdateDate")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Guid");
@@ -292,20 +271,15 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
+                    b.Property<string>("Discriminator")
                         .IsRequired()
+                        .HasMaxLength(13)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("EmailNotification")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ExternalId")
                         .HasColumnType("TEXT");
@@ -315,18 +289,12 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsOrganizer")
+                    b.Property<bool>("HasProfilePicture")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Guid");
@@ -335,9 +303,13 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("User");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("User");
+
+                    b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("EventUser", b =>
+            modelBuilder.Entity("EventStudent", b =>
                 {
                     b.Property<Guid>("InterestedGuid")
                         .HasColumnType("TEXT");
@@ -349,10 +321,10 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SubscribedEventsGuid");
 
-                    b.ToTable("EventUser");
+                    b.ToTable("EventStudent");
                 });
 
-            modelBuilder.Entity("EventUser1", b =>
+            modelBuilder.Entity("EventStudent1", b =>
                 {
                     b.Property<Guid>("JoinedEventsGuid")
                         .HasColumnType("TEXT");
@@ -364,22 +336,22 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ParticipantsGuid");
 
-                    b.ToTable("EventUser1");
+                    b.ToTable("EventStudent1");
                 });
 
-            modelBuilder.Entity("UserUser", b =>
+            modelBuilder.Entity("StudentStudent", b =>
                 {
                     b.Property<Guid>("FriendsGuid")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserGuid")
+                    b.Property<Guid>("StudentGuid")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("FriendsGuid", "UserGuid");
+                    b.HasKey("FriendsGuid", "StudentGuid");
 
-                    b.HasIndex("UserGuid");
+                    b.HasIndex("StudentGuid");
 
-                    b.ToTable("UserUser");
+                    b.ToTable("StudentStudent");
                 });
 
             modelBuilder.Entity("Domain.DataModel.FriendRequest", b =>
@@ -437,30 +409,6 @@ namespace Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("SocialNotification");
                 });
 
-            modelBuilder.Entity("Domain.DataModel.EventPicture", b =>
-                {
-                    b.HasBaseType("Domain.DataModel.Picture");
-
-                    b.Property<Guid>("EventId")
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("EventId");
-
-                    b.HasDiscriminator().HasValue("EventPicture");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.PostPicture", b =>
-                {
-                    b.HasBaseType("Domain.DataModel.Picture");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("PostId");
-
-                    b.HasDiscriminator().HasValue("PostPicture");
-                });
-
             modelBuilder.Entity("Domain.DataModel.CommentReport", b =>
                 {
                     b.HasBaseType("Domain.DataModel.Report");
@@ -497,7 +445,34 @@ namespace Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("PostReport");
                 });
 
-            modelBuilder.Entity("CommentUser", b =>
+            modelBuilder.Entity("Domain.DataModel.Administrator", b =>
+                {
+                    b.HasBaseType("Domain.DataModel.User");
+
+                    b.HasDiscriminator().HasValue("Administrator");
+                });
+
+            modelBuilder.Entity("Domain.DataModel.Student", b =>
+                {
+                    b.HasBaseType("Domain.DataModel.User");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EmailNotification")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsOrganizer")
+                        .HasColumnType("INTEGER");
+
+                    b.HasDiscriminator().HasValue("Student");
+                });
+
+            modelBuilder.Entity("CommentStudent", b =>
                 {
                     b.HasOne("Domain.DataModel.Comment", null)
                         .WithMany()
@@ -505,7 +480,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
                         .HasForeignKey("LikersGuid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -514,7 +489,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Comment", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Author")
+                    b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -539,7 +514,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Event", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Organizer")
+                    b.HasOne("Domain.DataModel.Student", "Organizer")
                         .WithMany("OrganizedEvents")
                         .HasForeignKey("OrganizerId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -549,7 +524,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Feedback", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Author")
+                    b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -568,7 +543,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Post", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Author")
+                    b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -591,7 +566,7 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Domain.DataModel.User", "Responder")
+                    b.HasOne("Domain.DataModel.Administrator", "Responder")
                         .WithMany()
                         .HasForeignKey("ResponderId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -601,9 +576,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("Responder");
                 });
 
-            modelBuilder.Entity("EventUser", b =>
+            modelBuilder.Entity("EventStudent", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
                         .HasForeignKey("InterestedGuid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -616,7 +591,7 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventUser1", b =>
+            modelBuilder.Entity("EventStudent1", b =>
                 {
                     b.HasOne("Domain.DataModel.Event", null)
                         .WithMany()
@@ -624,37 +599,37 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
                         .HasForeignKey("ParticipantsGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("UserUser", b =>
+            modelBuilder.Entity("StudentStudent", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
                         .HasForeignKey("FriendsGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", null)
+                    b.HasOne("Domain.DataModel.Student", null)
                         .WithMany()
-                        .HasForeignKey("UserGuid")
+                        .HasForeignKey("StudentGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.DataModel.FriendRequest", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Author")
+                    b.HasOne("Domain.DataModel.Student", "Author")
                         .WithMany("SentFriendRequests")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", "Target")
+                    b.HasOne("Domain.DataModel.Student", "Target")
                         .WithMany("ReceivedFriendRequests")
                         .HasForeignKey("TargetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -667,7 +642,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Notification", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Target")
+                    b.HasOne("Domain.DataModel.Student", "Target")
                         .WithMany("PersonalNotifications")
                         .HasForeignKey("TargetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -678,13 +653,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.SocialNotification", b =>
                 {
-                    b.HasOne("Domain.DataModel.User", "Friend")
+                    b.HasOne("Domain.DataModel.Student", "Friend")
                         .WithMany()
                         .HasForeignKey("FriendId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.DataModel.User", "Target")
+                    b.HasOne("Domain.DataModel.Student", "Target")
                         .WithMany("SocialNotifications")
                         .HasForeignKey("TargetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -693,28 +668,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Friend");
 
                     b.Navigation("Target");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.EventPicture", b =>
-                {
-                    b.HasOne("Domain.DataModel.Event", "Event")
-                        .WithMany("Pictures")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.PostPicture", b =>
-                {
-                    b.HasOne("Domain.DataModel.Post", "Post")
-                        .WithMany("Pictures")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("Domain.DataModel.CommentReport", b =>
@@ -759,19 +712,15 @@ namespace Infrastructure.Migrations
                 {
                     b.Navigation("Feedback");
 
-                    b.Navigation("Pictures");
-
                     b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("Domain.DataModel.Post", b =>
                 {
                     b.Navigation("Comments");
-
-                    b.Navigation("Pictures");
                 });
 
-            modelBuilder.Entity("Domain.DataModel.User", b =>
+            modelBuilder.Entity("Domain.DataModel.Student", b =>
                 {
                     b.Navigation("OrganizedEvents");
 

@@ -10,11 +10,11 @@ public class Post : BaseEntity
     public virtual Event Event { get; set; }
 
     public string Content { get; set; }
-    // public ICollection<string> Pictures { get; set; }
 
     public DateTime CreationDate { get; set; }
 
-    public virtual ICollection<Comment> Comments { get; set; }
+    public virtual ICollection<Comment> Comments { get; }
+    public virtual ICollection<PostPicture> Pictures { get; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected Post() { }
@@ -29,7 +29,8 @@ public class Post : BaseEntity
         Content = content;
 
         CreationDate = creationDate ?? DateTime.Now;
-
+        
         Comments = new List<Comment>();
+        Pictures = new List<PostPicture>();
     }
 }

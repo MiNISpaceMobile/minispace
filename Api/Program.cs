@@ -7,6 +7,8 @@ using Infrastructure.Authenticators;
 using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;
 using Infrastructure.JwtHandlers;
+using Infrastructure.PictureHandlers;
+using Infrastructure.PictureStorages;
 using Infrastructure.PingResponders;
 using Infrastructure.UnitOfWorks;
 using Microsoft.AspNetCore.Mvc;
@@ -47,8 +49,12 @@ builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
 builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+builder.Services.AddScoped<IPictureService, PictureService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
+// Integrations:
+builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
+builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();
 
 /* Warning! Important! Will help you later!
  * 

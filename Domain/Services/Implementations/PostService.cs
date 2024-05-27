@@ -4,7 +4,8 @@ using Domain.DataModel;
 
 namespace Domain.Services;
 
-public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostService>(uow), IPostService
+public class PostService(IUnitOfWork uow, IStorage storage)
+    : BaseService<IPostService, PostService>(uow), IPostService
 {
     public Post CreatePost(Guid eventGuid, string content)
     {
@@ -33,6 +34,9 @@ public class PostService(IUnitOfWork uow) : BaseService<IPostService, PostServic
         post.Event.Posts.Remove(post);
 
         uow.Commit();
+
+        // Remove all pictures and other potential related files
+        storage.TryDeleteDirectory(IStorage.PostDirectory(guid));
     }
 
     public Post GetPost(Guid guid)

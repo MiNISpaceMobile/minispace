@@ -3,6 +3,7 @@ using System;
 using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    partial class SqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240523140150_FixAfterMerge")]
+    partial class FixAfterMerge
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -236,7 +239,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("AuthorId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CreationDate")
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Details")
@@ -251,23 +257,17 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Feedback")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsOpen")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid?>("ResponderId")
+                        .HasColumnType("TEXT");
 
-                    b.Property<string>("ReportType")
+                    b.Property<string>("State")
                         .IsRequired()
                         .HasMaxLength(32)
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("ResponderId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdateDate")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Guid");

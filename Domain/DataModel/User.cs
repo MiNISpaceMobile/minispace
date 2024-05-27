@@ -13,6 +13,8 @@ public class User : BaseEntity
     public string Email { get; set; }
     public string Description { get; set; }
 
+    public string? ProfilePictureUrl { get; set; }
+
     public DateTime DateOfBirth { get; set; }
     public int Age
     {
@@ -45,7 +47,6 @@ public class User : BaseEntity
     public virtual ICollection<SocialNotification> SocialNotifications { get; }
     public virtual ICollection<FriendRequest> ReceivedFriendRequests { get; }
     public virtual ICollection<FriendRequest> SentFriendRequests { get; }
-
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected User() { }

@@ -38,11 +38,11 @@ public class ReportServiceTests
         c0 = new Comment(st0, p0, "first comment", null);
         c1 = new Comment(st1, p0, "second comment", null);
 
-        evRe0 = new EventReport(ev0, st0, "event report", "report details", ReportCategory.Unknown);
-        pRe0 = new PostReport(p0, st0, "post report", "report details", ReportCategory.Behaviour);
-        cRe0 = new CommentReport(c0, st1, "comment report", "report details", ReportCategory.Behaviour)
-        { State = ReportState.Failure };
-        cRe1 = new CommentReport(c1, st0, "comment report", "report details", ReportCategory.Unknown);
+        evRe0 = new EventReport(ev0, st0, "event report", "report details");
+        pRe0 = new PostReport(p0, st0, "post report", "report details");
+        cRe0 = new CommentReport(c0, st1, "comment report", "report details")
+        { IsOpen =false};
+        cRe1 = new CommentReport(c1, st0, "comment report", "report details");
 
         unitOfWork = new DictionaryUnitOfWork([st0, st1, ad0, ev0, p0, c0, c1, evRe0, pRe0, cRe0, cRe1]);
         service = new(unitOfWork);
@@ -140,7 +140,7 @@ public class ReportServiceTests
     [TestMethod]
     public void CreateReport_InvalidTargetEventGuid_ThrowsInvalidEventGuidException()
     {
-        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", 0, ReportType.Event);
+        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", ReportType.Event);
 
         Assert.ThrowsException<InvalidGuidException<Event>>(act);
     }
@@ -148,7 +148,7 @@ public class ReportServiceTests
     [TestMethod]
     public void CreateReport_InvalidTargetPostGuid_ThrowsInvalidEventGuidException()
     {
-        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", 0, ReportType.Post);
+        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", ReportType.Post);
 
         Assert.ThrowsException<InvalidGuidException<Post>>(act);
     }
@@ -156,7 +156,7 @@ public class ReportServiceTests
     [TestMethod]
     public void CreateReport_InvalidTargetCommentGuid_ThrowsInvalidEventGuidException()
     {
-        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", 0, ReportType.Comment);
+        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", ReportType.Comment);
 
         Assert.ThrowsException<InvalidGuidException<Comment>>(act);
     }
@@ -164,7 +164,7 @@ public class ReportServiceTests
     [TestMethod]
     public void CreateReport_InvalidTypeEnumValue_ThrowsInvalidOperationException()
     {
-        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", 0, (ReportType)3);
+        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", (ReportType)3);
 
         Assert.ThrowsException<InvalidOperationException>(act);
     }
@@ -172,7 +172,7 @@ public class ReportServiceTests
     [TestMethod]
     public void CreateReport_NotLoggedIn_ThrowsUserUnauthorizedException()
     {
-        void act() => service.AsUser(null).CreateReport(ev0.Guid, "title", "details", 0, ReportType.Event);
+        void act() => service.AsUser(null).CreateReport(ev0.Guid, "title", "details", ReportType.Event);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
     }
@@ -180,7 +180,7 @@ public class ReportServiceTests
     [TestMethod]
     public void CreateReport_ValidUserAndEventGuid_CreatesEventReport()
     {
-        var report = service.AsUser(st0.Guid).CreateReport(ev0.Guid, "title", "details", 0, ReportType.Event);
+        var report = service.AsUser(st0.Guid).CreateReport(ev0.Guid, "title", "details", ReportType.Event);
 
         Assert.IsNotNull(report);
         Assert.IsInstanceOfType<EventReport>(report);
@@ -190,7 +190,7 @@ public class ReportServiceTests
     [TestMethod]
     public void CreateReport_ValidUserAndPostGuid_CreatesPostReport()
     {
-        var report = service.AsUser(st0.Guid).CreateReport(p0.Guid, "title", "details", 0, ReportType.Post);
+        var report = service.AsUser(st0.Guid).CreateReport(p0.Guid, "title", "details", ReportType.Post);
 
         Assert.IsNotNull(report);
         Assert.IsInstanceOfType<PostReport>(report);
@@ -200,7 +200,7 @@ public class ReportServiceTests
     [TestMethod]
     public void CreateReport_ValidUserAndCommentGuid_CreatesCommentReport()
     {
-        var report = service.AsUser(st0.Guid).CreateReport(c0.Guid, "title", "details", 0, ReportType.Comment);
+        var report = service.AsUser(st0.Guid).CreateReport(c0.Guid, "title", "details", ReportType.Comment);
 
         Assert.IsNotNull(report);
         Assert.IsInstanceOfType<CommentReport>(report);
@@ -212,7 +212,7 @@ public class ReportServiceTests
     [TestMethod]
     public void ReviewReport_NotLoggedIn_ThrowsUserUnauthorizedException()
     {
-        void act() => service.AsUser(null).ReviewReport(Guid.Empty, null, 0);
+        void act() => service.AsUser(null).ReviewReport(Guid.Empty, null);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
     }
@@ -220,7 +220,7 @@ public class ReportServiceTests
     [TestMethod]
     public void ReviewReport_AsStudent_ThrowsUserUnauthorizedException()
     {
-        void act() => service.AsUser(st0.Guid).ReviewReport(Guid.Empty, null, 0);
+        void act() => service.AsUser(st0.Guid).ReviewReport(Guid.Empty, null);
 
         Assert.ThrowsException<UserUnauthorizedException>(act);
     }
@@ -228,7 +228,7 @@ public class ReportServiceTests
     [TestMethod]
     public void ReviewReport_InvalidReportGuid_ThrowsInvalidGuidException()
     {
-        void act() => service.AsUser(ad0.Guid).ReviewReport(Guid.Empty, null, 0);
+        void act() => service.AsUser(ad0.Guid).ReviewReport(Guid.Empty, null);
 
         Assert.ThrowsException<InvalidGuidException<Report>>(act);
     }
@@ -236,7 +236,7 @@ public class ReportServiceTests
     [TestMethod]
     public void ReviewReport_ReportIsClosed_ThrowsInvalidOperationExceptionException()
     {
-        void act() => service.AsUser(ad0.Guid).ReviewReport(cRe0.Guid, "feedback", 0);
+        void act() => service.AsUser(ad0.Guid).ReviewReport(cRe0.Guid, "feedback");
 
         Assert.ThrowsException<InvalidOperationException>(act);
     }
@@ -246,15 +246,15 @@ public class ReportServiceTests
     {
         var oldResponder = cRe1.Responder;
         var oldFeedback = cRe1.Feedback;
-        var oldState = cRe1.State;
+        var oldState = cRe1.IsOpen;
 
-        var report = service.AsUser(ad0.Guid).ReviewReport(cRe1.Guid, "feedback", ReportState.Success);
+        var report = service.AsUser(ad0.Guid).ReviewReport(cRe1.Guid, "feedback");
 
         Assert.IsNotNull(report);
         Assert.IsInstanceOfType<Report>(report);
         Assert.AreNotEqual(oldResponder, report.Responder);
         Assert.AreNotEqual(oldFeedback, report.Feedback);
-        Assert.AreNotEqual(oldState, report.State);
+        Assert.AreNotEqual(oldState, report.IsOpen);
     }
     #endregion ReviewReport
 

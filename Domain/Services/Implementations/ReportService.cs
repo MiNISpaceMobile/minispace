@@ -41,23 +41,21 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         reports = reports.Where(report => types.Contains(report.ReportType));
 
         if (open ^ closed)
-            reports = reports.Where(report => open ?
-            report.State == ReportState.Waiting || report.State == ReportState.Accepted :
-            !(report.State == ReportState.Waiting || report.State == ReportState.Accepted));
+            reports = reports.Where(report => open ? report.IsOpen : !report.IsOpen);
 
         return reports;
     }
 
-    public Report CreateReport(Guid targetId, string title, string details, ReportCategory category, ReportType type)
+    public Report CreateReport(Guid targetId, string title, string details, ReportType type)
     {
         AllowOnlyLoggedIn();
         User user = ActingUser!;
 
         var report = type switch
         {
-            ReportType.Event => CreateSpecificReport<Event>(targetId, user, title, details, category),
-            ReportType.Post => CreateSpecificReport<Post>(targetId, user, title, details, category),
-            ReportType.Comment => CreateSpecificReport<Comment>(targetId, user, title, details, category),
+            ReportType.Event => CreateSpecificReport<Event>(targetId, user, title, details),
+            ReportType.Post => CreateSpecificReport<Post>(targetId, user, title, details),
+            ReportType.Comment => CreateSpecificReport<Comment>(targetId, user, title, details),
             _ => throw new InvalidOperationException("Wrong ReportType")
         };
 
@@ -68,7 +66,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
-    public Report ReviewReport(Guid reportGuid, string? feedback, ReportState state)
+    public Report ReviewReport(Guid reportGuid, string? feedback)
     {
         AllowOnlyAdmins();
 
@@ -79,7 +77,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
 
         report.Responder = ActingUser;
         report.Feedback = feedback;
-        report.State = state;
+        report.IsOpen = false;
         report.UpdateDate = DateTime.Now;
 
         uow.Commit();
@@ -97,16 +95,15 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         uow.Commit();
     }
 
-    private Report CreateSpecificReport<TargetType>(Guid targetId, User author, string title,
-        string details, ReportCategory category)
+    private Report CreateSpecificReport<TargetType>(Guid targetId, User author, string title, string details)
         where TargetType : BaseEntity
     {
         var target = uow.Repository<TargetType>().GetOrThrow(targetId);
         return target switch
         {
-            Event @event => new EventReport(@event, author, title, details, category),
-            Post post => new PostReport(post, author, title, details, category),
-            Comment comment => new CommentReport(comment, author, title, details, category),
+            Event @event => new EventReport(@event, author, title, details),
+            Post post => new PostReport(post, author, title, details),
+            Comment comment => new CommentReport(comment, author, title, details),
             _ => throw new InvalidOperationException("Reporting this entity is not possible")
         };
     }

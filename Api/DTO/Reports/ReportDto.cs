@@ -9,9 +9,8 @@ public record ReportDto(
     Guid TargetId,
     string Title,
     string Details,
-    string ReportCategory,
     DateTime CreationDate,
     DateTime UpdateDate,
     string? Feedback,
-    string ReportState,
+    bool Open,
     string ReportType);

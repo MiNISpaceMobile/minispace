@@ -34,6 +34,6 @@ public static class MappingExtensions
 
     public static ReportDto ToDto(this Report report) =>
         new(report.Guid, report.Author?.ToDto(), report.Responder?.ToDto(), report.TargetId, report.Title,
-            report.Details, report.Category.ToString(), report.CreationDate, report.UpdateDate,
-            report.Feedback, report.State.ToString(), report.ReportType.ToString());
+            report.Details, report.CreationDate, report.UpdateDate,
+            report.Feedback, report.IsOpen, report.ReportType.ToString());
 }

@@ -6,5 +6,4 @@ public record CreateReport(
     Guid TargetId,
     string Title,
     string Details,
-    ReportCategory ReportCategory,
     ReportType ReportType);

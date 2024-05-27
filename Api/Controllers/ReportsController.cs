@@ -20,7 +20,7 @@ public class ReportsController(IReportService reportService) : ControllerBase
             var report = reportService
                 .AsUser(User.GetGuid())
                 .CreateReport(request.TargetId, request.Title, request.Details,
-                              request.ReportCategory, request.ReportType)
+                              request.ReportType)
                 .ToDto();
 
             return Ok(report);
@@ -60,7 +60,7 @@ public class ReportsController(IReportService reportService) : ControllerBase
         {
             var report = reportService
                 .AsUser(User.GetGuid())
-                .ReviewReport(id, request.Feedback, request.State)
+                .ReviewReport(id, request.Feedback)
                 .ToDto();
 
             return Ok(report);

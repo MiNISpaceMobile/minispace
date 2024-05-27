@@ -15,5 +15,5 @@ public interface IEventService : IBaseService<IEventService>
     public bool TryRemoveParticipant(Guid eventGuid);
     public bool TryAddInterested(Guid eventGuid);
     public bool TryRemoveInterested(Guid eventGuid);
-    public Feedback AddFeedback(Guid eventGuid, string content);
+    public Feedback AddFeedback(Guid eventGuid, int rating);
 }

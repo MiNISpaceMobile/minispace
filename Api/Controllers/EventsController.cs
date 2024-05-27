@@ -105,9 +105,9 @@ public class EventsController : ControllerBase
     [HttpPost]
     [Authorize]
     [Route("{eventGuid}/feedback")]
-    public ActionResult<Feedback> AddFeedback(Guid eventGuid, string feedback)
+    public ActionResult<Feedback> AddFeedback(Guid eventGuid, int rating)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(eventGuid, feedback));
+        return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(eventGuid, rating));
     }
 
     public enum PriceFilter

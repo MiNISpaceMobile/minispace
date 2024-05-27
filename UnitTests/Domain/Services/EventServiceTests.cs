@@ -388,23 +388,23 @@ public class EventServiceTests
         // Arrange
 
         // Act
-        Action action = () => sut.AddFeedback(Guid.Empty, string.Empty);
+        Action action = () => sut.AddFeedback(Guid.Empty, 0);
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
-    [TestMethod]
-    public void AddFeedback_EmptyContent_ShouldThrowEmptyContentException()
-    {
-        // Arrange
+    //[TestMethod]
+    //public void AddFeedback_EmptyContent_ShouldThrowEmptyContentException()
+    //{
+    //    // Arrange
 
-        // Act
-        Action action = () => sut.AddFeedback(events.Last().Guid, string.Empty);
+    //    // Act
+    //    Action action = () => sut.AddFeedback(events.Last().Guid, string.Empty);
 
-        // Assert
-        Assert.ThrowsException<EmptyContentException>(action);
-    }
+    //    // Assert
+    //    Assert.ThrowsException<EmptyContentException>(action);
+    //}
 
     [TestMethod]
     public void AddFeedback_AlreadyGivenFeedback_ShouldThrowInvalidOperationException()
@@ -412,11 +412,11 @@ public class EventServiceTests
         // Arrange
         Event @event = events.Last();
         User author = students.First();
-        Feedback feedback = new Feedback(author, @event, "a");
+        Feedback feedback = new Feedback(author, @event, 2);
         @event.Feedback.Add(feedback);
 
         // Act
-        Action action = () => sut.AddFeedback(@event.Guid, "b");
+        Action action = () => sut.AddFeedback(@event.Guid, 2);
 
         // Assert
         Assert.ThrowsException<InvalidOperationException>(action);
@@ -430,7 +430,7 @@ public class EventServiceTests
         User author = students.First();
 
         // Act
-        Feedback result = sut.AddFeedback(@event.Guid, "a");
+        Feedback result = sut.AddFeedback(@event.Guid, 2);
 
         // Assert
         Assert.IsTrue(@event.Feedback.Count == 1);

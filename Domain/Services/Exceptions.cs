@@ -95,3 +95,12 @@ public class FriendTargetException : MinispaceException
     public FriendTargetException() : base("This user cannot be befriended") { }
     public FriendTargetException(string message) : base(message) { }
 }
+
+/// <summary>
+/// Thrown when given rating is not in range 0-5
+/// </summary>
+public class InvalidRatingValueException : MinispaceException
+{
+    public InvalidRatingValueException() : base("Invalid value for rating") { }
+    public InvalidRatingValueException(string message) : base(message) { }
+}

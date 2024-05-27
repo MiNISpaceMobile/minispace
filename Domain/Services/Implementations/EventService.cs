@@ -203,7 +203,7 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
         return true;
     }
 
-    public Feedback AddFeedback(Guid eventGuid, string content)
+    public Feedback AddFeedback(Guid eventGuid, int rating)
     {
         AllowOnlyLoggedIn();
 
@@ -211,14 +211,16 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
-        if (string.IsNullOrEmpty(content))
-            throw new EmptyContentException();
+        if (rating < 0 || rating > 5)
+            throw new InvalidRatingValueException($"Value {rating} is invalid rating value");
 
         if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == author.Guid) is not null)
             throw new InvalidOperationException("This Student have already given Feedback to this Event");
 
-        Feedback feedback = new Feedback(author, @event, content);
-        //uow.Repository<Feedback>().Add(feedback);
+        if (@event.EndDate < DateTime.Now)
+            throw new InvalidOperationException("You can't rate event that has not ended yet");
+
+        Feedback feedback = new(author, @event, rating);
         @event.Feedback.Add(feedback);
 
         uow.Commit();

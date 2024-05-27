@@ -12,4 +12,5 @@ public record ListEventDto(
     int? AvailablePlaces,
     decimal? Fee,
     float? Rating,
-    IEnumerable<string> PictureUrls);
+    IEnumerable<string> PictureUrls,
+    bool IsEnded);

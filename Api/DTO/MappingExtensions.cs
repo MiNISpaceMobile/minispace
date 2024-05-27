@@ -37,7 +37,8 @@ public static class MappingExtensions
         int? avPlaces = null;
         if (e.Capacity is not null)
             avPlaces = e.Capacity - e.Participants.Count;
-        return new ListEventDto(e.Guid, e.Title, e.StartDate, e.EndDate, e.Location, e.Participants.Count, e.Interested.Count, avPlaces, e.Fee, null, e.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
+        return new ListEventDto(e.Guid, e.Title, e.StartDate, e.EndDate, e.Location, e.Participants.Count,
+            e.Interested.Count, avPlaces, e.Fee, null, e.Pictures.OrderBy(x => x.Index).Select(x => x.Url), e.EndDate < DateTime.Now);
     }
 
     public static NotificationDto ToDto(this BaseNotification notification) =>

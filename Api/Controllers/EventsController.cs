@@ -1,14 +1,10 @@
 ﻿using Api.DTO;
 using Api.DTO.Events;
-using Api.DTO.Users;
-using Domain.Abstractions;
 using Domain.DataModel;
 using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using System.ComponentModel;
 
 namespace Api.Controllers;
 
@@ -18,16 +14,10 @@ public class EventsController(IEventService eventService) : ControllerBase
 {
     [HttpGet]
     [SwaggerOperation("List all events")]
-    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging,
-        [FromQuery] IEnumerable<ParticipantsType>? participants = null,
-        [FromQuery] IEnumerable<TimeType>? time = null,
-        [FromQuery] string evNameFilter = "",
-        string orgNameFilter = "", 
-        PriceFilter priceFilter = PriceFilter.Any,
-        StartTimeFilter startTimeFilter = StartTimeFilter.Any, bool onlyAvailablePlace = false)
+    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, [FromQuery] GetEventsFilters f)
     {
         var events = eventService.GetAll();
-        events = Filter(events, evNameFilter, orgNameFilter, priceFilter, time, onlyAvailablePlace, participants);
+        events = Filter(events, f.EventName, f.OrganizerName, f.Time, f.OnlyAvailablePlace, f.Participants, f.Price);
 
         var paged = Paged<ListEventDto>.PageFrom(events.Select(e => e.ToListEventDto()),
             EventStateComparer.Instance, paging);
@@ -108,42 +98,16 @@ public class EventsController(IEventService eventService) : ControllerBase
         return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(eventGuid, rating));
     }
 
-    public enum ParticipantsType
-    {
-        To50,
-        From50To100,
-        Above100
-    }
-
-    public enum TimeType
-    {
-        Past,
-        Current,
-        Future
-    }
-
-    public enum PriceFilter
-    {
-        Any,
-        Free,
-        Paid
-    }
-    public enum StartTimeFilter
-    {
-        Any,
-        Ended,
-        Current,
-        Incoming
-    }
-
-    private List<Event> Filter(List<Event> events, string evNameFilter, string orgNameFilter,
-        PriceFilter priceFilter, IEnumerable<TimeType>? time, bool onlyAvailablePlace, IEnumerable<ParticipantsType>? participants)
+    private static List<Event> Filter(List<Event> events, string evNameFilter, string orgNameFilter, IEnumerable<TimeType>? time,
+        bool onlyAvailablePlace, IEnumerable<ParticipantsType>? participants, IEnumerable<PriceType>? price)
     {
         List<Event> filtered = events;
 
+        // Event name filter
         if (evNameFilter != string.Empty)
             filtered = filtered.FindAll(e => e.Title.Contains(evNameFilter));
 
+        // Organizer name filter
         if (orgNameFilter != string.Empty)
         {
             var name = orgNameFilter.Split();
@@ -154,15 +118,10 @@ public class EventsController(IEventService eventService) : ControllerBase
             filtered = filtered.FindAll(e => e.Organizer is not null && e.Organizer.FirstName.Contains(firstName) && e.Organizer.LastName.Contains(lastName));
         }
 
-        if (priceFilter == PriceFilter.Free)
-            filtered = filtered.FindAll(e => e.Fee is null);
-        else if (priceFilter == PriceFilter.Paid)
-            filtered = filtered.FindAll(e => e.Fee is not null);
-
         // Number of participants filter
-        if(participants is not null && participants.Any() && participants.Count() < 3)
+        if (participants is not null && participants.Any() && participants.Count() < 3)
         {
-            if(participants.Count() == 1)
+            if (participants.Count() == 1)
             {
                 filtered = participants.First() switch
                 {
@@ -206,7 +165,11 @@ public class EventsController(IEventService eventService) : ControllerBase
                     filtered = filtered.FindAll(x => (x.EndDate <= DateTime.Now) || (x.StartDate >= DateTime.Now));
             }
         }
-        
+
+        // Price filter
+        if (price is not null && price.Any() && price.Count() < 2)
+            filtered = filtered.FindAll(x => price.First() == PriceType.Free ? x.Fee is null || x.Fee == 0 : x.Fee is not null || x.Fee > 0);
+
 
         if (onlyAvailablePlace)
             filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));

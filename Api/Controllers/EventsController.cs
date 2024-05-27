@@ -66,6 +66,50 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
+    [HttpPost]
+    [Authorize]
+    [Route("{eventGuid}/participate")]
+    [SwaggerOperation("Register for event")]
+    public ActionResult<bool> RegisterForEvent(Guid eventGuid)
+    {
+        return Ok(eventService.AsUser(User.GetGuid()).TryAddParticipant(eventGuid));
+    }
+
+    [HttpDelete]
+    [Authorize]
+    [Route("{eventGuid}/participate")]
+    [SwaggerOperation("Unregister from event")]
+    public ActionResult<bool> UnregisterFromEvent(Guid eventGuid)
+    {
+        return Ok(eventService.AsUser(User.GetGuid()).TryRemoveParticipant(eventGuid));
+    }
+
+    [HttpPost]
+    [Authorize]
+    [Route("{eventGuid}/interest")]
+    [SwaggerOperation("Show interest in event")]
+    public ActionResult<bool> ShowInterestInEvent(Guid eventGuid)
+    {
+        return Ok(eventService.AsUser(User.GetGuid()).TryAddInterested(eventGuid));
+    }
+
+    [HttpDelete]
+    [Authorize]
+    [Route("{eventGuid}/interest")]
+    [SwaggerOperation("Remove interest from event")]
+    public ActionResult<bool> RemoveInterestInEvent(Guid eventGuid)
+    {
+        return Ok(eventService.AsUser(User.GetGuid()).TryRemoveInterested(eventGuid));
+    }
+
+    [HttpPost]
+    [Authorize]
+    [Route("{eventGuid}/feedback")]
+    public ActionResult<Feedback> AddFeedback(Guid eventGuid, string feedback)
+    {
+        return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(eventGuid, feedback));
+    }
+
     public enum PriceFilter
     {
         Any,

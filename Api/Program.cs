@@ -44,7 +44,7 @@ builder.Services.AddSingleton<ICryptographyProvider<RSAParameters>, RsaConfigCry
 builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
 builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
-builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+builder.Services.AddScoped<IPingResponder, PongPingResponder>();
 builder.Services.AddScoped<IPictureService, PictureService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // Integrations:

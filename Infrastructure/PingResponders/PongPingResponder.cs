@@ -1,8 +1,9 @@
 ﻿using Domain.Abstractions;
+using Domain.DataModel;
 
 namespace Infrastructure.PingResponders;
 
-public class PongPingResponder : IPingResponder
+public class PongPingResponder(IUnitOfWork uow) : IPingResponder
 {
     public string Response()
     {
@@ -10,6 +11,11 @@ public class PongPingResponder : IPingResponder
     }
     public string Response(Guid guid)
     {
-        return $"Pong to {guid}";
+        var user = uow.Repository<User>().Get(guid);
+
+        if (user is null)
+            return "Pong to noexistent";
+        
+        return $"Pong to {user.FirstName} {user.LastName}";
     }
 }

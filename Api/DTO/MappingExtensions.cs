@@ -21,15 +21,17 @@ public static class MappingExtensions
         new(post.Guid, post.EventId, post.Author?.ToDto(), post.CreationDate,
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
-    public static EventDto ToDto(this Event @event)
+    public static EventDto ToDto(this Event @event, User? user)
     {
         int? avPlaces = null;
         if (@event.Capacity is not null)
             avPlaces = @event.Capacity - @event.Participants.Count;
+        IEnumerable<UserDto>? friends = user?.Friends.Where(x => x.JoinedEvents.Contains(@event)).Select(x => x.ToDto());
         return new(@event.Guid, @event.Organizer?.ToDto(), @event.Title, @event.Description,
             @event.Category.ToString(), @event.StartDate, @event.EndDate,
-            @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount, @event.Fee, @event.Capacity, avPlaces, @event.AverageAge, null,
-            @event.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
+            @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount, @event.Fee, @event.Capacity, avPlaces, @event.AverageAge, @event.Rating,
+            @event.Pictures.OrderBy(x => x.Index).Select(x => x.Url), user?.SubscribedEvents.Contains(@event) ?? false, user?.JoinedEvents.Contains(@event) ?? false,
+            friends?.Count() ?? 0, friends ?? []);
     }
 
     public static ListEventDto ToListEventDto(this Event e)
@@ -38,7 +40,7 @@ public static class MappingExtensions
         if (e.Capacity is not null)
             avPlaces = e.Capacity - e.Participants.Count;
         return new ListEventDto(e.Guid, e.Title, e.StartDate, e.EndDate, e.Location, e.Participants.Count,
-            e.Interested.Count, avPlaces, e.Fee, null, e.Pictures.OrderBy(x => x.Index).Select(x => x.Url), e.EndDate < DateTime.Now);
+            e.Interested.Count, avPlaces, e.Fee, e.Rating, e.EndDate < DateTime.Now, e.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
     }
 
     public static NotificationDto ToDto(this BaseNotification notification) =>

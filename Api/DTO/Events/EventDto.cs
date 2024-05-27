@@ -19,4 +19,8 @@ public record EventDto(
     int? Availableplaces,
     int? AverageAge,
     float? Rating,
-    IEnumerable<string> PictureUrls);
+    IEnumerable<string> PictureUrls,
+    bool IsInterested,
+    bool IsParticipant,
+    int FriendsCount,
+    IEnumerable<UserDto> Friends);

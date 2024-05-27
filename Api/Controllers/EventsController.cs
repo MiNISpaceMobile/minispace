@@ -5,6 +5,7 @@ using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Diagnostics.Tracing;
 
 namespace Api.Controllers;
 
@@ -16,7 +17,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     [SwaggerOperation("List all events")]
     public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, [FromQuery] GetEventsFilters f)
     {
-        var events = eventService.GetAll();
+        var events = eventService.AsUser(User.TryGetGuid()).GetAll();
         events = Filter(events, f.EventName, f.OrganizerName, f.Time, f.OnlyAvailablePlace, f.Participants, f.Price);
 
         var paged = Paged<ListEventDto>.PageFrom(events.Select(e => e.ToListEventDto()),
@@ -28,10 +29,10 @@ public class EventsController(IEventService eventService) : ControllerBase
     [HttpGet]
     [Route("details")]
     [SwaggerOperation("Details of given event")]
-    public ActionResult GetEvent(Guid guid)
+    public ActionResult<EventDto> GetEvent(Guid guid)
     {
-        var @event = eventService.GetEvent(guid);
-        return Ok(@event.ToDto());
+        var @event = eventService.AsUser(User.TryGetGuid()).GetEvent(guid);
+        return Ok(@event.ToDto(eventService.ActingUser!));
     }
 
     [HttpPost]

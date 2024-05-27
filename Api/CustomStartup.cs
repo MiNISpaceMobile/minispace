@@ -8,7 +8,7 @@ public static class CustomStartup
 {
     public static void PerformCustomStartupActions(this WebApplication app, bool resetDb, bool generateDevAdminJwt)
     {
-        if (resetDb)
+        if (app.Environment.IsDevelopment() && resetDb)
             app.DeleteDevelopmentDatabase();
         app.CreateOrUpdateDevelopmentDatabase();
         app.SeedDatabaseIfEmpty();

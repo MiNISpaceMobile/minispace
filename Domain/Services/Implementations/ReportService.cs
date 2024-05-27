@@ -30,7 +30,7 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
 
     public IEnumerable<Report> GetReports(ICollection<ReportType> types, bool open, bool closed)
     {
-        AllowOnlyUser(ActingUser);
+        AllowOnlyLoggedIn();
 
         if (types.Count == 0 || (open == false && closed == false))
             return [];

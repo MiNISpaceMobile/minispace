@@ -71,6 +71,6 @@ public class ReportsController(IReportService reportService) : ControllerBase
             .AsUser(User.GetGuid())
             .DeleteReport(id);
 
-        return NoContent();
+        return Ok();
     }
 }

@@ -1,9 +1,11 @@
-﻿namespace Api.DTO.Events;
+﻿using Domain.DataModel;
+
+namespace Api.DTO.Events;
 
 public record CreateEvent(
     string Title,
     string Description,
-    string EventCategory,
+    EventCategory EventCategory,
     DateTime PublicationDate,
     DateTime StartDate,
     DateTime EndDate,

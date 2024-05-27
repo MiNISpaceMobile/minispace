@@ -52,10 +52,7 @@ public class EventsController : ControllerBase
     [SwaggerOperation("Create event")]
     public ActionResult CreateEvent(CreateEvent newEvent)
     {
-        EventCategory cat;
-        if (!Enum.TryParse(newEvent.EventCategory, out cat))
-            return BadRequest("Nonexistent category");
-        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, cat, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
+        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
         return Ok();
     }
 

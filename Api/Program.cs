@@ -80,6 +80,6 @@ app.UseExceptionHandler(o => { });
 app.MapControllers();
 
 // Our own function that setups a few things
-app.PerformCustomStartupActions(resetDb: true, generateDevAdminJwt: true);
+app.PerformCustomStartupActions(resetDb: true, generateDevUsersJwt: true);
 
 app.Run();

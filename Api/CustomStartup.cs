@@ -6,13 +6,13 @@ namespace Api;
 
 public static class CustomStartup
 {
-    public static void PerformCustomStartupActions(this WebApplication app, bool resetDb, bool generateDevAdminJwt)
+    public static void PerformCustomStartupActions(this WebApplication app, bool resetDb, bool generateDevUsersJwt)
     {
         if (app.Environment.IsDevelopment() && resetDb)
             app.DeleteDevelopmentDatabase();
         app.CreateOrUpdateDevelopmentDatabase();
         app.SeedDatabaseIfEmpty();
-        if (app.Environment.IsDevelopment() && generateDevAdminJwt)
+        if (generateDevUsersJwt)
             app.GenerateDevelopmentAdminJwt();
     }
 
@@ -60,12 +60,16 @@ public static class CustomStartup
         var week_ago = now.AddDays(-7);
         var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
 
-        if (app.Environment.IsDevelopment())
-        {
-            var devAdmin = new User("Dev", "Admin", "dev.admin@pw.edu.pl", now, "DevAdmin")
-            { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true };
-            uow.Repository<User>().Add(devAdmin);
-        }
+        var devAdmin = new User("Dev", "Admin", "dev.admin@pw.edu.pl", now, "DevAdmin")
+        { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true };
+
+        var devOrganizer = new User("Dev", "Organizer", "dev.organizer@pw.edu.pl", now, "DevOrganizer")
+        { Guid = Guid.Parse("d48c1100-3358-4734-9cca-05acadb5366e"), IsOrganizer = true };
+
+        var devStudent = new User("Dev", "Student", "dev.student@pw.edu.pl", now, "DevStudent")
+        { Guid = Guid.Parse("ca67e06e-9e32-4955-9b3c-02c673322779") };
+
+        uow.Repository<User>().AddMany([devAdmin, devOrganizer, devStudent]);
 
         var ad0 = new User("AdFirst0", "AdLast0", "ad0@pw.edu.pl", now)
         { Guid = Guid.Parse("d1f78079-dab3-4ee3-b8c2-73b217377d89"), IsAdmin = true };
@@ -136,11 +140,21 @@ public static class CustomStartup
     public static void GenerateDevelopmentAdminJwt(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();
-        var devAdmin = scope.ServiceProvider.GetRequiredService<IUnitOfWork>().Repository<User>()
-            .GetAll().Where(x => Equals(x.ExternalId, "DevAdmin")).SingleOrDefault();
-        if (devAdmin is null)
-            return;
-        var jwt = scope.ServiceProvider.GetRequiredService<IJwtHandler>().Encode(devAdmin.Guid);
-        app.Logger.LogDebug($"DevAdmin's JWT: {jwt}");
+        using var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var jwtHandler = scope.ServiceProvider.GetRequiredService<IJwtHandler>();
+
+        TimeSpan kindaMonth = TimeSpan.FromDays(30);
+
+        var devAdmin = uow.Repository<User>().GetAll().Where(x => Equals(x.ExternalId, "DevAdmin")).SingleOrDefault();
+        if (devAdmin is not null)
+            app.Logger.LogInformation($"DevAdmin's JWT: {jwtHandler.Encode(devAdmin.Guid, kindaMonth)}");
+
+        var devOrganizer = uow.Repository<User>().GetAll().Where(x => Equals(x.ExternalId, "DevOrganizer")).SingleOrDefault();
+        if (devOrganizer is not null)
+            app.Logger.LogInformation($"DevOrganizer's JWT: {jwtHandler.Encode(devOrganizer.Guid, kindaMonth)}");
+
+        var devStudent = uow.Repository<User>().GetAll().Where(x => Equals(x.ExternalId, "DevStudent")).SingleOrDefault();
+        if (devStudent is not null)
+            app.Logger.LogInformation($"DevStudent's JWT: {jwtHandler.Encode(devStudent.Guid, kindaMonth)}");
     }
 }

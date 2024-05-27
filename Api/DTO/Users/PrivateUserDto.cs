@@ -1,6 +1,6 @@
 ﻿namespace Api.DTO.Users;
 
-public record UserDto(
+public record PrivateUserDto(
     Guid Guid,
     string FirstName,
     string LastName,
@@ -10,4 +10,5 @@ public record UserDto(
     bool IsAdmin,
     bool IsOrganizer,
     bool EmailNotifications,
-    string? ProfilePictureUrl);
+    string? ProfilePictureUrl
+    ) : PublicUserDto(Guid, FirstName, LastName, Description, ProfilePictureUrl);

@@ -1,6 +1,7 @@
 ﻿using Api.DTO;
 using Api.DTO.Reports;
 using Domain.Services.Abstractions;
+using Domain.DataModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -19,6 +20,18 @@ public class ReportsController(IReportService reportService) : ControllerBase
         var report = reportService
             .AsUser(User.GetGuid())
             .CreateReport(request.TargetId, request.Title, request.Details, request.ReportType)
+            .ToDto();
+
+        return Ok(report);
+    }
+
+    [HttpGet("{id}")]
+    [SwaggerOperation("Get report by id")]
+    public ActionResult<Paged<ReportDto>> GetByGuid([FromRoute] Guid id)
+    {
+        var report = reportService
+            .AsUser(User.GetGuid())
+            .GetByGuid(id)
             .ToDto();
 
         return Ok(report);
@@ -51,7 +64,7 @@ public class ReportsController(IReportService reportService) : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [SwaggerOperation("Delete reports")]
+    [SwaggerOperation("Delete report")]
     public ActionResult DeleteReport([FromRoute] Guid id)
     {
         reportService

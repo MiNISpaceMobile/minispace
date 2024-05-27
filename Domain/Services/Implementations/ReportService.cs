@@ -25,6 +25,9 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
+    public Report GetByGuid(Guid guid)
+        => GetByGuid<Report>(guid);
+
     public IEnumerable<Report> GetReports(ICollection<ReportType> types, bool open, bool closed)
     {
         AllowOnlyUser(ActingUser);

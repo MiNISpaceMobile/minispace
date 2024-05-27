@@ -1,4 +1,5 @@
 ﻿using Api.DTO.Users;
+using Domain.DataModel;
 
 namespace Api.DTO.Reports;
 
@@ -13,4 +14,4 @@ public record ReportDto(
     DateTime UpdateDate,
     string? Feedback,
     bool Open,
-    string ReportType);
+    ReportType ReportType);

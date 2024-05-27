@@ -40,11 +40,11 @@ public class ReportsController(IReportService reportService) : ControllerBase
 
     [HttpPatch("{id}")]
     [SwaggerOperation("Review report - admin only")]
-    public ActionResult<ReportDto> ReviewReport([FromRoute] Guid id, string? feedback)
+    public ActionResult<ReportDto> ReviewReport([FromRoute] Guid id, [FromBody] ReviewReport request)
     {
         var report = reportService
             .AsUser(User.GetGuid())
-            .ReviewReport(id, feedback)
+            .ReviewReport(id, request.Feedback)
             .ToDto();
 
         return Ok(report);

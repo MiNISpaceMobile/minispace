@@ -4,5 +4,5 @@ namespace Api.DTO.Comments;
 
 public record CommentDto(
     Guid Guid,
-    UserDto? Author,
+    PublicUserDto? Author,
     string Content);

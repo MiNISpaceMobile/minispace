@@ -1,6 +1,7 @@
 using Api;
 using Api.Auth;
 using Domain.Abstractions;
+using Domain.Services;
 using Domain.Services.Abstractions;
 using Domain.Services.Implementations;
 using Infrastructure.Authenticators;
@@ -48,13 +49,15 @@ builder.Services.AddSingleton<ICryptographyProvider<RSAParameters>, RsaConfigCry
 builder.Services.AddScoped<IJwtHandler, MinispaceSignedJwtHandler>();
 builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
-builder.Services.AddSingleton<IPingResponder, PongPingResponder>();
+builder.Services.AddScoped<IPingResponder, PongPingResponder>();
 builder.Services.AddScoped<IPictureService, PictureService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // Integrations:
 builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
 builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IPostService, PostService>();
 
 /* Warning! Important! Will help you later!
  * 
@@ -85,6 +88,6 @@ app.UseExceptionHandler(o => { });
 app.MapControllers();
 
 // Our own function that setups a few things
-app.PerformCustomStartupActions(resetDb: true, generateDevAdminJwt: true);
+app.PerformCustomStartupActions(resetDb: true, generateDevUsersJwt: true);
 
 app.Run();

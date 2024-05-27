@@ -24,10 +24,22 @@ namespace Api.Controllers
         [Route("users")]
         [Authorize]
         [SwaggerOperation("List users - admin only")]
-        public ActionResult<Paged<UserDto>> GetUsers([FromQuery] Paging paging)
+        public ActionResult<Paged<PrivateUserDto>> GetUsers([FromQuery] Paging paging)
         {
             var users = userService.AsUser(User.GetGuid()).GetUsers();
-            var paged = Paged<UserDto>.PageFrom(users.Select(u => u.ToDto()),
+            var paged = Paged<PrivateUserDto>.PageFrom(users.Select(u => u.ToPrivateDto()),
+                UserNameComparer.Instance, paging);
+            return Ok(paged);
+        }
+
+        [HttpGet]
+        [Route("users/search")]
+        [Authorize]
+        [SwaggerOperation("List users with matching names")]
+        public ActionResult<Paged<PublicUserDto>> GetSearchedUsers([FromQuery] Paging paging, [FromQuery] string firstName, [FromQuery] string lastName)
+        {
+            var users = userService.AsUser(User.GetGuid()).SearchUsers(firstName, lastName);
+            var paged = Paged<PublicUserDto>.PageFrom(users.Select(x => x.ToDto()),
                 UserNameComparer.Instance, paging);
             return Ok(paged);
         }
@@ -36,21 +48,21 @@ namespace Api.Controllers
         [Route("user")]
         [Authorize]
         [SwaggerOperation("Get acting user data")]
-        public ActionResult<UserDto> Get()
+        public ActionResult<PrivateUserDto> Get()
         {
             var user = userService.AsUser(User.GetGuid()).GetUser();
-            return Ok(user.ToDto());
+            return Ok(user.ToPrivateDto());
         }
 
         [HttpPut]
         [Route("user")]
         [Authorize]
         [SwaggerOperation("Update acting user data")]
-        public ActionResult<UserDto> Put([FromBody] UpdateUserDto dto)
+        public ActionResult<PrivateUserDto> Put([FromBody] UpdateUserDto dto)
         {
             var user = userService.AsUser(User.GetGuid()).UpdateUser(dto.FirstName, dto.LastName,
                 dto.Email, dto.Description, dto.DateOfBirth, dto.EmailNotifications);
-            return Ok(user.ToDto());
+            return Ok(user.ToPrivateDto());
         }
 
         [HttpDelete]
@@ -67,9 +79,19 @@ namespace Api.Controllers
         [Route("user/{target}")]
         [Authorize]
         [SwaggerOperation("Get target user data - admin only")]
-        public ActionResult<UserDto> Get([FromRoute] Guid target)
+        public ActionResult<PrivateUserDto> Get([FromRoute] Guid target)
         {
-            var user = userService.AsUser(User.GetGuid()).GetUser(target);
+            var user = userService.AsUser(User.GetGuid()).GetUser(target, true);
+            return Ok(user.ToDto());
+        }
+
+        [HttpGet]
+        [Route("user/{target}/public")]
+        [Authorize]
+        [SwaggerOperation("Get target user public data")]
+        public ActionResult<PublicUserDto> GetPublic([FromRoute] Guid target)
+        {
+            var user = userService.AsUser(User.GetGuid()).GetUser(target, false);
             return Ok(user.ToDto());
         }
 
@@ -77,10 +99,22 @@ namespace Api.Controllers
         [Route("user/{target}/roles")]
         [Authorize]
         [SwaggerOperation("Update target user roles - admin only")]
-        public ActionResult<(bool IsAdmin, bool IsOrganizer)> Patch([FromRoute] Guid target, [FromQuery] bool? isAdmin, [FromQuery] bool? isOrganizer)
+        public ActionResult<(bool IsAdmin, bool IsOrganizer)> PatchRoles([FromRoute] Guid target, [FromQuery] bool? isAdmin, [FromQuery] bool? isOrganizer)
         {
             var roles = userService.AsUser(User.GetGuid()).UserRoles(target, isAdmin, isOrganizer);
             return Ok(roles);
+        }
+
+        [HttpGet]
+        [Route("user/friends")]
+        [Authorize]
+        [SwaggerOperation("Get acting user friend list")]
+        public ActionResult<Paged<PublicUserDto>> GetFriends([FromQuery] Paging paging)
+        {
+            var friends = userService.AsUser(User.GetGuid()).GetUser().Friends;
+            var paged = Paged<PublicUserDto>.PageFrom(friends.Select(x => x.ToDto()),
+                UserNameComparer.Instance, paging);
+            return Ok(paged);
         }
 
         [HttpPost]
@@ -100,7 +134,7 @@ namespace Api.Controllers
         public ActionResult<Paged<FriendRequestDto>> GetSentFriendRequests([FromQuery] Paging paging)
         {
             var outgoing = userService.AsUser(User.GetGuid()).GetUser().SentFriendRequests;
-            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto()),
+            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto(false)),
                 BaseNotificationTimestampComparer.Instance, paging);
             return Ok(paged);
         }
@@ -112,7 +146,7 @@ namespace Api.Controllers
         public ActionResult<Paged<FriendRequestDto>> GetReceivedFriendRequests([FromQuery] Paging paging)
         {
             var outgoing = userService.AsUser(User.GetGuid()).GetUser().ReceivedFriendRequests;
-            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto()),
+            var paged = Paged<FriendRequestDto>.PageFrom(outgoing.Select((FriendRequest x) => x.ToDto(true)),
                 BaseNotificationTimestampComparer.Instance, paging);
             return Ok(paged);
         }

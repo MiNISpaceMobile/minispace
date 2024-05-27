@@ -5,8 +5,8 @@ namespace Api.DTO.Reports;
 
 public record ReportDto(
     Guid Guid,
-    UserDto? Author,
-    UserDto? Responder,
+    PublicUserDto? Author,
+    PublicUserDto? Responder,
     Guid TargetId,
     string Title,
     string Details,

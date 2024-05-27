@@ -19,14 +19,16 @@ public class MinispaceSignedJwtHandler : IJwtHandler
         algorithm = new RS256Algorithm(rsa, rsa);
     }
 
-    public string Encode(Guid guid)
+    public string Encode(Guid guid, TimeSpan? expireAfter = null)
     {
+        DateTime expiry = DateTime.UtcNow + (expireAfter ?? TimeSpan.FromDays(1));
+
         return JwtBuilder.Create()
             .WithAlgorithm(algorithm)
             .Issuer(Issuer)
             .Audience(Audience)
             .IssuedAt(DateTime.UtcNow)
-            .ExpirationTime(DateTime.UtcNow.AddDays(1))
+            .ExpirationTime(expiry)
             .Subject(guid.ToString("N"))
             .Encode();
     }

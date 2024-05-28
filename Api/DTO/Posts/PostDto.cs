@@ -7,6 +7,6 @@ public record PostDto(
     string Content,
     Guid EventGuid,
     string EventTitle,
-    UserDto? Author,
+    PublicUserDto? Author,
     DateTime CreationDate,
     IEnumerable<string> PictureUrls);

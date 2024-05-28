@@ -7,9 +7,11 @@ public interface IUserService : IBaseService<IUserService>
 {
     public IEnumerable<User> GetUsers();
 
-    public User GetUser(Guid guid);
+    public IEnumerable<User> SearchUsers(string firstName, string lastName);
 
     public User GetUser();
+
+    public User GetUser(Guid guid, bool includePrivate = false);
 
     public User CreateUser(string firstName, string lastName, string email, DateTime dob, string? externalId = null);
 

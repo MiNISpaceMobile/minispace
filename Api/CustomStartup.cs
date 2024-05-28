@@ -121,11 +121,11 @@ public static class CustomStartup
         co1.Likers.Add(st1);
         Comment[] comments = [co0, co1, co2];
 
-        var re0 = new CommentReport(co2, st1, "Re0", "Des0", ReportCategory.Behaviour)
+        var re0 = new CommentReport(co2, st1, "Re0", "Des0")
             { Guid = Guid.Parse("05cc7ef1-489b-4313-89fc-f617a07248f9") };
-        var re1 = new EventReport(ev0, st0, "Re1", "Des1", ReportCategory.Bug)
+        var re1 = new EventReport(ev0, st0, "Re1", "Des1")
             { Guid = Guid.Parse("7fb6f604-3a5c-4b57-9211-7173776cb0d7") };
-        var re2 = new PostReport(po2, st2, "Re2", "Des2", ReportCategory.Behaviour)
+        var re2 = new PostReport(po2, st2, "Re2", "Des2")
             { Guid = Guid.Parse("1efef05d-6ee6-48be-b636-dde8f82e8679") };
         Report[] reports = [re0, re1, re2];
 

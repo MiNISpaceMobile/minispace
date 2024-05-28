@@ -2,6 +2,7 @@
 using Api.DTO.Events;
 using Api.DTO.Notifications;
 using Api.DTO.Posts;
+using Api.DTO.Reports;
 using Api.DTO.Users;
 using Domain.DataModel;
 using Microsoft.Extensions.Logging;
@@ -51,4 +52,8 @@ public static class MappingExtensions
     public static FriendRequestDto ToDto(this FriendRequest friendRequest, bool asReceived) =>
         new(friendRequest.Guid, friendRequest.Timestamp,
             asReceived ? friendRequest.Author.ToDto() : friendRequest.Target.ToDto());
+    public static ReportDto ToDto(this Report report) =>
+    new(report.Guid, report.Author?.ToDto(), report.Responder?.ToDto(), report.TargetId, report.Title,
+        report.Details, report.CreationDate, report.UpdateDate,
+        report.Feedback, report.IsOpen, report.ReportType);
 }

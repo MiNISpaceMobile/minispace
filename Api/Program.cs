@@ -24,7 +24,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => options.AddJwtAuthorization().AddDefaultValues().EnableAnnotations());
 
 builder.Services.AddControllers(options => options.Filters.Add(new ProducesAttribute("application/json")))
-                .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
 
 /* Add things to dependency injection below!
  * 
@@ -47,6 +51,7 @@ builder.Services.AddScoped<IAuthenticator, UsosAuthenticator>();
 // Services:
 builder.Services.AddScoped<IPingResponder, PongPingResponder>();
 builder.Services.AddScoped<IPictureService, PictureService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // Integrations:
 builder.Services.AddSingleton<IStorage, AzureBlobStorage>();

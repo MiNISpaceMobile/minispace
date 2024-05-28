@@ -2,10 +2,10 @@
 using Api.DTO.Events;
 using Domain.DataModel;
 using Domain.Services;
+using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Diagnostics.Tracing;
 
 namespace Api.Controllers;
 
@@ -18,7 +18,10 @@ public class EventsController(IEventService eventService) : ControllerBase
     public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, [FromQuery] GetEventsFilters f)
     {
         var events = eventService.AsUser(User.TryGetGuid()).GetAll();
-        events = Filter(events, f.EventName, f.OrganizerName, f.Time, f.OnlyAvailablePlace, f.Participants, f.Price);
+        events = Filter(events, f.EventName, f.OrganizerName,
+            f.Time?.OfType<TimeType>(), f.OnlyAvailablePlace,
+            f.Participants?.OfType<ParticipantsType>(),
+            f.Price?.OfType<PriceType>());
 
         var paged = Paged<ListEventDto>.PageFrom(events.Select(e => e.ToListEventDto()),
             EventStateComparer.Instance, paging);
@@ -27,7 +30,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     }
 
     [HttpGet]
-    [Route("details")]
+    [Route("{guid}/details")]
     [SwaggerOperation("Details of given event")]
     public ActionResult<EventDto> GetEvent(Guid guid)
     {
@@ -39,10 +42,11 @@ public class EventsController(IEventService eventService) : ControllerBase
     [Authorize]
     [Route("create")]
     [SwaggerOperation("Create event")]
-    public ActionResult CreateEvent(CreateEvent newEvent)
+    public ActionResult<EventDto> CreateEvent(CreateEvent newEvent)
     {
-        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
-        return Ok();
+        var @event = eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory, newEvent.PublicationDate,
+            newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
+        return Ok(@event.ToDto(eventService.ActingUser));
     }
 
     [HttpDelete]
@@ -99,15 +103,12 @@ public class EventsController(IEventService eventService) : ControllerBase
         return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(eventGuid, rating));
     }
 
-    private static List<Event> Filter(List<Event> events, string evNameFilter, string orgNameFilter, IEnumerable<TimeType>? time,
+    private static IEnumerable<Event> Filter(IEnumerable<Event> events, string evNameFilter, string orgNameFilter, IEnumerable<TimeType>? time,
         bool onlyAvailablePlace, IEnumerable<ParticipantsType>? participants, IEnumerable<PriceType>? price)
     {
-        List<Event> filtered = events;
-
         // Event name filter
         if (evNameFilter != string.Empty)
-            filtered = filtered.FindAll(e => e.Title.Contains(evNameFilter));
-
+            events = events.Where(e => e.Title.Contains(evNameFilter));
         // Organizer name filter
         if (orgNameFilter != string.Empty)
         {
@@ -116,7 +117,7 @@ public class EventsController(IEventService eventService) : ControllerBase
             string lastName = string.Empty;
             if (name.Length > 1)
                 lastName = name[1];
-            filtered = filtered.FindAll(e => e.Organizer is not null && e.Organizer.FirstName.Contains(firstName) && e.Organizer.LastName.Contains(lastName));
+            events = events.Where(e => e.Organizer is not null && e.Organizer.FirstName.Contains(firstName) && e.Organizer.LastName.Contains(lastName));
         }
 
         // Number of participants filter
@@ -124,22 +125,22 @@ public class EventsController(IEventService eventService) : ControllerBase
         {
             if (participants.Count() == 1)
             {
-                filtered = participants.First() switch
+                events = participants.First() switch
                 {
-                    ParticipantsType.To50 => filtered.FindAll(x => x.Participants.Count <= 50 && x.Participants.Count >= 0),
-                    ParticipantsType.From50To100 => filtered.FindAll(x => x.Participants.Count >= 50 && x.Participants.Count <= 100),
-                    ParticipantsType.Above100 => filtered.FindAll(x => x.Participants.Count >= 100),
+                    ParticipantsType.To50 => events.Where(x => x.Participants.Count <= 50 && x.Participants.Count >= 0),
+                    ParticipantsType.From50To100 => events.Where(x => x.Participants.Count >= 50 && x.Participants.Count <= 100),
+                    ParticipantsType.Above100 => events.Where(x => x.Participants.Count >= 100),
                     _ => throw new InvalidOperationException()
                 };
             }
             else
             {
                 if (!participants.Contains(ParticipantsType.To50))
-                    filtered = filtered.FindAll(x => x.Participants.Count >= 50);
+                    events = events.Where(x => x.Participants.Count >= 50);
                 else if (!participants.Contains(ParticipantsType.Above100))
-                    filtered = filtered.FindAll(x => x.Participants.Count >= 0 && x.Participants.Count <= 100);
+                    events = events.Where(x => x.Participants.Count >= 0 && x.Participants.Count <= 100);
                 else if (!participants.Contains(ParticipantsType.From50To100))
-                    filtered = filtered.FindAll(x => (x.Participants.Count >= 0 && x.Participants.Count <= 50) || (x.Participants.Count >= 100));
+                    events = events.Where(x => (x.Participants.Count >= 0 && x.Participants.Count <= 50) || (x.Participants.Count >= 100));
             }
         }
 
@@ -148,33 +149,33 @@ public class EventsController(IEventService eventService) : ControllerBase
         {
             if (time.Count() == 1)
             {
-                filtered = time.First() switch
+                events = time.First() switch
                 {
-                    TimeType.Past => filtered.FindAll(x => x.EndDate <= DateTime.Now),
-                    TimeType.Current => filtered.FindAll(x => x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now),
-                    TimeType.Future => filtered.FindAll(x => x.StartDate >= DateTime.Now),
+                    TimeType.Past => events.Where(x => x.EndDate <= DateTime.Now),
+                    TimeType.Current => events.Where(x => x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now),
+                    TimeType.Future => events.Where(x => x.StartDate >= DateTime.Now),
                     _ => throw new InvalidOperationException()
                 };
             }
             else
             {
                 if (!time.Contains(TimeType.Past))
-                    filtered = filtered.FindAll(x => x.EndDate >= DateTime.Now);
+                    events = events.Where(x => x.EndDate >= DateTime.Now);
                 else if (!time.Contains(TimeType.Future))
-                    filtered = filtered.FindAll(x => x.StartDate <= DateTime.Now);
+                    events = events.Where(x => x.StartDate <= DateTime.Now);
                 else if (!time.Contains(TimeType.Current))
-                    filtered = filtered.FindAll(x => (x.EndDate <= DateTime.Now) || (x.StartDate >= DateTime.Now));
+                    events = events.Where(x => (x.EndDate <= DateTime.Now) || (x.StartDate >= DateTime.Now));
             }
         }
 
         // Price filter
         if (price is not null && price.Any() && price.Count() < 2)
-            filtered = filtered.FindAll(x => price.First() == PriceType.Free ? x.Fee is null || x.Fee == 0 : x.Fee is not null || x.Fee > 0);
+            events = events.Where(x => price.First() == PriceType.Free ? x.Fee is null || x.Fee == 0 : x.Fee is not null || x.Fee > 0);
 
 
         if (onlyAvailablePlace)
-            filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
+            events = events.Where(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
 
-        return filtered;
+        return events;
     }
 }

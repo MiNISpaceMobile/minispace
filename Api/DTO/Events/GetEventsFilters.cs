@@ -2,9 +2,9 @@
 namespace Api.DTO.Events;
 
 public record GetEventsFilters(
-    IEnumerable<ParticipantsType>? Participants = null,
-    IEnumerable<TimeType>? Time = null,
-    IEnumerable<PriceType>? Price = null,
+    IEnumerable<ParticipantsType?>? Participants = null,
+    IEnumerable<TimeType?>? Time = null,
+    IEnumerable<PriceType?>? Price = null,
     string EventName = "",
     string OrganizerName = "",
     bool OnlyAvailablePlace = false);

@@ -5,7 +5,7 @@ namespace Domain.Services;
 
 public interface IEventService : IBaseService<IEventService>
 {
-    public List<Event> GetAll();
+    public IEnumerable<Event> GetAll();
     public Event GetEvent(Guid guid);
     public Event CreateEvent(string title, string description, EventCategory category, DateTime publicationDate,
                  DateTime startDate, DateTime endDate, string location, int? capacity, decimal? fee);

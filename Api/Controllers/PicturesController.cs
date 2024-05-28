@@ -1,5 +1,4 @@
-﻿using Api.DTO.Pictures;
-using Domain.Services.Abstractions;
+﻿using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,19 +38,19 @@ public class PicturesController : ControllerBase
     [Route("events/{id}/pictures")]
     [Produces("text/plain")]
     [Authorize]
-    public ActionResult<string> PostEventPicture([FromRoute] Guid id, IFormFile picture, [FromBody] PictureIndexDto dto)
+    public ActionResult<string> PostEventPicture([FromRoute] Guid id, IFormFile picture, [FromQuery] int index)
     {
         using Stream s = picture.OpenReadStream();
-        string url = pictureService.AsUser(User.GetGuid()).UploadEventPicture(id, dto.Index, s);
+        string url = pictureService.AsUser(User.GetGuid()).UploadEventPicture(id, index, s);
         return Ok(url);
     }
 
     [HttpDelete]
     [Route("events/{id}/pictures")]
     [Authorize]
-    public ActionResult DeleteEventPicture([FromRoute] Guid id, [FromBody] PictureIndexDto dto)
+    public ActionResult DeleteEventPicture([FromRoute] Guid id, [FromQuery] int index)
     {
-        pictureService.AsUser(User.GetGuid()).DeleteEventPicture(id, dto.Index);
+        pictureService.AsUser(User.GetGuid()).DeleteEventPicture(id, index);
         return Ok();
     }
 
@@ -59,19 +58,19 @@ public class PicturesController : ControllerBase
     [Route("posts/{id}/pictures")]
     [Produces("text/plain")]
     [Authorize]
-    public ActionResult<string> PostPostPicture([FromRoute] Guid id, IFormFile picture, [FromBody] PictureIndexDto dto)
+    public ActionResult<string> PostPostPicture([FromRoute] Guid id, IFormFile picture, [FromQuery] int index)
     {
         using Stream s = picture.OpenReadStream();
-        string url = pictureService.AsUser(User.GetGuid()).UploadPostPicture(id, dto.Index, s);
+        string url = pictureService.AsUser(User.GetGuid()).UploadPostPicture(id, index, s);
         return Ok(url);
     }
 
     [HttpDelete]
     [Route("posts/{id}/pictures")]
     [Authorize]
-    public ActionResult DeletePostPicture([FromRoute] Guid id, [FromBody] PictureIndexDto dto)
+    public ActionResult DeletePostPicture([FromRoute] Guid id, [FromQuery] int index)
     {
-        pictureService.AsUser(User.GetGuid()).DeletePostPicture(id, dto.Index);
+        pictureService.AsUser(User.GetGuid()).DeletePostPicture(id, index);
         return Ok();
     }
 }

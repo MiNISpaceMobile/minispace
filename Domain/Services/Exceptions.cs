@@ -95,3 +95,15 @@ public class FriendTargetException : MinispaceException
     public FriendTargetException() : base("This user cannot be befriended") { }
     public FriendTargetException(string message) : base(message) { }
 }
+
+public class InvalidDomainEnumException : MinispaceException
+{
+    public InvalidDomainEnumException() : base("This value of enum is not supported") { }
+    public InvalidDomainEnumException(string message) : base(message) { }
+}
+
+public class ClosedReportException : MinispaceException
+{
+    public ClosedReportException() : base("This report is closed") { }
+    public ClosedReportException(string message) : base(message) { }
+}

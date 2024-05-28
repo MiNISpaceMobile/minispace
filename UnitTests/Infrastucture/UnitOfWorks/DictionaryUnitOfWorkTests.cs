@@ -30,9 +30,9 @@ public class DictionaryUnitOfWorkTests
         var po = new Post(st, ev, "po");
         var co = new Comment(st, po, "co", null);
 
-        var er = new EventReport(ev, ad, "er", "er", ReportCategory.Bug);
-        var pr = new PostReport(po, ad, "pr", "pr", ReportCategory.Behaviour);
-        var cr = new CommentReport(co, ad, "cr", "cr", ReportCategory.Bug);
+        var er = new EventReport(ev, ad, "er", "er");
+        var pr = new PostReport(po, ad, "pr", "pr");
+        var cr = new CommentReport(co, ad, "cr", "cr");
 
         sut = new DictionaryUnitOfWork([ad, st, ev, po, co, er, pr, cr]);
 

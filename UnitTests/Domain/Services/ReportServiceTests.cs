@@ -1,7 +1,7 @@
 ﻿using Domain.Abstractions;
-using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
+using Domain.Services.Implementations;
 using Infrastructure.UnitOfWorks;
 
 namespace UnitTests.Domain.Services;
@@ -11,6 +11,7 @@ public class ReportServiceTests
 {
 #pragma warning disable CS8618 // Unassigned non-nullables
     private IUnitOfWork unitOfWork;
+    private ReportService service;
     private EventReport evRe0;
     private PostReport pRe0;
     private CommentReport cRe0;
@@ -37,26 +38,23 @@ public class ReportServiceTests
         c0 = new Comment(st0, p0, "first comment", null);
         c1 = new Comment(st1, p0, "second comment", null);
 
-        evRe0 = new EventReport(ev0, st0, "event report", "report details", ReportCategory.Unknown);
-        pRe0 = new PostReport(p0, st0, "post report", "report details", ReportCategory.Behaviour);
-        cRe0 = new CommentReport(c0, st1, "comment report", "report details", ReportCategory.Behaviour)
-        { State = ReportState.Failure };
-        cRe1 = new CommentReport(c1, st0, "comment report", "report details", ReportCategory.Unknown);
+        evRe0 = new EventReport(ev0, st0, "event report", "report details");
+        pRe0 = new PostReport(p0, st0, "post report", "report details");
+        cRe0 = new CommentReport(c0, st1, "comment report", "report details")
+        { IsOpen =false};
+        cRe1 = new CommentReport(c1, st0, "comment report", "report details");
 
         unitOfWork = new DictionaryUnitOfWork([st0, st1, ad0, ev0, p0, c0, c1, evRe0, pRe0, cRe0, cRe1]);
+        service = new(unitOfWork);
+
     }
 
     #region GetAll
     [TestMethod]
     public void GetAll_ReportType_ReturnsAllReports()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
-
-        // Act
         var result = service.AsUser(ad0.Guid).GetAll<Report>();
 
-        // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(4, result.Count());
     }
@@ -64,13 +62,8 @@ public class ReportServiceTests
     [TestMethod]
     public void GetAll_ConcreteReportType_ReturnsOnlyConcreteReports()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
-
-        // Act
         IEnumerable<Report> result = service.AsUser(ad0.Guid).GetAll<CommentReport>();
 
-        // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(2, result.Count());
         Assert.IsTrue(result.All(x => x is CommentReport));
@@ -79,28 +72,67 @@ public class ReportServiceTests
 
     #region GetByGuid
     [TestMethod]
-    public void GetByGuid_InvalidGuid_ThrowsException()
+    public void GetByGuid_InvalidGuid_ThrowsInvalidGuidException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
-
-        // Act
         void act() => service.AsUser(ad0.Guid).GetByGuid<Report>(Guid.Empty);
 
-        // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
+    }
+
+    [TestMethod]
+    public void GetByGuid_NonGeneric_InvalidGuid_ThrowsInvalidGuidException()
+    {
+        void act() => service.AsUser(ad0.Guid).GetByGuid(Guid.Empty);
+
+        var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
+    }
+
+    [TestMethod]
+    public void GetByGuid_NotLoggedIn_ThrowsUserUnauthorizedException()
+    {
+        void act() => service.AsUser(null).GetByGuid<EventReport>(evRe0.Guid);
+
+        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
+    }
+
+    [TestMethod]
+    public void GetByGuid_NonGeneric_NotLoggedIn_ThrowsUserUnauthorizedException()
+    {
+        void act() => service.AsUser(null).GetByGuid(evRe0.Guid);
+
+        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
+    }
+
+    [TestMethod]
+    public void GetByGuid_WrongAuthorId_ThrowsUserUnauthorizedException()
+    {
+        void act() => service.AsUser(st1.Guid).GetByGuid<EventReport>(evRe0.Guid);
+
+        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
+    }
+
+    [TestMethod]
+    public void GetByGuid_NonGeneric_WrongAuthorId_ThrowsUserUnauthorizedException()
+    {
+        void act() => service.AsUser(st1.Guid).GetByGuid(evRe0.Guid);
+
+        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
     }
 
     [TestMethod]
     public void GetByGuid_ValidGuid_ReturnsReport()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
-
-        // Act
         var result = service.AsUser(ad0.Guid).GetByGuid<Report>(evRe0.Guid);
 
-        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(evRe0.Guid, result.Guid);
+    }
+
+    [TestMethod]
+    public void GetByGuid_NonGeneric_ValidGuid_ReturnsReport()
+    {
+        var result = service.AsUser(st0.Guid).GetByGuid(evRe0.Guid);
+
         Assert.IsNotNull(result);
         Assert.AreEqual(evRe0.Guid, result.Guid);
     }
@@ -108,13 +140,8 @@ public class ReportServiceTests
     [TestMethod]
     public void GetByGuid_ValidGuidOfConcreteReportType_ReturnsReportOfConcreteType()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
-
-        // Act
         Report result = service.AsUser(ad0.Guid).GetByGuid<CommentReport>(cRe0.Guid);
 
-        // Assert
         Assert.IsNotNull(result);
         Assert.IsTrue(result is CommentReport);
     }
@@ -122,129 +149,172 @@ public class ReportServiceTests
     [TestMethod]
     public void GetByGuid_ValidGuidOfConcreteReportType_ThrowsExceptionIfTypeIsDifferent()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
-
-        // Act
         void act() => service.AsUser(ad0.Guid).GetByGuid<CommentReport>(evRe0.Guid);
 
-        // Assert
         var exception = Assert.ThrowsException<InvalidGuidException<CommentReport>>(act);
     }
     #endregion GetByGuid
 
     #region CreateReport
     [TestMethod]
-    public void CreateReport_InvalidTargetGuid_ThrowsException()
+    public void CreateReport_InvalidTargetEventGuid_ThrowsInvalidEventGuidException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
+        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", ReportType.Event);
 
-        // Act
-        void act() => service.AsUser(st0.Guid).CreateReport<Event, EventReport>(Guid.Empty, "title", "details", ReportCategory.Unknown);
-
-        // Assert
-        var exception = Assert.ThrowsException<InvalidGuidException<Event>>(act);
+        Assert.ThrowsException<InvalidGuidException<Event>>(act);
     }
 
     [TestMethod]
-    public void CreateReport_NotLoggedIn_ThrowsUserUnauthorized()
+    public void CreateReport_InvalidTargetPostGuid_ThrowsInvalidEventGuidException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
+        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", ReportType.Post);
 
-        // Act
-        void act() => service.AsUser(null).CreateReport<Event, EventReport>(ev0.Guid, "title", "details", ReportCategory.Unknown);
-
-        // Assert
-        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
+        Assert.ThrowsException<InvalidGuidException<Post>>(act);
     }
 
     [TestMethod]
-    public void CreateReport_ValidGuids_CreatesReport()
+    public void CreateReport_InvalidTargetCommentGuid_ThrowsInvalidEventGuidException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
+        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", ReportType.Comment);
 
-        // Act
-        var report = service.AsUser(st0.Guid).CreateReport<Event, EventReport>(ev0.Guid, "title", "details", ReportCategory.Unknown);
+        Assert.ThrowsException<InvalidGuidException<Comment>>(act);
+    }
 
-        // Assert
+    [TestMethod]
+    public void CreateReport_InvalidTypeEnumValue_ThrowsInvalidOperationException()
+    {
+        void act() => service.AsUser(st0.Guid).CreateReport(Guid.Empty, "title", "details", (ReportType)3);
+
+        Assert.ThrowsException<InvalidDomainEnumException>(act);
+    }
+
+    [TestMethod]
+    public void CreateReport_NotLoggedIn_ThrowsUserUnauthorizedException()
+    {
+        void act() => service.AsUser(null).CreateReport(ev0.Guid, "title", "details", ReportType.Event);
+
+        Assert.ThrowsException<UserUnauthorizedException>(act);
+    }
+
+    [TestMethod]
+    public void CreateReport_ValidUserAndEventGuid_CreatesEventReport()
+    {
+        var report = service.AsUser(st0.Guid).CreateReport(ev0.Guid, "title", "details", ReportType.Event);
+
         Assert.IsNotNull(report);
-        Assert.IsTrue(unitOfWork.Repository<EventReport>().Get(report.Guid) is not null);
+        Assert.IsInstanceOfType<EventReport>(report);
+        Assert.IsTrue(unitOfWork.Repository<Report>().Get(report.Guid) is not null);
+    }
+
+    [TestMethod]
+    public void CreateReport_ValidUserAndPostGuid_CreatesPostReport()
+    {
+        var report = service.AsUser(st0.Guid).CreateReport(p0.Guid, "title", "details", ReportType.Post);
+
+        Assert.IsNotNull(report);
+        Assert.IsInstanceOfType<PostReport>(report);
+        Assert.IsTrue(unitOfWork.Repository<Report>().Get(report.Guid) is not null);
+    }
+
+    [TestMethod]
+    public void CreateReport_ValidUserAndCommentGuid_CreatesCommentReport()
+    {
+        var report = service.AsUser(st0.Guid).CreateReport(c0.Guid, "title", "details", ReportType.Comment);
+
+        Assert.IsNotNull(report);
+        Assert.IsInstanceOfType<CommentReport>(report);
+        Assert.IsTrue(unitOfWork.Repository<Report>().Get(report.Guid) is not null);
     }
     #endregion CreateReport
 
-    #region UpdateReport
+    #region ReviewReport
     [TestMethod]
-    public void UpdateReport_AsStudent_ThrowsUserUnauthorized()
+    public void ReviewReport_NotLoggedIn_ThrowsUserUnauthorizedException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
+        void act() => service.AsUser(null).ReviewReport(Guid.Empty, null);
 
-        var newStudent = new User("abc", "abc", "abc", DateTime.Now);
-        var newReport = new CommentReport(c0, newStudent, "title", "details", ReportCategory.Bug) { Guid = cRe1.Guid };
-        
-        // Act
-        void act() => service.AsUser(st0.Guid).UpdateReport(newReport);
-
-        // Assert
-        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
+        Assert.ThrowsException<UserUnauthorizedException>(act);
     }
 
     [TestMethod]
-    public void UpdateReport_InvalidReportGuid_ThrowsException()
+    public void ReviewReport_AsStudent_ThrowsUserUnauthorizedException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
-        var newReport = new CommentReport(c0, st0, "title", "details", ReportCategory.Bug);
+        void act() => service.AsUser(st0.Guid).ReviewReport(Guid.Empty, null);
 
-        // Act
-        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport);
-
-        // Assert
-        var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
+        Assert.ThrowsException<UserUnauthorizedException>(act);
     }
 
     [TestMethod]
-    public void UpdateReport_ReportIsClosed_ThrowsException()
+    public void ReviewReport_InvalidReportGuid_ThrowsInvalidGuidException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
-        var newReport = new CommentReport(c0, st1, "title", "details", ReportCategory.Bug) { Guid = cRe0.Guid };
+        void act() => service.AsUser(ad0.Guid).ReviewReport(Guid.Empty, null);
 
-        // Act
-        void act() => service.AsUser(ad0.Guid).UpdateReport(newReport);
-
-        // Assert
-        var exception = Assert.ThrowsException<InvalidOperationException>(act);
+        Assert.ThrowsException<InvalidGuidException<Report>>(act);
     }
-    #endregion UpdateReport
+
+    [TestMethod]
+    public void ReviewReport_ReportIsClosed_ThrowsInvalidOperationExceptionException()
+    {
+        void act() => service.AsUser(ad0.Guid).ReviewReport(cRe0.Guid, "feedback");
+
+        Assert.ThrowsException<ClosedReportException>(act);
+    }
+
+    [TestMethod]
+    public void ReviewReport_ReportIsOpen_UpdatesReport()
+    {
+        var oldResponder = cRe1.Responder;
+        var oldFeedback = cRe1.Feedback;
+        var oldState = cRe1.IsOpen;
+
+        var report = service.AsUser(ad0.Guid).ReviewReport(cRe1.Guid, "feedback");
+
+        Assert.IsNotNull(report);
+        Assert.IsInstanceOfType<Report>(report);
+        Assert.AreNotEqual(oldResponder, report.Responder);
+        Assert.AreNotEqual(oldFeedback, report.Feedback);
+        Assert.AreNotEqual(oldState, report.IsOpen);
+    }
+    #endregion ReviewReport
 
     #region DeleteReport
     [TestMethod]
-    public void DeleteReport_InvalidGuid_ThrowsException()
+    public void DeleteReport_NotLoggedIn_ThrowsUnauthorizedException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
+        void act() => service.AsUser(null).DeleteReport(cRe0.Guid);
 
-        // Act
-        void act() => service.AsUser(ad0.Guid).DeleteReport(Guid.Empty);
-
-        // Assert
-        var exception = Assert.ThrowsException<InvalidGuidException<Report>>(act);
+        Assert.ThrowsException<UserUnauthorizedException>(act);
     }
 
     [TestMethod]
-    public void DeleteReport_ValidGuid_DeletesReport()
+    public void DeleteReport_WrongUser_ThrowsUnauthorizedException()
     {
-        // Arrange
-        ReportService service = new(unitOfWork);
+        void act() => service.AsUser(st0.Guid).DeleteReport(cRe0.Guid);
 
-        // Act
+        Assert.ThrowsException<UserUnauthorizedException>(act);
+    }
+
+    [TestMethod]
+    public void DeleteReport_InvalidGuid_ThrowsInvalidGuidException()
+    {
+        void act() => service.AsUser(ad0.Guid).DeleteReport(Guid.Empty);
+
+         Assert.ThrowsException<InvalidGuidException<Report>>(act);
+    }
+
+    [TestMethod]
+    public void DeleteReport_ValidUserAndReportGuid_DeletesReport()
+    {
         service.AsUser(st0.Guid).DeleteReport(evRe0.Guid);
 
-        // Assert
+        Assert.IsFalse(unitOfWork.Repository<Report>().TryGet(evRe0.Guid, out _));
+    }
+
+    [TestMethod]
+    public void DeleteReport_ValidAdminAndReportGuid_DeletesReport()
+    {
+        service.AsUser(ad0.Guid).DeleteReport(evRe0.Guid);
+
         Assert.IsFalse(unitOfWork.Repository<Report>().TryGet(evRe0.Guid, out _));
     }
     #endregion DeleteReport

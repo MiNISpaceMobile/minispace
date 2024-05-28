@@ -122,7 +122,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     {
         // Event name filter
         if (!string.IsNullOrEmpty(evNameFilter))
-            events = events.Where(e => e.Title.Contains(evNameFilter));
+            events = events.Where(e => e.Title.Contains(evNameFilter, StringComparison.InvariantCultureIgnoreCase));
 
         // Organizer name filter
         if (!string.IsNullOrEmpty(orgNameFilter))
@@ -132,7 +132,9 @@ public class EventsController(IEventService eventService) : ControllerBase
             string lastName = string.Empty;
             if (name.Length > 1)
                 lastName = name[1];
-            events = events.Where(e => e.Organizer is not null && e.Organizer.FirstName.Contains(firstName) && e.Organizer.LastName.Contains(lastName));
+            events = events.Where(e => e.Organizer is not null &&
+            e.Organizer.FirstName.Contains(firstName, StringComparison.InvariantCultureIgnoreCase) &&
+            e.Organizer.LastName.Contains(lastName, StringComparison.InvariantCultureIgnoreCase));
         }
 
         // Number of participants filter
@@ -145,7 +147,7 @@ public class EventsController(IEventService eventService) : ControllerBase
                     ParticipantsType.To50 => events.Where(x => x.Participants.Count <= 50 && x.Participants.Count >= 0),
                     ParticipantsType.From50To100 => events.Where(x => x.Participants.Count >= 50 && x.Participants.Count <= 100),
                     ParticipantsType.Above100 => events.Where(x => x.Participants.Count >= 100),
-                    _ => throw new InvalidOperationException()
+                    _ => throw new InvalidDomainEnumException()
                 };
             }
             else
@@ -169,7 +171,7 @@ public class EventsController(IEventService eventService) : ControllerBase
                     TimeType.Past => events.Where(x => x.EndDate <= DateTime.Now),
                     TimeType.Current => events.Where(x => x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now),
                     TimeType.Future => events.Where(x => x.StartDate >= DateTime.Now),
-                    _ => throw new InvalidOperationException()
+                    _ => throw new InvalidDomainEnumException()
                 };
             }
             else

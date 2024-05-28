@@ -142,7 +142,7 @@ public class PostServiceTests
         // Arrange
 
         // Act
-        var action = () => sut.GetUsersPosts(new Guid());
+        var action = () => sut.AsUser(new Guid()).GetUsersPosts();
 
         // Assert
         Assert.ThrowsException<InvalidGuidException<User>>(action);
@@ -161,7 +161,7 @@ public class PostServiceTests
         }
 
         // Act
-        var result = sut.GetUsersPosts(user.Guid);
+        var result = sut.AsUser(user.Guid).GetUsersPosts();
 
         // Assert
         Assert.AreEqual(events.Count, result.Count);

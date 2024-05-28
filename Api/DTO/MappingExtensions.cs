@@ -59,4 +59,7 @@ public static class MappingExtensions
     new(report.Guid, report.Author?.ToDto(), report.Responder?.ToDto(), report.TargetId, report.Title,
         report.Details, report.CreationDate, report.UpdateDate,
         report.Feedback, report.IsOpen, report.ReportType);
+
+    public static FeedbackDto ToDto(this Feedback feedback) =>
+        new(feedback.EventId, feedback.Author.ToDto(), feedback.Rating);
 }

@@ -2,15 +2,20 @@
 using Api.DTO.Events;
 using Api.DTO.Notifications;
 using Api.DTO.Posts;
+using Api.DTO.Reports;
 using Api.DTO.Users;
 using Domain.DataModel;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace Api.DTO;
 
 public static class MappingExtensions
 {
-    public static UserDto ToDto(this User user) =>
+    public static PublicUserDto ToDto(this User user) =>
+        new(user.Guid, user.FirstName, user.LastName, user.Description);
+
+    public static PrivateUserDto ToPrivateDto(this User user) =>
         new(user.Guid, user.FirstName, user.LastName, user.Email, user.Description,
             user.DateOfBirth, user.IsAdmin, user.IsOrganizer, user.EmailNotification, user.ProfilePictureUrl);
 
@@ -18,7 +23,7 @@ public static class MappingExtensions
         new(comment.Guid, comment.Author?.ToDto(), comment.Content);
 
     public static PostDto ToDto(this Post post) =>
-        new(post.Guid, post.EventId, post.Author?.ToDto(), post.CreationDate,
+        new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
     public static EventDto ToDto(this Event @event, User? user)
@@ -47,6 +52,11 @@ public static class MappingExtensions
         new(notification.Guid, notification.SourceId, notification.TypeString,
             notification.Seen, notification.Timestamp);
 
-    public static FriendRequestDto ToDto(this FriendRequest friendRequest) =>
-        new(friendRequest.Guid, friendRequest.TargetId, friendRequest.AuthorId, friendRequest.Timestamp);
+    public static FriendRequestDto ToDto(this FriendRequest friendRequest, bool asReceived) =>
+        new(friendRequest.Guid, friendRequest.Timestamp,
+            asReceived ? friendRequest.Author.ToDto() : friendRequest.Target.ToDto());
+    public static ReportDto ToDto(this Report report) =>
+    new(report.Guid, report.Author?.ToDto(), report.Responder?.ToDto(), report.TargetId, report.Title,
+        report.Details, report.CreationDate, report.UpdateDate,
+        report.Feedback, report.IsOpen, report.ReportType);
 }

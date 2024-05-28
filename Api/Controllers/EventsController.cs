@@ -1,5 +1,6 @@
 ﻿using Api.DTO;
 using Api.DTO.Events;
+using Api.DTO.Posts;
 using Domain.DataModel;
 using Domain.Services;
 using Domain.Services.Abstractions;
@@ -29,21 +30,36 @@ public class EventsController(IEventService eventService) : ControllerBase
         return Ok(paged);
     }
 
-    [HttpGet]
-    [Route("{guid}/details")]
-    [SwaggerOperation("Details of given event")]
-    public ActionResult<EventDto> GetEvent(Guid guid)
+    [HttpPost]
+    [Authorize]
+    [SwaggerOperation("Create event")]
+    public ActionResult CreateEvent(CreateEvent newEvent)
     {
-        var @event = eventService.AsUser(User.TryGetGuid()).GetEvent(guid);
-        return Ok(@event.ToDto(eventService.ActingUser!));
+        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
+        return Ok();
     }
 
+    [HttpGet]
+    [Route("{id}")]
+    [SwaggerOperation("Details of given event")]
+    public ActionResult GetEvent(Guid id)
+    {
+        var @event = eventService.GetEvent(id);
+        return Ok(@event.ToDto());
+    }
+
+    [HttpGet]
+    [Route("{id}/posts")]
+    [SwaggerOperation("List event's posts")]
+    public ActionResult<Paged<PostDto>> GetEventPosts([FromQuery] Paging paging, [FromRoute] Guid id)
     [HttpPost]
     [Authorize]
     [Route("create")]
     [SwaggerOperation("Create event")]
     public ActionResult<EventDto> CreateEvent(CreateEvent newEvent)
     {
+        var @event = eventService.AsUser(User.GetGuid()).GetEvent(id);
+        return Paged<PostDto>.PageFrom(@event.Posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
         var @event = eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory, newEvent.PublicationDate,
             newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
         return Ok(@event.ToDto(eventService.ActingUser));
@@ -51,11 +67,11 @@ public class EventsController(IEventService eventService) : ControllerBase
 
     [HttpDelete]
     [Authorize]
-    [Route("delete")]
+    [Route("{id}")]
     [SwaggerOperation("Delete event")]
-    public ActionResult DeleteEvent(Guid eventGuid)
+    public ActionResult DeleteEvent(Guid id)
     {
-        eventService.AsUser(User.GetGuid()).DeleteEvent(eventGuid);
+        eventService.AsUser(User.GetGuid()).DeleteEvent(id);
         return Ok();
     }
 

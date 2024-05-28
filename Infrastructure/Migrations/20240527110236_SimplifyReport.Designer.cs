@@ -3,6 +3,7 @@ using System;
 using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    partial class SqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240527110236_SimplifyReport")]
+    partial class SimplifyReport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -161,41 +164,15 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.HasKey("AuthorId", "EventId");
 
                     b.HasIndex("EventId");
 
                     b.ToTable("Feedback");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.Picture", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Index")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Picture");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Picture");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Domain.DataModel.Post", b =>
@@ -325,9 +302,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Guid");
 
                     b.HasIndex("ExternalId")
@@ -434,30 +408,6 @@ namespace Infrastructure.Migrations
                         });
 
                     b.HasDiscriminator().HasValue("SocialNotification");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.EventPicture", b =>
-                {
-                    b.HasBaseType("Domain.DataModel.Picture");
-
-                    b.Property<Guid>("EventId")
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("EventId");
-
-                    b.HasDiscriminator().HasValue("EventPicture");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.PostPicture", b =>
-                {
-                    b.HasBaseType("Domain.DataModel.Picture");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("PostId");
-
-                    b.HasDiscriminator().HasValue("PostPicture");
                 });
 
             modelBuilder.Entity("Domain.DataModel.CommentReport", b =>
@@ -694,28 +644,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Target");
                 });
 
-            modelBuilder.Entity("Domain.DataModel.EventPicture", b =>
-                {
-                    b.HasOne("Domain.DataModel.Event", "Event")
-                        .WithMany("Pictures")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.PostPicture", b =>
-                {
-                    b.HasOne("Domain.DataModel.Post", "Post")
-                        .WithMany("Pictures")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-                });
-
             modelBuilder.Entity("Domain.DataModel.CommentReport", b =>
                 {
                     b.HasOne("Domain.DataModel.Comment", "ReportedComment")
@@ -758,16 +686,12 @@ namespace Infrastructure.Migrations
                 {
                     b.Navigation("Feedback");
 
-                    b.Navigation("Pictures");
-
                     b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("Domain.DataModel.Post", b =>
                 {
                     b.Navigation("Comments");
-
-                    b.Navigation("Pictures");
                 });
 
             modelBuilder.Entity("Domain.DataModel.User", b =>

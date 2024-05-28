@@ -4,7 +4,7 @@ namespace Api.DTO.Events;
 
 public record EventDto(
     Guid Guid,
-    UserDto? Organizer,
+    PublicUserDto? Organizer,
     string Title,
     string Description,
     string EventCategory,

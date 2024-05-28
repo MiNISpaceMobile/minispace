@@ -1,8 +1,9 @@
 ﻿using Domain.Abstractions;
 using Domain.BaseTypes;
 using Domain.DataModel;
+using Domain.Services.Abstractions;
 
-namespace Domain.Services;
+namespace Domain.Services.Implementations;
 
 public class ReportService(IUnitOfWork uow) : BaseService<IReportService, ReportService>(uow), IReportService
 {
@@ -24,38 +25,65 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         return report;
     }
 
-    public ReportType CreateReport<TargetType, ReportType>(Guid targetId, string title,
-        string details, ReportCategory category)
-        where TargetType : BaseEntity
-        where ReportType : Report
+    public Report GetByGuid(Guid guid)
+        => GetByGuid<Report>(guid);
+
+    public IEnumerable<Report> GetReports(ICollection<ReportType> types, bool open, bool closed, bool all)
+    {
+        if (all)
+            AllowOnlyAdmins();
+        else
+            AllowOnlyLoggedIn();
+
+        if (types.Count == 0 || (open == false && closed == false))
+            return [];
+
+        var reports = uow.Repository<Report>().GetAll();
+
+        if (!all)
+            reports = reports.Where(report => report.AuthorId == ActingUser!.Guid);
+
+        reports = reports.Where(report => types.Contains(report.ReportType));
+
+        if (open ^ closed)
+            reports = reports.Where(report => open ? report.IsOpen : !report.IsOpen);
+
+        return reports;
+    }
+
+    public Report CreateReport(Guid targetId, string title, string details, ReportType type)
     {
         AllowOnlyLoggedIn();
+        User user = ActingUser!;
 
-        var author = ActingUser!;
+        var report = type switch
+        {
+            ReportType.Event => CreateSpecificReport<Event>(targetId, user, title, details),
+            ReportType.Post => CreateSpecificReport<Post>(targetId, user, title, details),
+            ReportType.Comment => CreateSpecificReport<Comment>(targetId, user, title, details),
+            _ => throw new InvalidDomainEnumException("Wrong ReportType")
+        };
 
-        var target = uow.Repository<TargetType>().GetOrThrow(targetId);
-
-        var report = (ReportType)CreateSpecificReport(target, author, title, details, category);
-
-        uow.Repository<ReportType>().Add(report);
+        uow.Repository<Report>().Add(report);
 
         uow.Commit();
 
         return report;
     }
 
-    public Report UpdateReport(Report newReport)
+    public Report ReviewReport(Guid reportGuid, string? feedback)
     {
         AllowOnlyAdmins();
 
-        var report = uow.Repository<Report>().GetOrThrow(newReport.Guid);
+        var report = uow.Repository<Report>().GetOrThrow(reportGuid);
 
         if (!report.IsOpen)
-            throw new InvalidOperationException("Report is closed");
+            throw new ClosedReportException("Report is closed");
 
-        report.Responder = ActingUser!;
-        report.Feedback = newReport.Feedback;
-        report.State = newReport.State;
+        report.Responder = ActingUser;
+        report.Feedback = feedback;
+        report.IsOpen = false;
+        report.UpdateDate = DateTime.Now;
 
         uow.Commit();
 
@@ -72,16 +100,16 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
         uow.Commit();
     }
 
-    private static Report CreateSpecificReport<TargetType>(TargetType target, User author, string title,
-        string details, ReportCategory category)
+    private Report CreateSpecificReport<TargetType>(Guid targetId, User author, string title, string details)
         where TargetType : BaseEntity
     {
+        var target = uow.Repository<TargetType>().GetOrThrow(targetId);
         return target switch
         {
-            Event @event => new EventReport(@event, author, title, details, category),
-            Post post => new PostReport(post, author, title, details, category),
-            Comment comment => new CommentReport(comment, author, title, details, category),
-            _ => throw new InvalidOperationException("Reporting this entity is not possible")
+            Event @event => new EventReport(@event, author, title, details),
+            Post post => new PostReport(post, author, title, details),
+            Comment comment => new CommentReport(comment, author, title, details),
+            _ => throw new InvalidDomainEnumException("Reporting this entity is not possible")
         };
     }
 }

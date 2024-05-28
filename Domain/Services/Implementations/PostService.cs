@@ -49,4 +49,15 @@ public class PostService(IUnitOfWork uow, IStorage storage)
 
         return post;
     }
+
+    public List<Post> GetUsersPosts()
+    {
+        AllowOnlyLoggedIn();
+
+        List<Post> posts = new List<Post>();
+        foreach (var e in ActingUser!.SubscribedEvents.AsEnumerable())
+            posts.AddRange(e.Posts);
+
+        return posts;
+    }
 }

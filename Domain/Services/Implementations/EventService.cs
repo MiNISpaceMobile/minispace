@@ -46,10 +46,10 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
 
         while (@event.Posts.Count > 0) 
             postService.AsUser(@event.Organizer?.Guid).DeletePost(@event.Posts.First().Guid);
-        while (@event.Participants.Count > 0)
-            TryRemoveParticipant(@event.Guid);
-        while (@event.Interested.Count > 0)
-            TryRemoveInterested(@event.Guid);
+        @event.Participants.Clear();
+        foreach (var user in @event.Interested)
+            user.SubscribedEvents.Remove(@event);
+        @event.Interested.Clear();
 
         uow.Repository<Event>().TryDelete(guid);
 

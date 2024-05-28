@@ -96,11 +96,14 @@ public class FriendTargetException : MinispaceException
     public FriendTargetException(string message) : base(message) { }
 }
 
-/// <summary>
-/// Thrown when given rating is not in range 0-5
-/// </summary>
-public class InvalidRatingValueException : MinispaceException
+public class InvalidDomainEnumException : MinispaceException
 {
-    public InvalidRatingValueException() : base("Invalid value for rating") { }
-    public InvalidRatingValueException(string message) : base(message) { }
+    public InvalidDomainEnumException() : base("This value of enum is not supported") { }
+    public InvalidDomainEnumException(string message) : base(message) { }
+}
+
+public class ClosedReportException : MinispaceException
+{
+    public ClosedReportException() : base("This report is closed") { }
+    public ClosedReportException(string message) : base(message) { }
 }

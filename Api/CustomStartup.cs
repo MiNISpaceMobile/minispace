@@ -61,7 +61,7 @@ public static class CustomStartup
         var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
 
         var devAdmin = new User("Dev", "Admin", "dev.admin@pw.edu.pl", now, "DevAdmin")
-        { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true };
+        { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true, IsOrganizer = true };
 
         var devOrganizer = new User("Dev", "Organizer", "dev.organizer@pw.edu.pl", now, "DevOrganizer")
         { Guid = Guid.Parse("d48c1100-3358-4734-9cca-05acadb5366e"), IsOrganizer = true };
@@ -95,10 +95,13 @@ public static class CustomStartup
             { Guid = Guid.Parse("acbcd26e-877c-45cf-a697-ff4a3c70980a"), ViewCount = 2 };
         ev0.Participants.Add(st0); ev0.Participants.Add(st1);
         ev0.Interested.Add(st0);
+        st0.SubscribedEvents.Add(ev0); st1.SubscribedEvents.Add(ev0);
         ev1.Participants.Add(st0);
         ev1.Interested.Add(st0); ev1.Interested.Add(st2);
+        st0.SubscribedEvents.Add(ev1); st2.SubscribedEvents.Add(ev1);
         ev2.Participants.Add(st1);
         ev2.Interested.Add(st1); ev2.Interested.Add(st2);
+        st1.SubscribedEvents.Add(ev2); st2.SubscribedEvents.Add(ev2);
         Event[] events = [ev0, ev1, ev2];
 
         var po0 = new Post(st0, ev0, "Po0")

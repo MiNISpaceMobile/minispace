@@ -91,7 +91,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     [Authorize]
     [Route("{id}/interested")]
     [SwaggerOperation("Show interest in event")]
-    public ActionResult<bool> ShowInterestInEvent(Guid id)
+    public ActionResult ShowInterestInEvent(Guid id)
     {
         return eventService.AsUser(User.GetGuid()).TryAddInterested(id) ?
             Ok() : BadRequest("You are already interested in this event");

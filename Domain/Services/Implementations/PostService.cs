@@ -50,14 +50,12 @@ public class PostService(IUnitOfWork uow, IStorage storage)
         return post;
     }
 
-    public List<Post> GetUsersPosts(Guid guid)
+    public List<Post> GetUsersPosts()
     {
-        User? user = uow.Repository<User>().Get(guid);
-        if (user is null)
-            throw new InvalidGuidException<User>();
+        AllowOnlyLoggedIn();
 
         List<Post> posts = new List<Post>();
-        foreach (var e in user.SubscribedEvents.AsEnumerable())
+        foreach (var e in ActingUser!.SubscribedEvents.AsEnumerable())
             posts.AddRange(e.Posts);
 
         return posts;

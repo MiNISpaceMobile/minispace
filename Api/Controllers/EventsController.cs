@@ -111,9 +111,9 @@ public class EventsController(IEventService eventService) : ControllerBase
     [Authorize]
     [Route("{id}/rate")]
     [SwaggerOperation("Rate ended event")]
-    public ActionResult<Feedback> AddFeedback(Guid id, int rating)
+    public ActionResult<Feedback> AddFeedback(Guid id, [FromBody] AddRating request)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(id, rating));
+        return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(id, request.Rating));
     }
 
     private static IEnumerable<Event> Filter(IEnumerable<Event> events, IEnumerable<TimeType>? time,

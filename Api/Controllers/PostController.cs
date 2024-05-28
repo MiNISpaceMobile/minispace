@@ -1,7 +1,5 @@
 ﻿using Api.DTO;
-using Api.DTO.Events;
 using Api.DTO.Posts;
-using Api.DTO.Users;
 using Domain.DataModel;
 using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -15,19 +13,17 @@ namespace Api.Controllers;
 public class PostController : ControllerBase
 {
     private IPostService postService;
-    private IEventService eventService;
 
-    public PostController(IPostService postService, IEventService eventService)
+    public PostController(IPostService postService)
     {
         this.postService = postService;
-        this.eventService = eventService;
     }
 
     [HttpGet]
     [Authorize]
     [Route("user")]
     [SwaggerOperation("List user's subscribed events' posts")]
-    public ActionResult<Paged<PostDto>> GetUserEventsPosts([FromQuery] Paging paging, bool showAlsoInterested)
+    public ActionResult<Paged<PostDto>> GetUserEventsPosts([FromQuery] Paging paging, [FromQuery] bool showAlsoInterested)
     {
         var posts = postService.AsUser(User.GetGuid()).GetUsersPosts();
         if (!showAlsoInterested)
@@ -35,19 +31,8 @@ public class PostController : ControllerBase
         return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
     }
 
-    [HttpGet]
-    [Authorize]
-    [Route("event/{eventGuid}")]
-    [SwaggerOperation("List event's posts")]
-    public ActionResult<Paged<PostDto>> GetEventPosts([FromQuery] Paging paging, [FromRoute] Guid eventGuid)
-    {
-        var @event = eventService.AsUser(User.GetGuid()).GetEvent(eventGuid);
-        return Paged<PostDto>.PageFrom(@event.Posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
-    }
-
     [HttpPost]
     [Authorize]
-    [Route("create")]
     [SwaggerOperation("Create post")]
     public ActionResult<PostDto> CreatePost(CreatePost post)
     {
@@ -57,11 +42,11 @@ public class PostController : ControllerBase
 
     [HttpDelete]
     [Authorize]
-    [Route("delete")]
+    [Route("{id}")]
     [SwaggerOperation("Delete post")]
-    public ActionResult DeleteEvent(Guid postGuid)
+    public ActionResult DeleteEvent(Guid id)
     {
-        postService.AsUser(User.GetGuid()).DeletePost(postGuid);
+        postService.AsUser(User.GetGuid()).DeletePost(id);
         return Ok();
     }
 }

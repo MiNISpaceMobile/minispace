@@ -27,8 +27,8 @@ public class UserService(IUnitOfWork uow, IStorage storage)
         AllowOnlyLoggedIn();
 
         var users = uow.Repository<User>().GetAll()
-            .Where(x => string.Equals(firstName, x.FirstName, StringComparison.InvariantCultureIgnoreCase)
-                     && string.Equals(lastName, x.LastName, StringComparison.InvariantCultureIgnoreCase));
+            .Where(x => string.Equals(firstName.ToLower(), x.FirstName.ToLower())
+                     && string.Equals(lastName.ToLower(), x.LastName.ToLower()));
 
         return OnlyPublicData(users);
     }

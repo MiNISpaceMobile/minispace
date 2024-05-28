@@ -23,7 +23,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost]
-    [Route("usos/requestToken")]
+    // [Route("usos/requestToken")]
     [Route("usos/request-token")]
     [Consumes("application/json")]
     [Produces("application/json")]
@@ -61,7 +61,7 @@ public class AuthController : ControllerBase
 
     [HttpGet]
     [Route("jwt/info")]
-    [Route("usos/jwt/info")]
+    // [Route("usos/jwt/info")]
     [Produces("application/json")]
     public ActionResult<DTOJwtInfo> GetJwtInfo([FromHeader] string authorization)
     {

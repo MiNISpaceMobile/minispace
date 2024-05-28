@@ -19,10 +19,9 @@ public class EventsController(IEventService eventService) : ControllerBase
     public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, [FromQuery] GetEventsFilters f)
     {
         var events = eventService.AsUser(User.TryGetGuid()).GetAll();
-        events = Filter(events, f.EventName, f.OrganizerName,
-            f.Time?.OfType<TimeType>(), f.OnlyAvailablePlace,
-            f.Participants?.OfType<ParticipantsType>(),
-            f.Price?.OfType<PriceType>());
+        events = Filter(events,
+            f.Time?.OfType<TimeType>(), f.Participants?.OfType<ParticipantsType>(),
+            f.Price?.OfType<PriceType>(), f.EventName, f.OrganizerName, f.OnlyAvailablePlace);
 
         var paged = Paged<ListEventDto>.PageFrom(events.Select(e => e.ToListEventDto()),
             EventStateComparer.Instance, paging);
@@ -33,36 +32,29 @@ public class EventsController(IEventService eventService) : ControllerBase
     [HttpPost]
     [Authorize]
     [SwaggerOperation("Create event")]
-    public ActionResult CreateEvent(CreateEvent newEvent)
+    public ActionResult<EventDto> CreateEvent(CreateEvent newEvent)
     {
-        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
-        return Ok();
+        var @event = eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory,
+            newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
+        return Ok(@event.ToDto(eventService.ActingUser));
     }
 
     [HttpGet]
     [Route("{id}")]
     [SwaggerOperation("Details of given event")]
-    public ActionResult GetEvent(Guid id)
+    public ActionResult<EventDto> GetEvent(Guid id)
     {
-        var @event = eventService.GetEvent(id);
-        return Ok(@event.ToDto());
+        var @event = eventService.AsUser(User.TryGetGuid()).GetEvent(id);
+        return Ok(@event.ToDto(eventService.ActingUser));
     }
 
     [HttpGet]
     [Route("{id}/posts")]
     [SwaggerOperation("List event's posts")]
     public ActionResult<Paged<PostDto>> GetEventPosts([FromQuery] Paging paging, [FromRoute] Guid id)
-    [HttpPost]
-    [Authorize]
-    [Route("create")]
-    [SwaggerOperation("Create event")]
-    public ActionResult<EventDto> CreateEvent(CreateEvent newEvent)
     {
         var @event = eventService.AsUser(User.GetGuid()).GetEvent(id);
         return Paged<PostDto>.PageFrom(@event.Posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
-        var @event = eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory, newEvent.PublicationDate,
-            newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
-        return Ok(@event.ToDto(eventService.ActingUser));
     }
 
     [HttpDelete]
@@ -119,14 +111,16 @@ public class EventsController(IEventService eventService) : ControllerBase
         return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(eventGuid, rating));
     }
 
-    private static IEnumerable<Event> Filter(IEnumerable<Event> events, string evNameFilter, string orgNameFilter, IEnumerable<TimeType>? time,
-        bool onlyAvailablePlace, IEnumerable<ParticipantsType>? participants, IEnumerable<PriceType>? price)
+    private static IEnumerable<Event> Filter(IEnumerable<Event> events, IEnumerable<TimeType>? time,
+         IEnumerable<ParticipantsType>? participants, IEnumerable<PriceType>? price,
+         string? evNameFilter, string? orgNameFilter, bool onlyAvailablePlace)
     {
         // Event name filter
-        if (evNameFilter != string.Empty)
+        if (!string.IsNullOrEmpty(evNameFilter))
             events = events.Where(e => e.Title.Contains(evNameFilter));
+
         // Organizer name filter
-        if (orgNameFilter != string.Empty)
+        if (!string.IsNullOrEmpty(orgNameFilter))
         {
             var name = orgNameFilter.Split();
             string firstName = name[0];
@@ -188,7 +182,7 @@ public class EventsController(IEventService eventService) : ControllerBase
         if (price is not null && price.Any() && price.Count() < 2)
             events = events.Where(x => price.First() == PriceType.Free ? x.Fee is null || x.Fee == 0 : x.Fee is not null || x.Fee > 0);
 
-
+        // Only events with available placces
         if (onlyAvailablePlace)
             events = events.Where(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
 

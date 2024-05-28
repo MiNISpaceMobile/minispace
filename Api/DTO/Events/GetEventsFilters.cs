@@ -5,8 +5,8 @@ public record GetEventsFilters(
     IEnumerable<ParticipantsType?>? Participants = null,
     IEnumerable<TimeType?>? Time = null,
     IEnumerable<PriceType?>? Price = null,
-    string EventName = "",
-    string OrganizerName = "",
+    string? EventName = null,
+    string? OrganizerName = null,
     bool OnlyAvailablePlace = false);
 
 public enum ParticipantsType

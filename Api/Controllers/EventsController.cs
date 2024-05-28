@@ -105,7 +105,8 @@ public class EventsController(IEventService eventService) : ControllerBase
 
     [HttpPost]
     [Authorize]
-    [Route("{id}/feedback")]
+    [Route("{id}/rate")]
+    [SwaggerOperation("Rate ended event")]
     public ActionResult<Feedback> AddFeedback(Guid id, int rating)
     {
         return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(id, rating));

@@ -31,7 +31,7 @@ public static class MappingExtensions
         int? avPlaces = null;
         if (@event.Capacity is not null)
             avPlaces = @event.Capacity - @event.Participants.Count;
-        IEnumerable<UserDto>? friends = user?.Friends.Where(x => x.JoinedEvents.Contains(@event)).Select(x => x.ToDto());
+        IEnumerable<PublicUserDto>? friends = user?.Friends.Where(x => x.JoinedEvents.Contains(@event)).Select(x => x.ToDto());
         return new(@event.Guid, @event.Organizer?.ToDto(), @event.Title, @event.Description,
             @event.Category.ToString(), @event.StartDate, @event.EndDate,
             @event.Location, @event.Participants.Count, @event.Interested.Count, @event.ViewCount, @event.Fee, @event.Capacity, avPlaces, @event.AverageAge, @event.Rating,

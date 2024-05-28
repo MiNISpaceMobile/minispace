@@ -214,7 +214,7 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
         if (rating < 0 || rating > 5)
             throw new InvalidRatingValueException($"Value {rating} is invalid rating value");
 
-        if (@event.EndDate < DateTime.Now)
+        if (@event.EndDate >= DateTime.Now)
             throw new EventNotEndedException("You can't rate event that has not ended yet");
 
         // If user already rated an event posting new rating changes the one already given

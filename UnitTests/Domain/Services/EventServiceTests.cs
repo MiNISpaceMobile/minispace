@@ -406,21 +406,21 @@ public class EventServiceTests
     //    Assert.ThrowsException<EmptyContentException>(action);
     //}
 
-    [TestMethod]
-    public void AddFeedback_AlreadyGivenFeedback_ShouldThrowInvalidOperationException()
-    {
-        // Arrange
-        Event @event = events.Last();
-        User author = students.First();
-        Feedback feedback = new Feedback(author, @event, 2);
-        @event.Feedback.Add(feedback);
+    //[TestMethod]
+    //public void AddFeedback_AlreadyGivenFeedback_ShouldThrowInvalidOperationException()
+    //{
+    //    // Arrange
+    //    Event @event = events.Last();
+    //    User author = students.First();
+    //    Feedback feedback = new Feedback(author, @event, 2);
+    //    @event.Feedback.Add(feedback);
 
-        // Act
-        Action action = () => sut.AddFeedback(@event.Guid, 2);
+    //    // Act
+    //    Action action = () => sut.AddFeedback(@event.Guid, 2);
 
-        // Assert
-        Assert.ThrowsException<InvalidOperationException>(action);
-    }
+    //    // Assert
+    //    Assert.ThrowsException<>(action);
+    //}
 
     [TestMethod]
     public void AddFeedback_CorrectInput_ShouldAddFeedback()

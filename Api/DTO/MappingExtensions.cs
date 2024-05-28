@@ -20,7 +20,7 @@ public static class MappingExtensions
             user.DateOfBirth, user.IsAdmin, user.IsOrganizer, user.EmailNotification, user.ProfilePictureUrl);
 
     public static CommentDto ToDto(this Comment comment) =>
-        new(comment.Guid, comment.Author?.ToDto(), comment.Content);
+        new(comment.Guid, comment.Author?.ToDto(), comment.CreationDate, comment.Content, comment.Responses.Count);
 
     public static PostDto ToDto(this Post post) =>
         new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,

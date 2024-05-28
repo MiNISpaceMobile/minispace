@@ -53,6 +53,7 @@ builder.Services.AddScoped<IPingResponder, PongPingResponder>();
 builder.Services.AddScoped<IPictureService, PictureService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 // Integrations:
 builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
 builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();

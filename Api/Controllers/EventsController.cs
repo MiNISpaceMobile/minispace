@@ -71,18 +71,20 @@ public class EventsController(IEventService eventService) : ControllerBase
     [Authorize]
     [Route("{id}/participants")]
     [SwaggerOperation("Register for event")]
-    public ActionResult<bool> RegisterForEvent(Guid id)
+    public ActionResult RegisterForEvent(Guid id)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).TryAddParticipant(id));
+        return eventService.AsUser(User.GetGuid()).TryAddParticipant(id) ?
+            Ok() : BadRequest("You can't register for this event");
     }
 
     [HttpDelete]
     [Authorize]
     [Route("{id}/participants")]
     [SwaggerOperation("Unregister from event")]
-    public ActionResult<bool> UnregisterFromEvent(Guid id)
+    public ActionResult UnregisterFromEvent(Guid id)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).TryRemoveParticipant(id));
+        return eventService.AsUser(User.GetGuid()).TryRemoveParticipant(id) ?
+            Ok() : BadRequest("You aren't registered for this event");
     }
 
     [HttpPost]
@@ -91,16 +93,18 @@ public class EventsController(IEventService eventService) : ControllerBase
     [SwaggerOperation("Show interest in event")]
     public ActionResult<bool> ShowInterestInEvent(Guid id)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).TryAddInterested(id));
+        return eventService.AsUser(User.GetGuid()).TryAddInterested(id) ?
+            Ok() : BadRequest("You are already interested in this event");
     }
 
     [HttpDelete]
     [Authorize]
     [Route("{id}/interested")]
     [SwaggerOperation("Remove interest from event")]
-    public ActionResult<bool> RemoveInterestInEvent(Guid id)
+    public ActionResult RemoveInterestInEvent(Guid id)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).TryRemoveInterested(id));
+        return eventService.AsUser(User.GetGuid()).TryRemoveInterested(id) ?
+            Ok() : BadRequest("You aren't interested in this event");
     }
 
     [HttpPost]

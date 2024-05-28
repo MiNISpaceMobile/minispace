@@ -28,18 +28,20 @@ public class ReportService(IUnitOfWork uow) : BaseService<IReportService, Report
     public Report GetByGuid(Guid guid)
         => GetByGuid<Report>(guid);
 
-    public IEnumerable<Report> GetReports(ICollection<ReportType> types, bool open, bool closed)
+    public IEnumerable<Report> GetReports(ICollection<ReportType> types, bool open, bool closed, bool all)
     {
-        AllowOnlyLoggedIn();
+        if (all)
+            AllowOnlyAdmins();
+        else
+            AllowOnlyLoggedIn();
 
         if (types.Count == 0 || (open == false && closed == false))
             return [];
 
         var reports = uow.Repository<Report>().GetAll();
 
-        // Student gets only his reports, administrator gets all
-        if (!ActingUser!.IsAdmin)
-            reports = reports.Where(report => report.AuthorId == ActingUser.Guid);
+        if (!all)
+            reports = reports.Where(report => report.AuthorId == ActingUser!.Guid);
 
         reports = reports.Where(report => types.Contains(report.ReportType));
 

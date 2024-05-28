@@ -214,14 +214,23 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
         if (rating < 0 || rating > 5)
             throw new InvalidRatingValueException($"Value {rating} is invalid rating value");
 
-        if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == author.Guid) is not null)
-            throw new InvalidOperationException("This Student have already given Feedback to this Event");
-
         if (@event.EndDate < DateTime.Now)
-            throw new InvalidOperationException("You can't rate event that has not ended yet");
+            throw new EventNotEndedException("You can't rate event that has not ended yet");
 
-        Feedback feedback = new(author, @event, rating);
-        @event.Feedback.Add(feedback);
+        // If user already rated an event posting new rating changes the one already given
+        var usersFeedback = @event.Feedback.FirstOrDefault(f => f.Author.Guid == author.Guid);
+
+        Feedback feedback;
+        if (usersFeedback is not null)
+        {
+            usersFeedback.Rating = rating;
+            feedback = usersFeedback;
+        }
+        else
+        {
+            feedback = new(author, @event, rating);
+            @event.Feedback.Add(feedback);
+        }
 
         uow.Commit();
         return feedback;

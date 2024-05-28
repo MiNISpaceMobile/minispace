@@ -69,46 +69,46 @@ public class EventsController(IEventService eventService) : ControllerBase
 
     [HttpPost]
     [Authorize]
-    [Route("{eventGuid}/participate")]
+    [Route("{id}/participants")]
     [SwaggerOperation("Register for event")]
-    public ActionResult<bool> RegisterForEvent(Guid eventGuid)
+    public ActionResult<bool> RegisterForEvent(Guid id)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).TryAddParticipant(eventGuid));
+        return Ok(eventService.AsUser(User.GetGuid()).TryAddParticipant(id));
     }
 
     [HttpDelete]
     [Authorize]
-    [Route("{eventGuid}/participate")]
+    [Route("{id}/participants")]
     [SwaggerOperation("Unregister from event")]
-    public ActionResult<bool> UnregisterFromEvent(Guid eventGuid)
+    public ActionResult<bool> UnregisterFromEvent(Guid id)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).TryRemoveParticipant(eventGuid));
+        return Ok(eventService.AsUser(User.GetGuid()).TryRemoveParticipant(id));
     }
 
     [HttpPost]
     [Authorize]
-    [Route("{eventGuid}/interest")]
+    [Route("{id}/interested")]
     [SwaggerOperation("Show interest in event")]
-    public ActionResult<bool> ShowInterestInEvent(Guid eventGuid)
+    public ActionResult<bool> ShowInterestInEvent(Guid id)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).TryAddInterested(eventGuid));
+        return Ok(eventService.AsUser(User.GetGuid()).TryAddInterested(id));
     }
 
     [HttpDelete]
     [Authorize]
-    [Route("{eventGuid}/interest")]
+    [Route("{id}/interested")]
     [SwaggerOperation("Remove interest from event")]
-    public ActionResult<bool> RemoveInterestInEvent(Guid eventGuid)
+    public ActionResult<bool> RemoveInterestInEvent(Guid id)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).TryRemoveInterested(eventGuid));
+        return Ok(eventService.AsUser(User.GetGuid()).TryRemoveInterested(id));
     }
 
     [HttpPost]
     [Authorize]
-    [Route("{eventGuid}/feedback")]
-    public ActionResult<Feedback> AddFeedback(Guid eventGuid, int rating)
+    [Route("{id}/feedback")]
+    public ActionResult<Feedback> AddFeedback(Guid id, int rating)
     {
-        return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(eventGuid, rating));
+        return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(id, rating));
     }
 
     private static IEnumerable<Event> Filter(IEnumerable<Event> events, IEnumerable<TimeType>? time,

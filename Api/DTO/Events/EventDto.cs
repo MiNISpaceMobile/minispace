@@ -23,4 +23,4 @@ public record EventDto(
     bool IsInterested,
     bool IsParticipant,
     int FriendsCount,
-    IEnumerable<UserDto> Friends);
+    IEnumerable<PublicUserDto> Friends);

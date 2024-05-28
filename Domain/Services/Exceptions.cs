@@ -96,14 +96,38 @@ public class FriendTargetException : MinispaceException
     public FriendTargetException(string message) : base(message) { }
 }
 
+/// <summary>
+/// Thrown when provided enum value is invalid
+/// </summary>
 public class InvalidDomainEnumException : MinispaceException
 {
     public InvalidDomainEnumException() : base("This value of enum is not supported") { }
     public InvalidDomainEnumException(string message) : base(message) { }
 }
 
+/// <summary>
+/// Thrown when trying to review report that is already closed
+/// </summary>
 public class ClosedReportException : MinispaceException
 {
     public ClosedReportException() : base("This report is closed") { }
     public ClosedReportException(string message) : base(message) { }
+}
+
+/// <summary>
+/// Thrown when trying to rate an event that has not ended yet
+/// </summary>
+public class EventNotEndedException : MinispaceException
+{
+    public EventNotEndedException() : base("This event hasn't ended yet") { }
+    public EventNotEndedException(string message) : base(message) { }
+}
+
+/// <summary>
+/// Thrown when rate for an event is out of range
+/// </summary>
+public class InvalidRatingValueException : MinispaceException
+{
+    public InvalidRatingValueException() : base("Invalid rating value") { }
+    public InvalidRatingValueException(string message) : base(message) { }
 }

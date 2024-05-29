@@ -9,4 +9,5 @@ public interface IPostService : IBaseService<IPostService>
     public Post GetPost(Guid guid);
     public List<Post> GetUsersPosts();
     public void DeletePost(Guid guid);
+    public void SetReaction(Guid postGuid, ReactionType? type);
 }

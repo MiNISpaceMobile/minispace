@@ -4,6 +4,7 @@ using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.Storages;
 using Infrastructure.UnitOfWorks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTests.Domain.Services;
 
@@ -11,9 +12,10 @@ namespace UnitTests.Domain.Services;
 public class PostServiceTests
 {
 #pragma warning disable CS8618 // Unassigned non-nullables
-    private IUnitOfWork uow;
+    private DictionaryUnitOfWork uow;
     private List<Event> events;
     private List<User> students;
+    private Post post;
 
     private IPostService sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
@@ -32,7 +34,9 @@ public class PostServiceTests
         { Guid = Guid.Parse("b091f07f-6ed7-4a80-bf7f-966765d3a13d") };
         events = new List<Event> { ev0, ev1 };
 
-        uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
+        post = new Post(st0, ev0, "test");
+
+        uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events).Concat([post]));
 
         sut = new PostService(uow, new DictionaryStorage()).AsUser(st0.Guid);
     }
@@ -172,4 +176,69 @@ public class PostServiceTests
     {
         return p.Author == author && p.Event == @event && p.Content == content;
     }
+
+    #region SetReaction
+    [TestMethod]
+    public void SetReaction_Unauthorized_ThrowsUserUnauthorized()
+    {
+        var act = () => sut.AsUser(null).SetReaction(post.Guid, ReactionType.Like);
+
+        Assert.ThrowsException<UserUnauthorizedException>(act);
+        Assert.AreEqual(0, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetReaction_WasNullSetNull_DoesNothing()
+    {
+        sut.AsUser(students[0].Guid).SetReaction(post.Guid, null);
+
+        Assert.IsFalse(post.Reactions.Any());
+        Assert.AreEqual(0, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetReaction_WasLikeSetLike_DoesNothing()
+    {
+        sut.AsUser(students[0].Guid).SetReaction(post.Guid, ReactionType.Like);
+
+        sut.AsUser(students[0].Guid).SetReaction(post.Guid, ReactionType.Like);
+
+        var reaction = post.Reactions.Single();
+        Assert.AreEqual(ReactionType.Like, reaction.Type);
+        Assert.AreEqual(1, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetReaction_WasLikeSetNull_SetsNull()
+    {
+        sut.AsUser(students[0].Guid).SetReaction(post.Guid, ReactionType.Like);
+
+        sut.AsUser(students[0].Guid).SetReaction(post.Guid, null);
+
+        Assert.IsFalse(post.Reactions.Any());
+        Assert.AreEqual(2, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetReaction_WasNullSetLike_SetsLike()
+    {
+        sut.AsUser(students[0].Guid).SetReaction(post.Guid, ReactionType.Like);
+
+        var reaction = post.Reactions.Single();
+        Assert.AreEqual(ReactionType.Like, reaction.Type);
+        Assert.AreEqual(1, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetReaction_WasLikeSetFunny_SetsFunny()
+    {
+        sut.AsUser(students[0].Guid).SetReaction(post.Guid, ReactionType.Like);
+
+        sut.AsUser(students[0].Guid).SetReaction(post.Guid, ReactionType.Funny);
+
+        var reaction = post.Reactions.Single();
+        Assert.AreEqual(ReactionType.Funny, reaction.Type);
+        Assert.AreEqual(2, uow.CommitCount);
+    }
+    #endregion SetReaction
 }

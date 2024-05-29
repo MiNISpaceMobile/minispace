@@ -55,4 +55,14 @@ public class CommentController : ControllerBase
         var comment = commentService.AsUser(User.GetGuid()).CreateComment(newComment.PostGuid, newComment.Content, inResponseTo, DateTime.Now);
         return Ok(comment.ToDto());
     }
+
+    [HttpDelete]
+    [Authorize]
+    [Route("{id}")]
+    [SwaggerOperation("Delete comment")]
+    public ActionResult DeleteComment([FromRoute] Guid id)
+    {
+        commentService.AsUser(User.GetGuid()).DeleteComment(id);
+        return Ok();
+    }
 }

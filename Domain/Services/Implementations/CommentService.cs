@@ -37,10 +37,10 @@ public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, Comm
         AllowOnlyUser(comment.Author);
 
         uow.Repository<Comment>().TryDelete(guid);
-        comment.Post.Comments.Remove(comment);
+        // comment.Post.Comments.Remove(comment);
 
         foreach (var c in comment.Responses)
-            uow.Repository<Comment>().TryDelete(c.Guid);
+            this.DeleteComment(c.Guid);
 
         uow.Commit();
     }

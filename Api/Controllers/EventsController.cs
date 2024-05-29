@@ -138,56 +138,32 @@ public class EventsController(IEventService eventService) : ControllerBase
         }
 
         // Number of participants filter
-        if (participants is not null && participants.Any() && participants.Count() < 3)
+        if (participants is not null && participants.Any())
         {
-            if (participants.Count() == 1)
+            ParticipantsType countToType(int i) => i switch
             {
-                events = participants.First() switch
-                {
-                    ParticipantsType.To50 => events.Where(x => x.Participants.Count <= 50 && x.Participants.Count >= 0),
-                    ParticipantsType.From50To100 => events.Where(x => x.Participants.Count >= 50 && x.Participants.Count <= 100),
-                    ParticipantsType.Above100 => events.Where(x => x.Participants.Count >= 100),
-                    _ => throw new InvalidDomainEnumException()
-                };
-            }
-            else
-            {
-                if (!participants.Contains(ParticipantsType.To50))
-                    events = events.Where(x => x.Participants.Count >= 50);
-                else if (!participants.Contains(ParticipantsType.Above100))
-                    events = events.Where(x => x.Participants.Count >= 0 && x.Participants.Count <= 100);
-                else if (!participants.Contains(ParticipantsType.From50To100))
-                    events = events.Where(x => (x.Participants.Count >= 0 && x.Participants.Count <= 50) || (x.Participants.Count >= 100));
-            }
+                <= 50 => ParticipantsType.To50,
+                >= 50 and <= 100 => ParticipantsType.From50To100,
+                _ => ParticipantsType.Above100
+            };
+            events = events.Where(x => participants.Contains(countToType(x.Participants.Count)));
         }
 
         // Time filter
-        if (time is not null && time.Any() && time.Count() < 3)
+        if (time is not null && time.Any())
         {
-            if (time.Count() == 1)
+            TimeType startEndToTimeType(DateTime start, DateTime end) => (start, end) switch
             {
-                events = time.First() switch
-                {
-                    TimeType.Past => events.Where(x => x.EndDate <= DateTime.Now),
-                    TimeType.Current => events.Where(x => x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now),
-                    TimeType.Future => events.Where(x => x.StartDate >= DateTime.Now),
-                    _ => throw new InvalidDomainEnumException()
-                };
-            }
-            else
-            {
-                if (!time.Contains(TimeType.Past))
-                    events = events.Where(x => x.EndDate >= DateTime.Now);
-                else if (!time.Contains(TimeType.Future))
-                    events = events.Where(x => x.StartDate <= DateTime.Now);
-                else if (!time.Contains(TimeType.Current))
-                    events = events.Where(x => (x.EndDate <= DateTime.Now) || (x.StartDate >= DateTime.Now));
-            }
+                _ when end <= DateTime.Now => TimeType.Past,
+                _ when start <= DateTime.Now && end >= DateTime.Now => TimeType.Current,
+                _ => TimeType.Future
+            };
+            events = events.Where(x => time.Contains(startEndToTimeType(x.StartDate, x.EndDate)));
         }
 
         // Price filter
         if (price is not null && price.Any() && price.Count() < 2)
-            events = events.Where(x => price.First() == PriceType.Free ? x.Fee is null || x.Fee == 0 : x.Fee is not null || x.Fee > 0);
+            events = events.Where(x => price.First() == PriceType.Free ? x.Fee is null || x.Fee == 0 : x.Fee is not null && x.Fee > 0);
 
         // Only events with available placces
         if (onlyAvailablePlace)

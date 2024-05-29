@@ -34,7 +34,9 @@ public static class EntityFrameworkConfiguration
         model.Entity<Event>().Configure();
         model.Entity<Feedback>().Configure();
         model.Entity<Post>().Configure();
+        model.Entity<Reaction>().Configure();
         model.Entity<Comment>().Configure();
+        model.Entity<Like>().Configure();
 
         model.Entity<Report>().Configure();
         model.Entity<EventReport>().Configure();
@@ -107,7 +109,7 @@ public static class EntityFrameworkConfiguration
     }
     #endregion Users
 
-    #region Events/Feedback/Posts/Comments
+    #region Events/Feedback/Posts/Reactions/Comments/Likes
     private static void Configure(this EntityTypeBuilder<Event> type)
     {
         type.HasKey(x => x.Guid);
@@ -155,7 +157,22 @@ public static class EntityFrameworkConfiguration
             .HasForeignKey(x => x.EventId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Relationship with Comment is configured in Comment
+        // All relationships with Comment and Reaction are configured in their respective classes
+    }
+
+    private static void Configure(this EntityTypeBuilder<Reaction> type)
+    {
+        type.HasKey(x => new { x.AuthorId, x.PostId });
+
+        type.HasOne(x => x.Author)
+            .WithMany()
+            .HasForeignKey(type => type.AuthorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        type.HasOne(x => x.Post)
+            .WithMany(x => x.Reactions)
+            .HasForeignKey(x => x.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void Configure(this EntityTypeBuilder<Comment> type)
@@ -182,8 +199,25 @@ public static class EntityFrameworkConfiguration
             .WithMany(x => x.Responses)
             .HasForeignKey(x => x.InResponeseToId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Relationship with Like is configured Like
     }
-    #endregion Events/Feedback/Posts/Comments
+
+    private static void Configure(this EntityTypeBuilder<Like> type)
+    {
+        type.HasKey(x => new { x.AuthorId, x.CommentId });
+
+        type.HasOne(x => x.Author)
+            .WithMany()
+            .HasForeignKey(type => type.AuthorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        type.HasOne(x => x.Comment)
+            .WithMany(x => x.Likes)
+            .HasForeignKey(x => x.CommentId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+    #endregion Events/Feedback/Posts/Reactions/Comments/Likes
 
     #region Reports
     private static void Configure(this EntityTypeBuilder<Report> type)

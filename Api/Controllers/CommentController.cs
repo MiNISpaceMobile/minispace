@@ -31,6 +31,28 @@ public class CommentController : ControllerBase
     public ActionResult<Paged<CommentDto>> GetPostComments([FromQuery] Paging paging, Guid postGuid)
     {
         var comments = postService.AsUser(User.GetGuid()).GetPost(postGuid).Comments;
+        return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Where(c => c.InResponeseToId is null).Select(c => c.ToDto()), DTO.Comments.CreationDateComparer.Instance, paging);
+    }
+
+    [HttpGet]
+    [Authorize]
+    [Route("responses")]
+    [SwaggerOperation("List comment's responses")]
+    public ActionResult<Paged<CommentDto>> GetCommentResponses([FromQuery] Paging paging, Guid commentGuid)
+    {
+        var comments = commentService.AsUser(User.GetGuid()).GetComment(commentGuid).Responses;
         return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Select(p => p.ToDto()), DTO.Comments.CreationDateComparer.Instance, paging);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [SwaggerOperation("Create comment")]
+    public ActionResult<CommentDto> CreateComment([FromBody] CreateComment newComment)
+    {
+        Guid inResponseTo = new Guid();
+        if (newComment.InResponseTo is not null)
+            inResponseTo = (Guid)newComment.InResponseTo;
+        var comment = commentService.AsUser(User.GetGuid()).CreateComment(newComment.PostGuid, newComment.Content, inResponseTo, DateTime.Now);
+        return Ok(comment.ToDto());
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Api.DTO.Users;
+using Domain.DataModel;
 
 namespace Api.DTO.Posts;
 
@@ -9,4 +10,6 @@ public record PostDto(
     string EventTitle,
     PublicUserDto? Author,
     DateTime CreationDate,
+    ReactionType? UserReaction,
+    int ReactionCount,
     IEnumerable<string> PictureUrls);

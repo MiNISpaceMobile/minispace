@@ -5,8 +5,6 @@ using Api.DTO.Posts;
 using Api.DTO.Reports;
 using Api.DTO.Users;
 using Domain.DataModel;
-using Microsoft.Extensions.Logging;
-using System.Threading;
 
 namespace Api.DTO;
 
@@ -19,11 +17,16 @@ public static class MappingExtensions
         new(user.Guid, user.FirstName, user.LastName, user.Email, user.Description,
             user.DateOfBirth, user.IsAdmin, user.IsOrganizer, user.EmailNotification, user.ProfilePictureUrl);
 
-    public static CommentDto ToDto(this Comment comment) =>
-        new(comment.Guid, comment.Author?.ToDto(), comment.Content);
+    public static CommentDto ToDto(this Comment comment, User? acting) =>
+        new(comment.Guid, comment.Author?.ToDto(),
+            comment.Likes.SingleOrDefault(x => x.AuthorId == (acting?.Guid ?? Guid.Empty))?.IsDislike,
+            comment.Likes.Count,
+            comment.Content);
 
-    public static PostDto ToDto(this Post post) =>
+    public static PostDto ToDto(this Post post, User? acting) =>
         new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
+            post.Reactions.SingleOrDefault(x => x.AuthorId == (acting?.Guid ?? Guid.Empty))?.Type,
+            post.Reactions.Count,
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
     public static EventDto ToDto(this Event @event)

@@ -28,7 +28,7 @@ public class PostController : ControllerBase
         var posts = postService.AsUser(User.GetGuid()).GetUsersPosts();
         if (!showAlsoInterested)
             posts = posts.FindAll(p => p.Event.Participants.FirstOrDefault(part => part.Guid == User.GetGuid()) is not null);
-        return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
+        return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto(postService.ActingUser)), CreationDateComparer.Instance, paging);
     }
 
     [HttpPost]
@@ -37,7 +37,7 @@ public class PostController : ControllerBase
     public ActionResult<PostDto> CreatePost(CreatePost post)
     {
         Post newPost = postService.AsUser(User.GetGuid()).CreatePost(post.EventGuid, post.Content);
-        return Ok(newPost.ToDto());
+        return Ok(newPost.ToDto(postService.ActingUser));
     }
 
     [HttpDelete]

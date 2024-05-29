@@ -49,4 +49,24 @@ public class PostController : ControllerBase
         postService.AsUser(User.GetGuid()).DeletePost(id);
         return Ok();
     }
+
+    [HttpGet]
+    [Authorize]
+    [Route("{id}/reactions")]
+    [SwaggerOperation("List all post's reactions")]
+    public ActionResult<IEnumerable<ReactionDto>> GetPostReactions([FromRoute] Guid id)
+    {
+        var reactions = postService.AsUser(User.GetGuid()).GetPost(id).Reactions;
+        return Ok(reactions.Select(x => x.ToDto()));
+    }
+
+    [HttpPatch]
+    [Authorize]
+    [Route("{id}/reactions")]
+    [SwaggerOperation("Set acting user's reaction to post")]
+    public ActionResult PatchReaction([FromRoute] Guid id, [FromBody] SetReaction reaction)
+    {
+        postService.AsUser(User.GetGuid()).SetReaction(id, reaction.Type);
+        return Ok();
+    }
 }

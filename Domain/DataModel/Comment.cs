@@ -2,6 +2,30 @@
 
 namespace Domain.DataModel;
 
+public class Like
+{
+    public Guid AuthorId { get; private set; }
+    public virtual User Author { get; set; }
+
+    public Guid CommentId { get; protected set; }
+    public virtual Comment Comment { get; set; }
+
+    public bool IsDislike { get; set; }
+
+#pragma warning disable CS8618 // Unassigned non-nullables
+    protected Like() { }
+#pragma warning restore CS8618 // Unassigned non-nullables
+
+    public Like(User author, Comment comment, bool isDislike)
+    {
+        Author = author;
+
+        Comment = comment;
+
+        IsDislike = isDislike;
+    }
+}
+
 public class Comment : BaseEntity
 {
     public Guid? AuthorId { get; private set; }
@@ -13,7 +37,7 @@ public class Comment : BaseEntity
 
     public DateTime CreationDate { get; set; }
 
-    public virtual ICollection<User> Likers { get; set; }
+    public virtual ICollection<Like> Likes { get; set; }
 
     public Guid? InResponeseToId { get; private set; }
     public virtual Comment? InResponseTo { get; set; }
@@ -32,7 +56,7 @@ public class Comment : BaseEntity
 
         CreationDate = creationDate ?? DateTime.Now;
 
-        Likers = new List<User>();
+        Likes = new List<Like>();
 
         InResponseTo = inResponseTo;
         Responses = new List<Comment>();

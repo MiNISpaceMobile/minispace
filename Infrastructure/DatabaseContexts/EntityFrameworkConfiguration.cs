@@ -172,9 +172,6 @@ public static class EntityFrameworkConfiguration
             .HasForeignKey(x => x.PostId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        type.HasMany(x => x.Likers)
-            .WithMany();
-
         /* This one is important!
          * 
          * By default when a Comment would be deleted, its responses would stop being resposes

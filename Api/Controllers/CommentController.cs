@@ -17,10 +17,9 @@ public class CommentController : ControllerBase
 {
     private ICommentService commentService;
 
-    public CommentController(ICommentService commentService, IPostService postService)
+    public CommentController(ICommentService commentService)
     {
         this.commentService = commentService;
-        this.postService = postService;
     }
 
     [HttpGet]

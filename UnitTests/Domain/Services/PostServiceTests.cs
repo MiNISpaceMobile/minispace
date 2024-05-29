@@ -1,10 +1,8 @@
-﻿using Domain.Abstractions;
-using Domain.BaseTypes;
+﻿using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.Storages;
 using Infrastructure.UnitOfWorks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTests.Domain.Services;
 

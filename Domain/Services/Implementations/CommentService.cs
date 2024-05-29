@@ -49,4 +49,26 @@ public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, Comm
 
         return comment;
     }
+
+    public void SetLike(Guid commentGuid, bool? isDislike)
+    {
+        AllowOnlyLoggedIn();
+
+        Comment comment = uow.Repository<Comment>().GetOrThrow(commentGuid);
+
+        Like? userLike = comment.Likes.SingleOrDefault(x => Equals(x.Author, ActingUser!));
+        if (userLike is null && !isDislike.HasValue)
+            return;
+        if (userLike is not null && isDislike.HasValue && userLike.IsDislike == isDislike.Value)
+            return;
+
+        if (userLike is null && isDislike.HasValue)
+            comment.Likes.Add(new Like(ActingUser!, comment, isDislike.Value));
+        else if (userLike is not null && isDislike.HasValue)
+            userLike.IsDislike = isDislike.Value;
+        else if (userLike is not null && !isDislike.HasValue)
+            comment.Likes.Remove(userLike);
+
+        uow.Commit();
+    }
 }

@@ -1,5 +1,4 @@
-﻿using Domain.Abstractions;
-using Domain.BaseTypes;
+﻿using Domain.BaseTypes;
 using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.UnitOfWorks;
@@ -10,9 +9,10 @@ namespace UnitTests.Domain.Services;
 public class CommentServiceTests
 {
 #pragma warning disable CS8618 // Unassigned non-nullables
-    private IUnitOfWork uow;
+    private DictionaryUnitOfWork uow;
     private List<User> students;
     private List<Post> posts;
+    private Comment comment;
 
     private ICommentService sut;
 #pragma warning restore CS8618 // Unassigned non-nullables
@@ -32,7 +32,9 @@ public class CommentServiceTests
         { Guid = Guid.Parse("b091f07f-6ed7-4a80-bf7f-966765d3a13d") };
         posts = new List<Post> { po0, po1 };
 
-        uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, posts));
+        comment = new Comment(st0, po0, "test", null);
+
+        uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, posts).Concat([comment]));
 
         sut = new CommentService(uow).AsUser(st0.Guid);
     }
@@ -139,4 +141,69 @@ public class CommentServiceTests
     {
         return c.Author == author && c.Post == post && c.Content == content;
     }
+
+    #region SetLike
+    [TestMethod]
+    public void SetLike_Unauthorized_ThrowsUserUnauthorized()
+    {
+        var act = () => sut.AsUser(null).SetLike(comment.Guid, false);
+
+        Assert.ThrowsException<UserUnauthorizedException>(act);
+        Assert.AreEqual(0, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetLike_WasNullSetNull_DoesNothing()
+    {
+        sut.AsUser(students[0].Guid).SetLike(comment.Guid, null);
+
+        Assert.IsFalse(comment.Likes.Any());
+        Assert.AreEqual(0, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetLike_WasLikeSetLike_DoesNothing()
+    {
+        sut.AsUser(students[0].Guid).SetLike(comment.Guid, false);
+
+        sut.AsUser(students[0].Guid).SetLike(comment.Guid, false);
+
+        var like = comment.Likes.Single();
+        Assert.AreEqual(false, like.IsDislike);
+        Assert.AreEqual(1, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetLike_WasLikeSetNull_SetsNull()
+    {
+        sut.AsUser(students[0].Guid).SetLike(comment.Guid, false);
+
+        sut.AsUser(students[0].Guid).SetLike(comment.Guid, null);
+
+        Assert.IsFalse(comment.Likes.Any());
+        Assert.AreEqual(2, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetLike_WasNullSetLike_SetsLike()
+    {
+        sut.AsUser(students[0].Guid).SetLike(comment.Guid, false);
+
+        var like = comment.Likes.Single();
+        Assert.AreEqual(false, like.IsDislike);
+        Assert.AreEqual(1, uow.CommitCount);
+    }
+
+    [TestMethod]
+    public void SetLike_WasLikeSetFunny_SetsFunny()
+    {
+        sut.AsUser(students[0].Guid).SetLike(comment.Guid, false);
+
+        sut.AsUser(students[0].Guid).SetLike(comment.Guid, true);
+
+        var like = comment.Likes.Single();
+        Assert.AreEqual(true, like.IsDislike);
+        Assert.AreEqual(2, uow.CommitCount);
+    }
+    #endregion SetLike
 }

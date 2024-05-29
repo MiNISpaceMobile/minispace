@@ -1,11 +1,9 @@
 ﻿using Api.DTO;
 using Api.DTO.Events;
-using Api.DTO.Users;
-using Domain.Abstractions;
+using Api.DTO.Posts;
 using Domain.DataModel;
 using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -22,11 +20,13 @@ public class EventsController : ControllerBase
         this.eventService = eventService;
     }
 
-
     [HttpGet]
     [SwaggerOperation("List all events")]
-    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, string evNameFilter = "", string orgNameFilter = "", 
-        PriceFilter priceFilter = PriceFilter.Any, int minCapacityFilter = 0, int maxCapacityFilter = int.MaxValue, StartTimeFilter startTimeFilter = StartTimeFilter.Any, bool onlyAvailablePlace = false)
+    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging,
+        [FromQuery] string evNameFilter = "", [FromQuery] string orgNameFilter = "",
+        [FromQuery] PriceFilter priceFilter = PriceFilter.Any,
+        [FromQuery] int minCapacityFilter = 0, [FromQuery] int maxCapacityFilter = int.MaxValue,
+        [FromQuery] StartTimeFilter startTimeFilter = StartTimeFilter.Any, [FromQuery] bool onlyAvailablePlace = false)
     {
         var events = eventService.GetAll();
         events = Filter(events, evNameFilter, orgNameFilter, priceFilter, minCapacityFilter, maxCapacityFilter, startTimeFilter, onlyAvailablePlace);
@@ -37,18 +37,8 @@ public class EventsController : ControllerBase
         return Ok(paged);
     }
 
-    [HttpGet]
-    [Route("details")]
-    [SwaggerOperation("Details of given event")]
-    public ActionResult GetEvent(Guid guid)
-    {
-        var @event = eventService.GetEvent(guid);
-        return Ok(@event.ToDto());
-    }
-
     [HttpPost]
     [Authorize]
-    [Route("create")]
     [SwaggerOperation("Create event")]
     public ActionResult CreateEvent(CreateEvent newEvent)
     {
@@ -56,13 +46,31 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
+    [HttpGet]
+    [Route("{id}")]
+    [SwaggerOperation("Details of given event")]
+    public ActionResult GetEvent(Guid id)
+    {
+        var @event = eventService.GetEvent(id);
+        return Ok(@event.ToDto());
+    }
+
+    [HttpGet]
+    [Route("{id}/posts")]
+    [SwaggerOperation("List event's posts")]
+    public ActionResult<Paged<PostDto>> GetEventPosts([FromQuery] Paging paging, [FromRoute] Guid id)
+    {
+        var @event = eventService.AsUser(User.GetGuid()).GetEvent(id);
+        return Paged<PostDto>.PageFrom(@event.Posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
+    }
+
     [HttpDelete]
     [Authorize]
-    [Route("delete")]
+    [Route("{id}")]
     [SwaggerOperation("Delete event")]
-    public ActionResult DeleteEvent(Guid eventGuid)
+    public ActionResult DeleteEvent(Guid id)
     {
-        eventService.AsUser(User.GetGuid()).DeleteEvent(eventGuid);
+        eventService.AsUser(User.GetGuid()).DeleteEvent(id);
         return Ok();
     }
 

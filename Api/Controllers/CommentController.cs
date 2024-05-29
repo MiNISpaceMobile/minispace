@@ -16,22 +16,11 @@ namespace Api.Controllers;
 public class CommentController : ControllerBase
 {
     private ICommentService commentService;
-    private IPostService postService;
 
     public CommentController(ICommentService commentService, IPostService postService)
     {
         this.commentService = commentService;
         this.postService = postService;
-    }
-
-    [HttpGet]
-    [Authorize]
-    [Route("post")]
-    [SwaggerOperation("List comments for given post")]
-    public ActionResult<Paged<CommentDto>> GetPostComments([FromQuery] Paging paging, Guid postGuid)
-    {
-        var comments = postService.AsUser(User.GetGuid()).GetPost(postGuid).Comments;
-        return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Where(c => c.InResponeseToId is null).Select(c => c.ToDto()), DTO.Comments.CreationDateComparer.Instance, paging);
     }
 
     [HttpGet]

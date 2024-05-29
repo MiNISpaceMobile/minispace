@@ -1,4 +1,5 @@
 ﻿using Api.DTO;
+using Api.DTO.Comments;
 using Api.DTO.Posts;
 using Domain.DataModel;
 using Domain.Services;
@@ -48,5 +49,15 @@ public class PostController : ControllerBase
     {
         postService.AsUser(User.GetGuid()).DeletePost(id);
         return Ok();
+    }
+
+    [HttpGet]
+    [Authorize]
+    [Route("comments")]
+    [SwaggerOperation("List comments for given post")]
+    public ActionResult<Paged<CommentDto>> GetPostComments([FromQuery] Paging paging, Guid postGuid)
+    {
+        var comments = postService.AsUser(User.GetGuid()).GetPost(postGuid).Comments;
+        return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Where(c => c.InResponeseToId is null).Select(c => c.ToDto()), DTO.Comments.CreationDateComparer.Instance, paging);
     }
 }

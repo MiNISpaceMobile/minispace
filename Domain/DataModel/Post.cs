@@ -9,6 +9,7 @@ public class Post : BaseEntity
     public Guid EventId { get; private set; }
     public virtual Event Event { get; set; }
 
+    public string Title { get; set; }
     public string Content { get; set; }
 
     public DateTime CreationDate { get; set; }
@@ -20,12 +21,13 @@ public class Post : BaseEntity
     protected Post() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Post(User author, Event @event, string content, DateTime? creationDate = null)
+    public Post(User author, Event @event, string title, string content, DateTime? creationDate = null)
     {
         Author = author;
 
         Event = @event;
 
+        Title = title;
         Content = content;
 
         CreationDate = creationDate ?? DateTime.Now;

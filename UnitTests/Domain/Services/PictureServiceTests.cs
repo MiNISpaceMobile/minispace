@@ -36,7 +36,7 @@ public class PictureServiceTests
         st0 = new User("st0", "st0", "st0", now) { IsOrganizer = true };
         st1 = new User("st0", "st0", "st0", now);
         ev0 = new Event(st0, "ev0", "ev0", EventCategory.Uncategorized, now, now, now, "ev0", null, null);
-        po0 = new Post(st0, ev0, "po0");
+        po0 = new Post(st0, ev0, "t1", "po0");
 
         uow = new DictionaryUnitOfWork([st0, st1, ev0, po0]);
         dictionaryStorage = new DictionaryStorage();

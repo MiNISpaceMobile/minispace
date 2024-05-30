@@ -52,7 +52,7 @@ public class PostController : ControllerBase
     [SwaggerOperation("Create post")]
     public ActionResult<PostDto> CreatePost(CreatePost post)
     {
-        Post newPost = postService.AsUser(User.GetGuid()).CreatePost(post.EventGuid, post.Content);
+        Post newPost = postService.AsUser(User.GetGuid()).CreatePost(post.EventGuid, post.Title, post.Content);
         return Ok(newPost.ToDto());
     }
 

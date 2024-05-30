@@ -27,7 +27,7 @@ public class DictionaryUnitOfWorkTests
         var st = new User("st", "st", "st", now);
 
         var ev = new Event(st, "ev", "ev", EventCategory.Uncategorized, now, now, now, "ev", null, null);
-        var po = new Post(st, ev, "po");
+        var po = new Post(st, ev, "po", "po");
         var co = new Comment(st, po, "co", null);
 
         var er = new EventReport(ev, ad, "er", "er");

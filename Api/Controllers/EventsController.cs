@@ -3,6 +3,7 @@ using Api.DTO.Events;
 using Api.DTO.Posts;
 using Domain.DataModel;
 using Domain.Services;
+using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -11,25 +12,17 @@ namespace Api.Controllers;
 
 [Route("events")]
 [ApiController]
-public class EventsController : ControllerBase
+public class EventsController(IEventService eventService) : ControllerBase
 {
-    private IEventService eventService;
-
-    public EventsController(IEventService eventService)
-    {
-        this.eventService = eventService;
-    }
-
     [HttpGet]
     [SwaggerOperation("List all events")]
-    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging,
-        [FromQuery] string evNameFilter = "", [FromQuery] string orgNameFilter = "",
-        [FromQuery] PriceFilter priceFilter = PriceFilter.Any,
-        [FromQuery] int minCapacityFilter = 0, [FromQuery] int maxCapacityFilter = int.MaxValue,
-        [FromQuery] StartTimeFilter startTimeFilter = StartTimeFilter.Any, [FromQuery] bool onlyAvailablePlace = false)
+    public ActionResult<Paged<ListEventDto>> GetEvents([FromQuery] Paging paging, [FromQuery] GetEventsFilters f)
     {
-        var events = eventService.GetAll();
-        events = Filter(events, evNameFilter, orgNameFilter, priceFilter, minCapacityFilter, maxCapacityFilter, startTimeFilter, onlyAvailablePlace);
+        var events = eventService.AsUser(User.TryGetGuid()).GetAll();
+        events = Filter(events,
+            f.Time?.OfType<TimeType>(), f.Participants?.OfType<ParticipantsType>(),
+            f.Price?.OfType<PriceType>(), f.EventName, f.OrganizerName, f.OnlyAvailablePlace,
+            f.OrganizedByMe, eventService.ActingUser);
 
         var paged = Paged<ListEventDto>.PageFrom(events.Select(e => e.ToListEventDto()),
             EventStateComparer.Instance, paging);
@@ -40,19 +33,20 @@ public class EventsController : ControllerBase
     [HttpPost]
     [Authorize]
     [SwaggerOperation("Create event")]
-    public ActionResult CreateEvent(CreateEvent newEvent)
+    public ActionResult<EventDto> CreateEvent(CreateEvent newEvent)
     {
-        eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory, newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
-        return Ok();
+        var @event = eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory,
+            newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
+        return Ok(@event.ToDto(eventService.ActingUser));
     }
 
     [HttpGet]
     [Route("{id}")]
     [SwaggerOperation("Details of given event")]
-    public ActionResult GetEvent(Guid id)
+    public ActionResult<EventDto> GetEvent(Guid id)
     {
-        var @event = eventService.GetEvent(id);
-        return Ok(@event.ToDto());
+        var @event = eventService.AsUser(User.TryGetGuid()).GetEvent(id);
+        return Ok(@event.ToDto(eventService.ActingUser));
     }
 
     [HttpGet]
@@ -74,63 +68,113 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
-    public enum PriceFilter
+    [HttpPost]
+    [Authorize]
+    [Route("{id}/participants")]
+    [SwaggerOperation("Register for event")]
+    public ActionResult RegisterForEvent(Guid id)
     {
-        Any,
-        Free,
-        Paid
-    }
-    public enum StartTimeFilter
-    {
-        Any,
-        Ended,
-        Current,
-        Incoming
+        return eventService.AsUser(User.GetGuid()).TryAddParticipant(id) ?
+            Ok() : BadRequest("You can't register for this event");
     }
 
-    private List<Event> Filter(List<Event> events, string evNameFilter, string orgNameFilter,
-        PriceFilter priceFilter, int minCapacityFilter, int maxCapacityFilter, StartTimeFilter startTimeFilter, bool onlyAvailablePlace)
+    [HttpDelete]
+    [Authorize]
+    [Route("{id}/participants")]
+    [SwaggerOperation("Unregister from event")]
+    public ActionResult UnregisterFromEvent(Guid id)
     {
-        List<Event> filtered = events;
+        return eventService.AsUser(User.GetGuid()).TryRemoveParticipant(id) ?
+            Ok() : BadRequest("You aren't registered for this event");
+    }
 
-        if (evNameFilter != string.Empty)
-            filtered = filtered.FindAll(e => e.Title.Contains(evNameFilter));
+    [HttpPost]
+    [Authorize]
+    [Route("{id}/interested")]
+    [SwaggerOperation("Show interest in event")]
+    public ActionResult ShowInterestInEvent(Guid id)
+    {
+        return eventService.AsUser(User.GetGuid()).TryAddInterested(id) ?
+            Ok() : BadRequest("You are already interested in this event");
+    }
 
-        if (orgNameFilter != string.Empty)
+    [HttpDelete]
+    [Authorize]
+    [Route("{id}/interested")]
+    [SwaggerOperation("Remove interest from event")]
+    public ActionResult RemoveInterestInEvent(Guid id)
+    {
+        return eventService.AsUser(User.GetGuid()).TryRemoveInterested(id) ?
+            Ok() : BadRequest("You aren't interested in this event");
+    }
+
+    [HttpPost]
+    [Authorize]
+    [Route("{id}/rate")]
+    [SwaggerOperation("Rate ended event")]
+    public ActionResult<FeedbackDto> AddFeedback(Guid id, [FromBody] AddRating request)
+    {
+        return Ok(eventService.AsUser(User.GetGuid()).AddFeedback(id, request.Rating).ToDto());
+    }
+
+    private static IEnumerable<Event> Filter(IEnumerable<Event> events, IEnumerable<TimeType>? time,
+         IEnumerable<ParticipantsType>? participants, IEnumerable<PriceType>? price,
+         string? evNameFilter, string? orgNameFilter, bool onlyAvailablePlace,
+         bool organizedByMe, User? user)
+    {
+        // Event name filter
+        if (!string.IsNullOrEmpty(evNameFilter))
+            events = events.Where(e => e.Title.Contains(evNameFilter, StringComparison.InvariantCultureIgnoreCase));
+
+        // Organizer name filter
+        if (!string.IsNullOrEmpty(orgNameFilter))
         {
             var name = orgNameFilter.Split();
             string firstName = name[0];
             string lastName = string.Empty;
             if (name.Length > 1)
                 lastName = name[1];
-            filtered = filtered.FindAll(e => e.Organizer is not null && e.Organizer.FirstName.Contains(firstName) && e.Organizer.LastName.Contains(lastName));
+            events = events.Where(e => e.Organizer is not null &&
+            e.Organizer.FirstName.Contains(firstName, StringComparison.InvariantCultureIgnoreCase) &&
+            e.Organizer.LastName.Contains(lastName, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        if (priceFilter == PriceFilter.Free)
-            filtered = filtered.FindAll(e => e.Fee is null);
-        else if (priceFilter == PriceFilter.Paid)
-            filtered = filtered.FindAll(e => e.Fee is not null);
-
-        filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity >= minCapacityFilter && e.Capacity <= maxCapacityFilter));
-
-        switch (startTimeFilter)
+        // Number of participants filter
+        if (participants is not null && participants.Any())
         {
-            case StartTimeFilter.Ended:
-                filtered = filtered.FindAll(e => e.EndDate < DateTime.Now);
-                break;
-            case StartTimeFilter.Current:
-                filtered = filtered.FindAll(e => e.StartDate <= DateTime.Now && e.EndDate >= DateTime.Now);
-                break;
-            case StartTimeFilter.Incoming:
-                filtered = filtered.FindAll(e => e.StartDate > DateTime.Now);
-                break;
-            default:
-                break;
+            ParticipantsType countToType(int i) => i switch
+            {
+                <= 50 => ParticipantsType.To50,
+                >= 50 and <= 100 => ParticipantsType.From50To100,
+                _ => ParticipantsType.Above100
+            };
+            events = events.Where(x => participants.Contains(countToType(x.Participants.Count)));
         }
 
-        if (onlyAvailablePlace)
-            filtered = filtered.FindAll(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
+        // Time filter
+        if (time is not null && time.Any())
+        {
+            TimeType startEndToTimeType(DateTime start, DateTime end) => (start, end) switch
+            {
+                _ when end <= DateTime.Now => TimeType.Past,
+                _ when start <= DateTime.Now && end >= DateTime.Now => TimeType.Current,
+                _ => TimeType.Future
+            };
+            events = events.Where(x => time.Contains(startEndToTimeType(x.StartDate, x.EndDate)));
+        }
 
-        return filtered;
+        // Price filter
+        if (price is not null && price.Any() && price.Count() < 2)
+            events = events.Where(x => price.First() == PriceType.Free ? x.Fee is null || x.Fee == 0 : x.Fee is not null && x.Fee > 0);
+
+        // Only events with available placces
+        if (onlyAvailablePlace)
+            events = events.Where(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
+
+        // Only events organized by acting user
+        if (organizedByMe)
+            events = events.Where(e => user is not null && user.Guid == e.Organizer?.Guid);
+
+        return events;
     }
 }

@@ -21,7 +21,8 @@ public class EventsController(IEventService eventService) : ControllerBase
         var events = eventService.AsUser(User.TryGetGuid()).GetAll();
         events = Filter(events,
             f.Time?.OfType<TimeType>(), f.Participants?.OfType<ParticipantsType>(),
-            f.Price?.OfType<PriceType>(), f.EventName, f.OrganizerName, f.OnlyAvailablePlace);
+            f.Price?.OfType<PriceType>(), f.EventName, f.OrganizerName, f.OnlyAvailablePlace,
+            f.OrganizedByMe, eventService.ActingUser);
 
         var paged = Paged<ListEventDto>.PageFrom(events.Select(e => e.ToListEventDto()),
             EventStateComparer.Instance, paging);
@@ -118,7 +119,8 @@ public class EventsController(IEventService eventService) : ControllerBase
 
     private static IEnumerable<Event> Filter(IEnumerable<Event> events, IEnumerable<TimeType>? time,
          IEnumerable<ParticipantsType>? participants, IEnumerable<PriceType>? price,
-         string? evNameFilter, string? orgNameFilter, bool onlyAvailablePlace)
+         string? evNameFilter, string? orgNameFilter, bool onlyAvailablePlace,
+         bool organizedByMe, User? user)
     {
         // Event name filter
         if (!string.IsNullOrEmpty(evNameFilter))
@@ -168,6 +170,10 @@ public class EventsController(IEventService eventService) : ControllerBase
         // Only events with available placces
         if (onlyAvailablePlace)
             events = events.Where(e => e.Capacity is null || (e.Capacity - e.Participants.Count > 0));
+
+        // Only events organized by acting user
+        if (organizedByMe)
+            events = events.Where(e => user is not null && user.Guid == e.Organizer?.Guid);
 
         return events;
     }

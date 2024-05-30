@@ -7,7 +7,8 @@ public record GetEventsFilters(
     IEnumerable<PriceType?>? Price = null,
     string? EventName = null,
     string? OrganizerName = null,
-    bool OnlyAvailablePlace = false);
+    bool OnlyAvailablePlace = false,
+    bool OrganizedByMe = false);
 
 public enum ParticipantsType
 {

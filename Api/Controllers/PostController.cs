@@ -25,6 +25,16 @@ public class PostController : ControllerBase
 
     [HttpGet]
     [Authorize]
+    [Route("{id}")]
+    [SwaggerOperation("Get post details")]
+    public ActionResult<PostDto> GetPostDetails([FromRoute] Guid id)
+    {
+        var post = postService.AsUser(User.GetGuid()).GetPost(id);
+        return Ok(post.ToDto());
+    }
+
+    [HttpGet]
+    [Authorize]
     [Route("user")]
     [SwaggerOperation("List user's subscribed events' posts")]
     public ActionResult<Paged<ListPostDto>> GetUserEventsPosts([FromQuery] Paging paging, [FromQuery] bool showFrindsPosts = false)

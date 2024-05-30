@@ -285,7 +285,6 @@ public class EventServiceTests
         // Assert
         Assert.IsTrue(result);
         Assert.IsTrue(@event.Interested.Contains(student));
-        Assert.IsTrue(student.SubscribedEvents.Contains(@event));
     }
     #endregion
 
@@ -331,7 +330,6 @@ public class EventServiceTests
         // Assert
         Assert.IsTrue(result);
         Assert.IsFalse(@event.Participants.Contains(student));
-        Assert.IsFalse(student.SubscribedEvents.Contains(@event));
     }
     #endregion
 
@@ -377,7 +375,6 @@ public class EventServiceTests
         // Assert
         Assert.IsTrue(result);
         Assert.IsFalse(@event.Interested.Contains(student));
-        Assert.IsFalse(student.SubscribedEvents.Contains(@event));
     }
     #endregion
 

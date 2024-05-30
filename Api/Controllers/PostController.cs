@@ -29,7 +29,7 @@ public class PostController : ControllerBase
         var posts = postService.AsUser(User.GetGuid()).GetUsersPosts();
         if (!showAlsoInterested)
             posts = posts.FindAll(p => p.Event.Participants.Any(part => part.Guid == User.GetGuid()));
-        return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto(postService.ActingUser)),
+        return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto(User.GetGuid())),
             DTO.Posts.CreationDateComparer.Instance, paging);
     }
 
@@ -39,7 +39,7 @@ public class PostController : ControllerBase
     public ActionResult<PostDto> CreatePost(CreatePost post)
     {
         Post newPost = postService.AsUser(User.GetGuid()).CreatePost(post.EventGuid, post.Content);
-        return Ok(newPost.ToDto(postService.ActingUser));
+        return Ok(newPost.ToDto(User.GetGuid()));
     }
 
     [HttpDelete]
@@ -50,6 +50,18 @@ public class PostController : ControllerBase
     {
         postService.AsUser(User.GetGuid()).DeletePost(id);
         return Ok();
+    }
+
+    [HttpGet]
+    [Authorize]
+    [Route("{id}/comments")]
+    [SwaggerOperation("List comments for given post")]
+    public ActionResult<Paged<CommentDto>> GetPostComments([FromQuery] Paging paging, [FromRoute] Guid id)
+    {
+        var comments = postService.AsUser(User.GetGuid()).GetPost(id).Comments
+            .Where(c => c.InResponeseToId is null);
+        return Paged<CommentDto>.PageFrom(comments.Select(c => c.ToDto(User.GetGuid())),
+            DTO.Comments.CreationDateComparer.Instance, paging);
     }
 
     [HttpGet]
@@ -70,17 +82,5 @@ public class PostController : ControllerBase
     {
         postService.AsUser(User.GetGuid()).SetReaction(id, reaction.Type);
         return Ok();
-    }
-
-    [HttpGet]
-    [Authorize]
-    [Route("{id}/comments")]
-    [SwaggerOperation("List comments for given post")]
-    public ActionResult<Paged<CommentDto>> GetPostComments([FromQuery] Paging paging, [FromRoute] Guid id)
-    {
-        var comments = postService.AsUser(User.GetGuid()).GetPost(id).Comments
-            .Where(c => c.InResponeseToId is null);
-        return Paged<CommentDto>.PageFrom(comments.Select(c => c.ToDto(postService.ActingUser)),
-            DTO.Comments.CreationDateComparer.Instance, paging);
     }
 }

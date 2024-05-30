@@ -25,7 +25,7 @@ public class CommentController : ControllerBase
     public ActionResult<Paged<CommentDto>> GetCommentResponses([FromQuery] Paging paging, Guid commentGuid)
     {
         var comments = commentService.AsUser(User.GetGuid()).GetComment(commentGuid).Responses;
-        return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Select(p => p.ToDto(commentService.ActingUser)),
+        return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Select(p => p.ToDto(User.GetGuid())),
             CreationDateComparer.Instance, paging);
     }
 
@@ -38,7 +38,7 @@ public class CommentController : ControllerBase
         if (newComment.InResponseTo is not null)
             inResponseTo = (Guid)newComment.InResponseTo;
         var comment = commentService.AsUser(User.GetGuid()).CreateComment(newComment.PostGuid, newComment.Content, inResponseTo, DateTime.Now);
-        return Ok(comment.ToDto(commentService.ActingUser));
+        return Ok(comment.ToDto(User.GetGuid()));
     }
 
     [HttpDelete]
@@ -48,6 +48,26 @@ public class CommentController : ControllerBase
     public ActionResult DeleteComment([FromRoute] Guid id)
     {
         commentService.AsUser(User.GetGuid()).DeleteComment(id);
+        return Ok();
+    }
+
+    [HttpGet]
+    [Authorize]
+    [Route("{id}/likes")]
+    [SwaggerOperation("List all comments's likes and dislikes")]
+    public ActionResult<IEnumerable<LikeDto>> GetCommentLikes([FromRoute] Guid id)
+    {
+        var reactions = commentService.AsUser(User.GetGuid()).GetComment(id).Likes;
+        return Ok(reactions.Select(x => x.ToDto()));
+    }
+
+    [HttpPatch]
+    [Authorize]
+    [Route("{id}/likes")]
+    [SwaggerOperation("Set acting user's like/dislike to comment")]
+    public ActionResult PatchLike([FromRoute] Guid id, [FromBody] SetLike like)
+    {
+        commentService.AsUser(User.GetGuid()).SetLike(id, like.IsDislike);
         return Ok();
     }
 }

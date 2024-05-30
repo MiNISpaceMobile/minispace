@@ -17,17 +17,20 @@ public static class MappingExtensions
         new(user.Guid, user.FirstName, user.LastName, user.Email, user.Description,
             user.DateOfBirth, user.IsAdmin, user.IsOrganizer, user.EmailNotification, user.ProfilePictureUrl);
 
-    public static CommentDto ToDto(this Comment comment, User? acting) =>
+    public static CommentDto ToDto(this Comment comment, Guid? actingUserGuid) =>
         new(comment.Guid, comment.Author?.ToDto(),
-            comment.Likes.SingleOrDefault(x => x.AuthorId == (acting?.Guid ?? Guid.Empty))?.IsDislike,
+            comment.Likes.SingleOrDefault(x => x.AuthorId == actingUserGuid)?.IsDislike,
             comment.Likes.Count,
             comment.CreationDate,
             comment.Content,
             comment.Responses.Count);
 
-    public static PostDto ToDto(this Post post, User? acting) =>
+    public static LikeDto ToDto(this Like like) =>
+        new(like.Author.ToDto(), like.IsDislike);
+
+    public static PostDto ToDto(this Post post, Guid? actingUserGuid) =>
         new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
-            post.Reactions.SingleOrDefault(x => x.AuthorId == (acting?.Guid ?? Guid.Empty))?.Type,
+            post.Reactions.SingleOrDefault(x => x.AuthorId == actingUserGuid)?.Type,
             post.Reactions.Count,
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 

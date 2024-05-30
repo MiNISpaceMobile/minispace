@@ -61,7 +61,7 @@ public class EventsController : ControllerBase
     public ActionResult<Paged<PostDto>> GetEventPosts([FromQuery] Paging paging, [FromRoute] Guid id)
     {
         var @event = eventService.AsUser(User.GetGuid()).GetEvent(id);
-        return Paged<PostDto>.PageFrom(@event.Posts.Select(p => p.ToDto(eventService.ActingUser)), CreationDateComparer.Instance, paging);
+        return Paged<PostDto>.PageFrom(@event.Posts.Select(p => p.ToDto(User.GetGuid())), CreationDateComparer.Instance, paging);
     }
 
     [HttpDelete]

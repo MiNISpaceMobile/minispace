@@ -137,7 +137,6 @@ public static class CustomStartup
         uow.Commit();
 
         app.Logger.LogInformation("Database was seeded with test data");
-        app.Logger.LogInformation($"Po0 guid: {po0.Guid}");
     }
 
     public static void GenerateDevelopmentAdminJwt(this WebApplication app)

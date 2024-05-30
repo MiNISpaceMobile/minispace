@@ -24,11 +24,11 @@ public class CommentController : ControllerBase
 
     [HttpGet]
     [Authorize]
-    [Route("responses")]
+    [Route("{id}/responses")]
     [SwaggerOperation("List comment's responses")]
-    public ActionResult<Paged<CommentDto>> GetCommentResponses([FromQuery] Paging paging, Guid commentGuid)
+    public ActionResult<Paged<CommentDto>> GetCommentResponses([FromQuery] Paging paging, [FromRoute] Guid id)
     {
-        var comments = commentService.AsUser(User.GetGuid()).GetComment(commentGuid).Responses;
+        var comments = commentService.AsUser(User.GetGuid()).GetComment(id).Responses;
         return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Select(p => p.ToDto()), DTO.Comments.CreationDateComparer.Instance, paging);
     }
 

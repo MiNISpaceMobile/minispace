@@ -107,8 +107,6 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
             return false;
 
         @event.Interested.Remove(student);
-        if (!student.SubscribedEvents.Contains(@event))
-            student.SubscribedEvents.Add(@event);
         @event.Participants.Add(student);
 
         uow.Commit();
@@ -137,8 +135,6 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
             return false;
 
         @event.Participants.Remove(student);
-        if (!student.SubscribedEvents.Contains(@event))
-            student.SubscribedEvents.Add(@event);
         @event.Interested.Add(student);
 
         uow.Commit();
@@ -167,7 +163,6 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
             return false;
 
         @event.Participants.Remove(student);
-        student.SubscribedEvents.Remove(@event);
 
         uow.Commit();
 
@@ -196,7 +191,6 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
             return false;
 
         @event.Interested.Remove(student);
-        student.SubscribedEvents.Remove(@event);
 
         uow.Commit();
 

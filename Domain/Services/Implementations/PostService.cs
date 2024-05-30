@@ -67,7 +67,7 @@ public class PostService(IUnitOfWork uow, IStorage storage)
 
         Post post = uow.Repository<Post>().GetOrThrow(postGuid);
 
-        Reaction? userReaction = post.Reactions.SingleOrDefault(x => x.AuthorId == ActingUser!.Guid);
+        Reaction? userReaction = post.Reactions.SingleOrDefault(x => x.Author.Guid == ActingUser!.Guid);
         if (userReaction is null && !type.HasValue)
             return;
         if (userReaction is not null && type.HasValue && userReaction.Type == type.Value)

@@ -58,7 +58,7 @@ public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, Comm
 
         Comment comment = uow.Repository<Comment>().GetOrThrow(commentGuid);
 
-        Like? userLike = comment.Likes.SingleOrDefault(x => x.AuthorId == ActingUser!.Guid);
+        Like? userLike = comment.Likes.SingleOrDefault(x => x.Author.Guid == ActingUser!.Guid);
         if (userLike is null && !isDislike.HasValue)
             return;
         if (userLike is not null && isDislike.HasValue && userLike.IsDislike == isDislike.Value)

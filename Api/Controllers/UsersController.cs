@@ -108,9 +108,9 @@ public class UsersController : ControllerBase
     [Route("{id}/roles")]
     [Authorize]
     [SwaggerOperation("Update target user roles - admin only")]
-    public ActionResult<(bool IsAdmin, bool IsOrganizer)> PatchRoles([FromRoute] Guid id, [FromQuery] bool? isAdmin, [FromQuery] bool? isOrganizer)
+    public ActionResult PatchRoles([FromRoute] Guid id, [FromBody] SetUserRoles roles)
     {
-        var roles = userService.AsUser(User.GetGuid()).UserRoles(id, isAdmin, isOrganizer);
-        return Ok(roles);
+        userService.AsUser(User.GetGuid()).UserRoles(id, roles.IsAdmin, roles.IsOrganizer);
+        return Ok();
     }
 }

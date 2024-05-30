@@ -26,6 +26,10 @@ public static class MappingExtensions
         new(post.Guid, post.Title, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
+    public static ListPostDto ToListPostDto(this Post post) =>
+        new(post.Guid, post.Title, post.Content,
+            post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
+
     public static EventDto ToDto(this Event @event)
     {
         int? avPlaces = null;

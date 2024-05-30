@@ -27,7 +27,7 @@ public class PostController : ControllerBase
     [Authorize]
     [Route("user")]
     [SwaggerOperation("List user's subscribed events' posts")]
-    public ActionResult<Paged<PostDto>> GetUserEventsPosts([FromQuery] Paging paging, [FromQuery] bool showFrindsPosts = false)
+    public ActionResult<Paged<ListPostDto>> GetUserEventsPosts([FromQuery] Paging paging, [FromQuery] bool showFrindsPosts = false)
     {
         var user = userService.AsUser(User.GetGuid()).GetUser();
         HashSet<Event> events = new HashSet<Event>(new EventEqualityComparer());
@@ -44,7 +44,7 @@ public class PostController : ControllerBase
         foreach (var e in events)
             posts = posts.Concat(e.Posts);
 
-        return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
+        return Paged<ListPostDto>.PageFrom(posts.OrderByDescending(p => p.CreationDate).Select(p => p.ToListPostDto()), DummyComparer.Instance, paging);
     }
 
     [HttpPost]

@@ -21,7 +21,10 @@ public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, Comm
 
         Comment comment = new Comment(author, post, content, inResponseTo, creationDate);
         uow.Repository<Comment>().Add(comment);
+
         post.Comments.Add(comment);
+        if (inResponseTo is not null)
+            inResponseTo.Responses.Add(comment);
 
         uow.Commit();
         return comment;
@@ -34,7 +37,6 @@ public class CommentService(IUnitOfWork uow) : BaseService<ICommentService, Comm
         AllowOnlyUser(comment.Author);
 
         uow.Repository<Comment>().TryDelete(guid);
-        comment.Post.Comments.Remove(comment);
 
         uow.Commit();
     }

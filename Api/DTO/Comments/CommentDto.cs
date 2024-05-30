@@ -5,4 +5,6 @@ namespace Api.DTO.Comments;
 public record CommentDto(
     Guid Guid,
     PublicUserDto? Author,
-    string Content);
+    DateTime CreationDate,
+    string Content,
+    int ResponsesCount);

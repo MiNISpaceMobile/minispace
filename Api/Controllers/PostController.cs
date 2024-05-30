@@ -1,7 +1,9 @@
 ﻿using Api.DTO;
+using Api.DTO.Events;
 using Api.DTO.Posts;
 using Domain.DataModel;
 using Domain.Services;
+using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -13,21 +15,35 @@ namespace Api.Controllers;
 public class PostController : ControllerBase
 {
     private IPostService postService;
+    private IUserService userService;
 
-    public PostController(IPostService postService)
+    public PostController(IPostService postService, IUserService userService)
     {
         this.postService = postService;
+        this.userService = userService;
     }
 
     [HttpGet]
     [Authorize]
     [Route("user")]
     [SwaggerOperation("List user's subscribed events' posts")]
-    public ActionResult<Paged<PostDto>> GetUserEventsPosts([FromQuery] Paging paging, [FromQuery] bool showAlsoInterested)
+    public ActionResult<Paged<PostDto>> GetUserEventsPosts([FromQuery] Paging paging, [FromQuery] bool showFrindsPosts = false)
     {
-        var posts = postService.AsUser(User.GetGuid()).GetUsersPosts();
-        if (!showAlsoInterested)
-            posts = posts.FindAll(p => p.Event.Participants.FirstOrDefault(part => part.Guid == User.GetGuid()) is not null);
+        var user = userService.AsUser(User.GetGuid()).GetUser();
+        HashSet<Event> events = new HashSet<Event>(new EventEqualityComparer());
+        events.UnionWith(user.SubscribedEvents);
+
+        if (showFrindsPosts)
+        {
+            var friends = user.Friends;
+            foreach (var f in friends)
+                events.UnionWith(f.SubscribedEvents);
+        }
+
+        IEnumerable<Post> posts = Enumerable.Empty<Post>();
+        foreach (var e in events)
+            posts = posts.Concat(e.Posts);
+
         return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
     }
 

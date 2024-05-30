@@ -104,6 +104,11 @@ public static class CustomStartup
         st1.SubscribedEvents.Add(ev2); st2.SubscribedEvents.Add(ev2);
         Event[] events = [ev0, ev1, ev2];
 
+        devStudent.SubscribedEvents.Add(ev0);
+        devStudent.SubscribedEvents.Add(ev1);
+        devStudent.Friends.Add(st0);
+        devStudent.Friends.Add(st1);
+
         var po0 = new Post(st0, ev0, "Po0")
             { Guid = Guid.Parse("0fc79a80-dfdd-4d12-ade4-44f03c0ad9ef") };
         var po1 = new Post(st0, ev0, "Po1")

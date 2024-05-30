@@ -119,6 +119,8 @@ public static class CustomStartup
         var co2 = new Comment(st2, po2, "Co2", null)
             { Guid = Guid.Parse("09c24709-70dc-4595-83a6-f738fbf6bd7a") };
         co1.Likers.Add(st1);
+        // po0.Comments.Add(co0);
+        // po2.Comments.Add(co2);
         Comment[] comments = [co0, co1, co2];
 
         var re0 = new CommentReport(co2, st1, "Re0", "Des0")
@@ -138,6 +140,7 @@ public static class CustomStartup
         uow.Commit();
 
         app.Logger.LogInformation("Database was seeded with test data");
+        app.Logger.LogInformation($"Po0 guid: {po0.Guid}");
     }
 
     public static void GenerateDevelopmentAdminJwt(this WebApplication app)

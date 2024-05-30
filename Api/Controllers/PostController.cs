@@ -1,4 +1,5 @@
 ﻿using Api.DTO;
+using Api.DTO.Comments;
 using Api.DTO.Posts;
 using Domain.DataModel;
 using Domain.Services;
@@ -28,7 +29,7 @@ public class PostController : ControllerBase
         var posts = postService.AsUser(User.GetGuid()).GetUsersPosts();
         if (!showAlsoInterested)
             posts = posts.FindAll(p => p.Event.Participants.FirstOrDefault(part => part.Guid == User.GetGuid()) is not null);
-        return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto()), CreationDateComparer.Instance, paging);
+        return Paged<PostDto>.PageFrom(posts.Select(p => p.ToDto()), DTO.Posts.CreationDateComparer.Instance, paging);
     }
 
     [HttpPost]
@@ -48,5 +49,15 @@ public class PostController : ControllerBase
     {
         postService.AsUser(User.GetGuid()).DeletePost(id);
         return Ok();
+    }
+
+    [HttpGet]
+    [Authorize]
+    [Route("{id}/comments")]
+    [SwaggerOperation("List comments for given post")]
+    public ActionResult<Paged<CommentDto>> GetPostComments([FromQuery] Paging paging, [FromRoute] Guid id)
+    {
+        var comments = postService.AsUser(User.GetGuid()).GetPost(id).Comments;
+        return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Where(c => c.InResponeseToId is null).Select(c => c.ToDto()), DTO.Comments.CreationDateComparer.Instance, paging);
     }
 }

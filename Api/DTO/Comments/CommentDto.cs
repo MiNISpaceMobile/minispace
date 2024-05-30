@@ -7,4 +7,6 @@ public record CommentDto(
     PublicUserDto? Author,
     bool? UserReactionIsDislike,
     int LikeCount,
-    string Content);
+    DateTime CreationDate,
+    string Content,
+    int ResponsesCount);

@@ -21,7 +21,9 @@ public static class MappingExtensions
         new(comment.Guid, comment.Author?.ToDto(),
             comment.Likes.SingleOrDefault(x => x.AuthorId == (acting?.Guid ?? Guid.Empty))?.IsDislike,
             comment.Likes.Count,
-            comment.Content);
+            comment.CreationDate,
+            comment.Content,
+            comment.Responses.Count);
 
     public static PostDto ToDto(this Post post, User? acting) =>
         new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,

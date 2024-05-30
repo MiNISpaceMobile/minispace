@@ -3,6 +3,7 @@ using System;
 using Infrastructure.DatabaseContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    partial class SqliteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240527153651_ChangeFeedback")]
+    partial class ChangeFeedback
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -20,6 +23,21 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
+
+            modelBuilder.Entity("CommentUser", b =>
+                {
+                    b.Property<Guid>("CommentGuid")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("LikersGuid")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("CommentGuid", "LikersGuid");
+
+                    b.HasIndex("LikersGuid");
+
+                    b.ToTable("CommentUser");
+                });
 
             modelBuilder.Entity("Domain.DataModel.BaseNotification", b =>
                 {
@@ -156,24 +174,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Feedback");
                 });
 
-            modelBuilder.Entity("Domain.DataModel.Like", b =>
-                {
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("CommentId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDislike")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("AuthorId", "CommentId");
-
-                    b.HasIndex("CommentId");
-
-                    b.ToTable("Like");
-                });
-
             modelBuilder.Entity("Domain.DataModel.Picture", b =>
                 {
                     b.Property<int>("Id")
@@ -229,27 +229,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Post");
                 });
 
-            modelBuilder.Entity("Domain.DataModel.Reaction", b =>
-                {
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .IsUnicode(false)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("AuthorId", "PostId");
-
-                    b.HasIndex("PostId");
-
-                    b.ToTable("Reaction");
-                });
-
             modelBuilder.Entity("Domain.DataModel.Report", b =>
                 {
                     b.Property<Guid>("Guid")
@@ -259,7 +238,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("AuthorId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CreationDate")
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Details")
@@ -274,23 +256,17 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Feedback")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsOpen")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid?>("ResponderId")
+                        .HasColumnType("TEXT");
 
-                    b.Property<string>("ReportType")
+                    b.Property<string>("State")
                         .IsRequired()
                         .HasMaxLength(32)
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("ResponderId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdateDate")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Guid");
@@ -520,6 +496,21 @@ namespace Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("PostReport");
                 });
 
+            modelBuilder.Entity("CommentUser", b =>
+                {
+                    b.HasOne("Domain.DataModel.Comment", null)
+                        .WithMany()
+                        .HasForeignKey("CommentGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.DataModel.User", null)
+                        .WithMany()
+                        .HasForeignKey("LikersGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.DataModel.Comment", b =>
                 {
                     b.HasOne("Domain.DataModel.User", "Author")
@@ -574,25 +565,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("Domain.DataModel.Like", b =>
-                {
-                    b.HasOne("Domain.DataModel.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.DataModel.Comment", "Comment")
-                        .WithMany("Likes")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Comment");
-                });
-
             modelBuilder.Entity("Domain.DataModel.Post", b =>
                 {
                     b.HasOne("Domain.DataModel.User", "Author")
@@ -609,25 +581,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Event");
-                });
-
-            modelBuilder.Entity("Domain.DataModel.Reaction", b =>
-                {
-                    b.HasOne("Domain.DataModel.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.DataModel.Post", "Post")
-                        .WithMany("Reactions")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("Domain.DataModel.Report", b =>
@@ -798,8 +751,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.DataModel.Comment", b =>
                 {
-                    b.Navigation("Likes");
-
                     b.Navigation("Responses");
                 });
 
@@ -817,8 +768,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Pictures");
-
-                    b.Navigation("Reactions");
                 });
 
             modelBuilder.Entity("Domain.DataModel.User", b =>

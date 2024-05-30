@@ -7,10 +7,10 @@ namespace Domain.Services;
 public class EventService(IUnitOfWork uow, IPostService postService, IStorage storage)
     : BaseService<IEventService, EventService>(uow), IEventService
 {
-    public List<Event> GetAll()
+    public IEnumerable<Event> GetAll()
     {
         AllowEveryone();
-        return uow.Repository<Event>().GetAll().ToList();
+        return uow.Repository<Event>().GetAll();
     }
 
     public Event GetEvent(Guid guid)
@@ -107,8 +107,6 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
             return false;
 
         @event.Interested.Remove(student);
-        if (!student.SubscribedEvents.Contains(@event))
-            student.SubscribedEvents.Add(@event);
         @event.Participants.Add(student);
 
         uow.Commit();
@@ -137,8 +135,6 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
             return false;
 
         @event.Participants.Remove(student);
-        if (!student.SubscribedEvents.Contains(@event))
-            student.SubscribedEvents.Add(@event);
         @event.Interested.Add(student);
 
         uow.Commit();
@@ -167,7 +163,6 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
             return false;
 
         @event.Participants.Remove(student);
-        student.SubscribedEvents.Remove(@event);
 
         uow.Commit();
 
@@ -196,14 +191,13 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
             return false;
 
         @event.Interested.Remove(student);
-        student.SubscribedEvents.Remove(@event);
 
         uow.Commit();
 
         return true;
     }
 
-    public Feedback AddFeedback(Guid eventGuid, string content)
+    public Feedback AddFeedback(Guid eventGuid, int rating)
     {
         AllowOnlyLoggedIn();
 
@@ -211,15 +205,26 @@ public class EventService(IUnitOfWork uow, IPostService postService, IStorage st
 
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
-        if (string.IsNullOrEmpty(content))
-            throw new EmptyContentException();
+        if (rating < 0 || rating > 5)
+            throw new InvalidRatingValueException($"Value {rating} is invalid rating value");
 
-        if (@event.Feedback.FirstOrDefault(f => f.Author.Guid == author.Guid) is not null)
-            throw new InvalidOperationException("This Student have already given Feedback to this Event");
+        if (@event.EndDate >= DateTime.Now)
+            throw new EventNotEndedException("You can't rate event that has not ended yet");
 
-        Feedback feedback = new Feedback(author, @event, content);
-        //uow.Repository<Feedback>().Add(feedback);
-        @event.Feedback.Add(feedback);
+        // If user already rated an event posting new rating changes the one already given
+        var usersFeedback = @event.Feedback.FirstOrDefault(f => f.Author.Guid == author.Guid);
+
+        Feedback feedback;
+        if (usersFeedback is not null)
+        {
+            usersFeedback.Rating = rating;
+            feedback = usersFeedback;
+        }
+        else
+        {
+            feedback = new(author, @event, rating);
+            @event.Feedback.Add(feedback);
+        }
 
         uow.Commit();
         return feedback;

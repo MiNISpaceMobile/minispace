@@ -1,5 +1,4 @@
-﻿using Api.DTO.Users;
-
+﻿
 namespace Api.DTO.Events;
 public record ListEventDto(
     Guid Guid,
@@ -12,4 +11,5 @@ public record ListEventDto(
     int? AvailablePlaces,
     decimal? Fee,
     float? Rating,
+    bool IsEnded,
     IEnumerable<string> PictureUrls);

@@ -17,18 +17,18 @@ public class Feedback
     public Guid EventId { get; private set; }
     public virtual Event Event { get; set; }
 
-    public string Content { get; set; }
+    public int Rating { get; set; }
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected Feedback() { }
 #pragma warning restore CS8618 // Unassigned non-nullables
 
-    public Feedback(User author, Event @event, string content)
+    public Feedback(User author, Event @event, int rating)
     {
         Author = author;
         Event = @event;
 
-        Content = content;
+        Rating = rating;
     }
 }
 
@@ -65,6 +65,10 @@ public class Event : BaseEntity
             return ages.Any() ? ages.Sum() / ages.Count() : null;
         }
     }
+
+    public float? Rating =>
+            Feedback.Count == 0 ? null : (float)Feedback.Average(x => x.Rating);
+
 
 #pragma warning disable CS8618 // Unassigned non-nullables
     protected Event() { }

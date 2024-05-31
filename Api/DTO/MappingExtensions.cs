@@ -30,9 +30,13 @@ public static class MappingExtensions
         new(like.Author.ToDto(), like.IsDislike, actingUser.Friends.Any(x => x.Guid == like.Author.Guid));
 
     public static PostDto ToDto(this Post post, Guid? actingUserGuid) =>
-        new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
+        new(post.Guid, post.Title, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
             post.Reactions.SingleOrDefault(x => x.AuthorId == actingUserGuid)?.Type,
             new ReactionsSummary(post.Reactions),
+            post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
+
+    public static ListPostDto ToListPostDto(this Post post) =>
+        new(post.Guid, post.Title, post.Content,
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
     public static ReactionDto ToDto(this Reaction reaction, User actingUser) =>

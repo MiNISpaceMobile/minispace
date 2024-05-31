@@ -2,4 +2,5 @@
 
 public record CreatePost(
     Guid EventGuid,
+    string Title,
     string Content);

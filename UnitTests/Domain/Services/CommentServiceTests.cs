@@ -26,9 +26,9 @@ public class CommentServiceTests
         students = new List<User> { st0 };
 
         Event @event = new Event(st0, "event0", "description0", EventCategory.Uncategorized, now, now, now, "here", null, null);
-        Post po0 = new Post(st0, @event, "content0")
+        Post po0 = new Post(st0, @event, "title0", "content0")
         { Guid = Guid.Parse("79b46c1c-96a6-4972-8f6f-ffd7edc33597") };
-        Post po1 = new Post(st0, @event, "content1")
+        Post po1 = new Post(st0, @event, "title1", "content1")
         { Guid = Guid.Parse("b091f07f-6ed7-4a80-bf7f-966765d3a13d") };
         posts = new List<Post> { po0, po1 };
 

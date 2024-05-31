@@ -24,7 +24,7 @@ public class ReportServiceTests
     private Comment c0;
     private Comment c1;
 #pragma warning restore CS8618 // Unassigned non-nullables
-
+    private static readonly ICollection<ReportType> AllTypes = [ReportType.Event, ReportType.Post, ReportType.Comment];
     [TestInitialize]
     public void Setup()
     {
@@ -34,7 +34,7 @@ public class ReportServiceTests
         ad0 = new User("user2", "user2@test.pl", "password", now) { IsAdmin = true };
         ev0 = new Event(st1, "test event", "test description", EventCategory.Uncategorized,
             now, now.AddDays(10), now.AddDays(11), "test location", 20, 20);
-        p0 = new Post(st1, ev0, "post");
+        p0 = new Post(st1, ev0, "title", "post");
         c0 = new Comment(st0, p0, "first comment", null);
         c1 = new Comment(st1, p0, "second comment", null);
 
@@ -69,6 +69,96 @@ public class ReportServiceTests
         Assert.IsTrue(result.All(x => x is CommentReport));
     }
     #endregion GetAll
+
+    #region GetReports
+    [TestMethod]
+    public void GetReports_NotLoggedIn_ThrowsUserUnauthorizedException()
+    {
+        void act() => service.AsUser(null).GetReports([], true, true, true);
+
+        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
+    }
+
+    [TestMethod]
+    public void GetReports_UserTriesToGetAll_ThrowsUserUnauthorizedException()
+    {
+        void act() => service.AsUser(st0.Guid).GetReports([], true, true, true);
+
+        var exception = Assert.ThrowsException<UserUnauthorizedException>(act);
+    }
+
+    [TestMethod]
+    public void GetReports_User_GetsOnlyHisReports()
+    {
+        var reports = service.AsUser(st0.Guid).GetReports(AllTypes, true, true, false);
+
+        Assert.IsNotNull(reports);
+        Assert.IsTrue(reports.All(report => report.Author == st0));
+    }
+
+    [TestMethod]
+    public void GetReports_Admin_GetsAllReports()
+    {
+        var reports = service.AsUser(ad0.Guid).GetReports(AllTypes, true, true, true);
+
+        Assert.IsNotNull(reports);
+        Assert.IsTrue(reports.Count() == 4);
+    }
+
+    [TestMethod]
+    public void GetReports_SpecifiedType_GetsOnlyRaportsOfSpecifiedType()
+    {
+        var reports = service.AsUser(ad0.Guid).GetReports([ReportType.Event], true, true, true);
+
+        Assert.IsNotNull(reports);
+        Assert.IsTrue(reports.All(x => x is EventReport));
+    }
+
+    [TestMethod]
+    public void GetReports_SpecifiedTypes_GetsOnlyRaportsOfSpecifiedTypes()
+    {
+        var reports = service.AsUser(ad0.Guid).GetReports([ReportType.Post, ReportType.Comment], true, true, true);
+
+        Assert.IsNotNull(reports);
+        Assert.IsTrue(reports.All(x => x is PostReport || x is CommentReport));
+    }
+
+    [TestMethod]
+    public void GetReports_Open_GetsOnlyOpenReports()
+    {
+        var reports = service.AsUser(ad0.Guid).GetReports(AllTypes, true, false, true);
+
+        Assert.IsNotNull(reports);
+        Assert.IsTrue(reports.All(x => x.IsOpen));
+    }
+
+    [TestMethod]
+    public void GetReports_Closed_GetsOnlyClosedReports()
+    {
+        var reports = service.AsUser(ad0.Guid).GetReports(AllTypes, false, true, true);
+
+        Assert.IsNotNull(reports);
+        Assert.IsTrue(reports.All(x => !x.IsOpen));
+    }
+
+    [TestMethod]
+    public void GetReports_NoTypes_GetsEmptyIEnumerable()
+    {
+        var reports = service.AsUser(ad0.Guid).GetReports([], true, true, true);
+
+        Assert.IsNotNull(reports);
+        Assert.IsFalse(reports.Any());
+    }
+
+    [TestMethod]
+    public void GetReports_NotOpenAndNotClosed_GetsEmptyIEnumerable()
+    {
+        var reports = service.AsUser(ad0.Guid).GetReports([], true, true, true);
+
+        Assert.IsNotNull(reports);
+        Assert.IsFalse(reports.Any());
+    }
+    #endregion GetReports
 
     #region GetByGuid
     [TestMethod]

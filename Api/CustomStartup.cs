@@ -104,11 +104,11 @@ public static class CustomStartup
         st1.SubscribedEvents.Add(ev2); st2.SubscribedEvents.Add(ev2);
         Event[] events = [ev0, ev1, ev2];
 
-        var po0 = new Post(st0, ev0, "Po0")
+        var po0 = new Post(st0, ev0, "T0", "Po0")
             { Guid = Guid.Parse("0fc79a80-dfdd-4d12-ade4-44f03c0ad9ef") };
-        var po1 = new Post(st0, ev0, "Po1")
+        var po1 = new Post(st0, ev0, "T1", "Po1")
             { Guid = Guid.Parse("fe92c735-b049-406d-9a4c-d6d9b4456d4e") };
-        var po2 = new Post(st1, ev2, "Po2")
+        var po2 = new Post(st1, ev2, "T2", "Po2")
             { Guid = Guid.Parse("8857657f-3157-4ff4-b06f-b6828e2b7d7e") };
         Post[] posts = [po0, po1, po2];
 

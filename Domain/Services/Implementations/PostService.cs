@@ -7,7 +7,7 @@ namespace Domain.Services;
 public class PostService(IUnitOfWork uow, IStorage storage)
     : BaseService<IPostService, PostService>(uow), IPostService
 {
-    public Post CreatePost(Guid eventGuid, string content)
+    public Post CreatePost(Guid eventGuid, string title, string content)
     {
         Event @event = uow.Repository<Event>().GetOrThrow(eventGuid);
 
@@ -16,7 +16,7 @@ public class PostService(IUnitOfWork uow, IStorage storage)
         if (content == string.Empty)
             throw new EmptyContentException();
 
-        var post = new Post(@event.Organizer!, @event, content, DateTime.Now);
+        var post = new Post(@event.Organizer!, @event, title, content, DateTime.Now);
         uow.Repository<Post>().Add(post);
         @event.Posts.Add(post);
 

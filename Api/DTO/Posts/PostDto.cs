@@ -11,5 +11,5 @@ public record PostDto(
     PublicUserDto? Author,
     DateTime CreationDate,
     ReactionType? UserReaction,
-    int ReactionCount,
+    ReactionsSummary Reactions,
     IEnumerable<string> PictureUrls);

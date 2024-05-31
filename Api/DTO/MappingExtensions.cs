@@ -31,7 +31,7 @@ public static class MappingExtensions
     public static PostDto ToDto(this Post post, Guid? actingUserGuid) =>
         new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
             post.Reactions.SingleOrDefault(x => x.AuthorId == actingUserGuid)?.Type,
-            post.Reactions.Count,
+            new ReactionsSummary(post.Reactions),
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
     public static ReactionDto ToDto(this Reaction reaction, User actingUser) =>

@@ -72,7 +72,7 @@ public class PostController : ControllerBase
     {
         var reactions = postService.AsUser(User.GetGuid()).GetPost(id).Reactions;
         var paged = Paged<ReactionDto>.PageFrom(reactions.Select(x => x.ToDto(postService.ActingUser!)),
-            ByFriendComparer.Instance, paging);
+            DTO.Posts.ByFriendComparer.Instance, paging);
         return Ok(paged);
     }
 

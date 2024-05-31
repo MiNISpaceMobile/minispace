@@ -55,10 +55,12 @@ public class CommentController : ControllerBase
     [Authorize]
     [Route("{id}/likes")]
     [SwaggerOperation("List all comments's likes and dislikes")]
-    public ActionResult<IEnumerable<LikeDto>> GetCommentLikes([FromRoute] Guid id)
+    public ActionResult<Paged<LikeDto>> GetCommentLikes([FromRoute] Guid id, [FromQuery] Paging paging)
     {
-        var reactions = commentService.AsUser(User.GetGuid()).GetComment(id).Likes;
-        return Ok(reactions.Select(x => x.ToDto()));
+        var likes = commentService.AsUser(User.GetGuid()).GetComment(id).Likes;
+        var paged = Paged<LikeDto>.PageFrom(likes.Select(x => x.ToDto(commentService.ActingUser!)),
+            ByFriendComparer.Instance, paging);
+        return Ok(paged);
     }
 
     [HttpPatch]

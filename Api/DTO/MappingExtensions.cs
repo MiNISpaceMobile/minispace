@@ -25,8 +25,8 @@ public static class MappingExtensions
             comment.Content,
             comment.Responses.Count);
 
-    public static LikeDto ToDto(this Like like) =>
-        new(like.Author.ToDto(), like.IsDislike);
+    public static LikeDto ToDto(this Like like, User actingUser) =>
+        new(like.Author.ToDto(), like.IsDislike, actingUser.Friends.Any(x => x.Guid == like.Author.Guid));
 
     public static PostDto ToDto(this Post post, Guid? actingUserGuid) =>
         new(post.Guid, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,

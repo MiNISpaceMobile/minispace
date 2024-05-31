@@ -2,4 +2,4 @@
 
 namespace Api.DTO.Comments;
 
-public record LikeDto(PublicUserDto Author, bool IsDislike);
+public record LikeDto(PublicUserDto Author, bool IsDislike, bool ByFriend);

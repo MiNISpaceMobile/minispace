@@ -104,11 +104,11 @@ public static class CustomStartup
         st1.SubscribedEvents.Add(ev2); st2.SubscribedEvents.Add(ev2);
         Event[] events = [ev0, ev1, ev2];
 
-        var po0 = new Post(st0, ev0, "Po0")
+        var po0 = new Post(st0, ev0, "T0", "Po0")
             { Guid = Guid.Parse("0fc79a80-dfdd-4d12-ade4-44f03c0ad9ef") };
-        var po1 = new Post(st0, ev0, "Po1")
+        var po1 = new Post(st0, ev0, "T1", "Po1")
             { Guid = Guid.Parse("fe92c735-b049-406d-9a4c-d6d9b4456d4e") };
-        var po2 = new Post(st1, ev2, "Po2")
+        var po2 = new Post(st1, ev2, "T2", "Po2")
             { Guid = Guid.Parse("8857657f-3157-4ff4-b06f-b6828e2b7d7e") };
         Post[] posts = [po0, po1, po2];
 
@@ -119,8 +119,6 @@ public static class CustomStartup
         var co2 = new Comment(st2, po2, "Co2", null)
             { Guid = Guid.Parse("09c24709-70dc-4595-83a6-f738fbf6bd7a") };
         co1.Likers.Add(st1);
-        // po0.Comments.Add(co0);
-        // po2.Comments.Add(co2);
         Comment[] comments = [co0, co1, co2];
 
         var re0 = new CommentReport(co2, st1, "Re0", "Des0")
@@ -140,7 +138,6 @@ public static class CustomStartup
         uow.Commit();
 
         app.Logger.LogInformation("Database was seeded with test data");
-        app.Logger.LogInformation($"Po0 guid: {po0.Guid}");
     }
 
     public static void GenerateDevelopmentAdminJwt(this WebApplication app)

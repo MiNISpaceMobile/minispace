@@ -117,9 +117,9 @@ public class EventServiceTests
         @event.Interested.Add(student);
         // Event posts
         uow.Repository<Event>().Add(@event);
-        Post post1 = new Post(student, @event, "a");
+        Post post1 = new Post(student, @event, "t", "a");
         uow.Repository<Post>().Add(post1);
-        Post post2 = new Post(student, @event, "a");
+        Post post2 = new Post(student, @event, "t", "a");
         uow.Repository<Post>().Add(post2);
         @event.Posts.Add(post1);
         @event.Posts.Add(post2);

@@ -4,6 +4,7 @@ using Domain.DataModel;
 using Domain.Services;
 using Infrastructure.Storages;
 using Infrastructure.UnitOfWorks;
+using Microsoft.Extensions.Primitives;
 
 namespace UnitTests.Domain.Services;
 
@@ -44,10 +45,11 @@ public class PostServiceTests
         // Arrange
         Event @event = events.Last();
         User author = students.Last();
+        string title = string.Empty;
         string content = string.Empty;
 
         // Act
-        var action = () => sut.CreatePost(/*author.Guid, */@event.Guid, content);
+        var action = () => sut.CreatePost(/*author.Guid, */@event.Guid, title, content);
 
         // Assert
         Assert.ThrowsException<EmptyContentException>(action);
@@ -59,15 +61,16 @@ public class PostServiceTests
         // Arrange
         Event @event = events.Last();
         User author = students.Last();
+        string title = "t";
         string content = "a";
 
         // Act
-        Post post = sut.CreatePost(/*author.Guid, */@event.Guid, content);
+        Post post = sut.CreatePost(/*author.Guid, */@event.Guid, title, content);
 
         // Assert
         Assert.IsTrue(@event.Posts.Contains(post));
         Assert.IsTrue(uow.Repository<Post>().Get(post.Guid) is not null);
-        Assert.IsTrue(AreEqual(post, author, @event, content));
+        Assert.IsTrue(AreEqual(post, author, @event, title, content));
     }
     #endregion
 
@@ -90,8 +93,9 @@ public class PostServiceTests
         // Arrange
         Event @event = events.Last();
         User author = students.Last();
+        string title = "t";
         string content = "a";
-        Post post = new Post(author, @event, content);
+        Post post = new Post(author, @event, title, content);
         uow.Repository<Post>().Add(post);
 
         // Act
@@ -121,8 +125,9 @@ public class PostServiceTests
         // Arrange
         Event @event = events.Last();
         User author = students.Last();
+        string title = "t";
         string content = "a";
-        Post post = new Post(author, @event, content);
+        Post post = new Post(author, @event, title, content);
         uow.Repository<Post>().Add(post);
         @event.Posts.Add(post);
 
@@ -153,10 +158,11 @@ public class PostServiceTests
     {
         // Arrange
         var user = students.Last();
+        string title = "t";
         string content = "a";
         foreach (var e in events)
         {
-            e.Posts.Add(new Post(user, e, content));
+            e.Posts.Add(new Post(user, e, title, content));
             user.SubscribedEvents.Add(e);
         }
 
@@ -168,8 +174,8 @@ public class PostServiceTests
     }
     #endregion
 
-    bool AreEqual(Post p, User author, Event @event, string content)
+    bool AreEqual(Post p, User author, Event @event, string title, string content)
     {
-        return p.Author == author && p.Event == @event && p.Content == content;
+        return p.Author == author && p.Event == @event && p.Title == title && p.Content == content;
     }
 }

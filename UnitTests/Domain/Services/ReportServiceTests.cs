@@ -34,7 +34,7 @@ public class ReportServiceTests
         ad0 = new User("user2", "user2@test.pl", "password", now) { IsAdmin = true };
         ev0 = new Event(st1, "test event", "test description", EventCategory.Uncategorized,
             now, now.AddDays(10), now.AddDays(11), "test location", 20, 20);
-        p0 = new Post(st1, ev0, "post");
+        p0 = new Post(st1, ev0, "title", "post");
         c0 = new Comment(st0, p0, "first comment", null);
         c1 = new Comment(st1, p0, "second comment", null);
 

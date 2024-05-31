@@ -20,7 +20,8 @@ public static class MappingExtensions
     public static CommentDto ToDto(this Comment comment, Guid? actingUserGuid) =>
         new(comment.Guid, comment.Author?.ToDto(),
             comment.Likes.SingleOrDefault(x => x.AuthorId == actingUserGuid)?.IsDislike,
-            comment.Likes.Count,
+            comment.Likes.Count(x => !x.IsDislike),
+            comment.Likes.Count(x => x.IsDislike),
             comment.CreationDate,
             comment.Content,
             comment.Responses.Count);

@@ -40,13 +40,17 @@ public class PostController : ControllerBase
         var user = postService.AsUser(User.GetGuid()).ActingUser;
         HashSet<Event> events = new HashSet<Event>(new EventEqualityComparer());
         events.UnionWith(user!.SubscribedEvents);
+        events.UnionWith(user.JoinedEvents);
         events.UnionWith(user.OrganizedEvents);
 
         if (showFriendsPosts)
         {
             var friends = user.Friends;
             foreach (var f in friends)
+            {
                 events.UnionWith(f.SubscribedEvents);
+                events.UnionWith(f.JoinedEvents);
+            }
         }
 
         IEnumerable<Post> posts = Enumerable.Empty<Post>();

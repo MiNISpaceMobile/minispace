@@ -41,6 +41,7 @@ public class PostController : ControllerBase
         var user = postService.AsUser(User.GetGuid()).ActingUser;
         HashSet<Event> events = new HashSet<Event>(new EventEqualityComparer());
         events.UnionWith(user!.SubscribedEvents);
+        events.UnionWith(user.OrganizedEvents);
 
         if (showFriendsPosts)
         {

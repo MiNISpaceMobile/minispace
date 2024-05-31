@@ -30,7 +30,8 @@ public class EventServiceTests
         { Guid = Guid.Parse("79b46c1c-96a6-4972-8f6f-ffd7edc33597") };
         Event ev1 = new Event(st0, "event1", "description1", EventCategory.Uncategorized, now, now, now, "here", null, null)
         { Guid = Guid.Parse("b091f07f-6ed7-4a80-bf7f-966765d3a13d") };
-        events = new List<Event> { ev0, ev1 };
+        Event ev2 = new Event(st0, "event2", "description2", EventCategory.Uncategorized, now, now.AddDays(-1), now.AddDays(1), "here", null, null);
+        events = new List<Event> { ev0, ev2, ev1 };
 
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events));
         DictionaryStorage storage = new DictionaryStorage();
@@ -391,33 +392,29 @@ public class EventServiceTests
         Assert.ThrowsException<InvalidGuidException<Event>>(action);
     }
 
-    //[TestMethod]
-    //public void AddFeedback_EmptyContent_ShouldThrowEmptyContentException()
-    //{
-    //    // Arrange
+    [TestMethod]
+    public void AddFeedback_RatingOutOfRange_ShouldThrowInvalidRatingValueException()
+    {
+        // Arrange
 
-    //    // Act
-    //    Action action = () => sut.AddFeedback(events.Last().Guid, string.Empty);
+        // Act
+        Action action = () => sut.AddFeedback(events.Last().Guid, -1);
 
-    //    // Assert
-    //    Assert.ThrowsException<EmptyContentException>(action);
-    //}
+        // Assert
+        Assert.ThrowsException<InvalidRatingValueException>(action);
+    }
 
-    //[TestMethod]
-    //public void AddFeedback_AlreadyGivenFeedback_ShouldThrowInvalidOperationException()
-    //{
-    //    // Arrange
-    //    Event @event = events.Last();
-    //    User author = students.First();
-    //    Feedback feedback = new Feedback(author, @event, 2);
-    //    @event.Feedback.Add(feedback);
+    [TestMethod]
+    public void AddFeedback_EventNotEnded_ShouldThrowEventNotEndedException()
+    {
+        // Arrange
 
-    //    // Act
-    //    Action action = () => sut.AddFeedback(@event.Guid, 2);
+        // Act
+        Action action = () => sut.AddFeedback(events[1].Guid, 2);
 
-    //    // Assert
-    //    Assert.ThrowsException<>(action);
-    //}
+        // Assert
+        Assert.ThrowsException<EventNotEndedException>(action);
+    }
 
     [TestMethod]
     public void AddFeedback_CorrectInput_ShouldAddFeedback()
@@ -431,6 +428,24 @@ public class EventServiceTests
 
         // Assert
         Assert.IsTrue(@event.Feedback.Count == 1);
+    }
+
+    [TestMethod]
+    public void AddFeedback_NewFeedback_ChangesFeedbackValue()
+    {
+        // Arrange
+        Event @event = events.Last();
+        User author = students.First();
+        Feedback oldFeedback = sut.AddFeedback(@event.Guid, 2);
+        int oldRating = oldFeedback.Rating;
+
+        // Act
+        Feedback newFeedback = sut.AddFeedback(@event.Guid, 3);
+
+        // Assert
+        Assert.IsTrue(@event.Feedback.Count == 1);
+        Assert.IsTrue(newFeedback.Rating == 3);
+        Assert.IsTrue(newFeedback.Rating != oldRating);
     }
     #endregion
 }

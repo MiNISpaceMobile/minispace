@@ -3,4 +3,4 @@ using Domain.DataModel;
 
 namespace Api.DTO.Posts;
 
-public record ReactionDto(PublicUserDto Author, ReactionType Type);
+public record ReactionDto(PublicUserDto Author, ReactionType Type, bool ByFriend);

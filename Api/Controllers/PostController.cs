@@ -68,10 +68,12 @@ public class PostController : ControllerBase
     [Authorize]
     [Route("{id}/reactions")]
     [SwaggerOperation("List all post's reactions")]
-    public ActionResult<IEnumerable<ReactionDto>> GetPostReactions([FromRoute] Guid id)
+    public ActionResult<Paged<ReactionDto>> GetPostReactions([FromRoute] Guid id, [FromQuery] Paging paging)
     {
         var reactions = postService.AsUser(User.GetGuid()).GetPost(id).Reactions;
-        return Ok(reactions.Select(x => x.ToDto()));
+        var paged = Paged<ReactionDto>.PageFrom(reactions.Select(x => x.ToDto(postService.ActingUser!)),
+            ByFriendComparer.Instance, paging);
+        return Ok(paged);
     }
 
     [HttpPatch]

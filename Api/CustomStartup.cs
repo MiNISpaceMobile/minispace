@@ -98,7 +98,6 @@ public static class CustomStartup
         ev1.Participants.Add(st0);
         ev1.Interested.Add(st2);
         st0.JoinedEvents.Add(ev1); st2.SubscribedEvents.Add(ev1);
-        ev2.Participants.Add(st1);
         ev2.Interested.Add(st1); ev2.Interested.Add(st2);
         st1.SubscribedEvents.Add(ev2); st2.SubscribedEvents.Add(ev2);
         Event[] events = [ev0, ev1, ev2];

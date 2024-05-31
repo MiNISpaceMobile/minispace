@@ -16,12 +16,10 @@ namespace Api.Controllers;
 public class PostController : ControllerBase
 {
     private IPostService postService;
-    private IUserService userService;
 
-    public PostController(IPostService postService, IUserService userService)
+    public PostController(IPostService postService)
     {
         this.postService = postService;
-        this.userService = userService;
     }
 
     [HttpGet]
@@ -38,13 +36,13 @@ public class PostController : ControllerBase
     [Authorize]
     [Route("user")]
     [SwaggerOperation("List user's subscribed events' posts")]
-    public ActionResult<Paged<ListPostDto>> GetUserEventsPosts([FromQuery] Paging paging, [FromQuery] bool showFrindsPosts = false)
+    public ActionResult<Paged<ListPostDto>> GetUserEventsPosts([FromQuery] Paging paging, [FromQuery] bool showFriendsPosts = false)
     {
-        var user = userService.AsUser(User.GetGuid()).GetUser();
+        var user = postService.AsUser(User.GetGuid()).ActingUser;
         HashSet<Event> events = new HashSet<Event>(new EventEqualityComparer());
-        events.UnionWith(user.SubscribedEvents);
+        events.UnionWith(user!.SubscribedEvents);
 
-        if (showFrindsPosts)
+        if (showFriendsPosts)
         {
             var friends = user.Friends;
             foreach (var f in friends)

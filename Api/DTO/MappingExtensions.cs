@@ -5,8 +5,6 @@ using Api.DTO.Posts;
 using Api.DTO.Reports;
 using Api.DTO.Users;
 using Domain.DataModel;
-using Microsoft.Extensions.Logging;
-using System.Threading;
 
 namespace Api.DTO;
 
@@ -19,16 +17,30 @@ public static class MappingExtensions
         new(user.Guid, user.FirstName, user.LastName, user.Email, user.Description,
             user.DateOfBirth, user.IsAdmin, user.IsOrganizer, user.EmailNotification, user.ProfilePictureUrl);
 
-    public static CommentDto ToDto(this Comment comment) =>
-        new(comment.Guid, comment.Author?.ToDto(), comment.CreationDate, comment.Content, comment.Responses.Count);
+    public static CommentDto ToDto(this Comment comment, Guid? actingUserGuid) =>
+        new(comment.Guid, comment.Author?.ToDto(),
+            comment.Likes.SingleOrDefault(x => x.AuthorId == actingUserGuid)?.IsDislike,
+            comment.Likes.Count(x => !x.IsDislike),
+            comment.Likes.Count(x => x.IsDislike),
+            comment.CreationDate,
+            comment.Content,
+            comment.Responses.Count);
 
-    public static PostDto ToDto(this Post post) =>
+    public static LikeDto ToDto(this Like like, User actingUser) =>
+        new(like.Author.ToDto(), like.IsDislike, actingUser.Friends.Any(x => x.Guid == like.Author.Guid));
+
+    public static PostDto ToDto(this Post post, Guid? actingUserGuid) =>
         new(post.Guid, post.Title, post.Content, post.EventId, post.Event.Title, post.Author?.ToDto(), post.CreationDate,
+            post.Reactions.SingleOrDefault(x => x.AuthorId == actingUserGuid)?.Type,
+            new ReactionsSummary(post.Reactions),
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
 
     public static ListPostDto ToListPostDto(this Post post) =>
         new(post.Guid, post.Title, post.Content,
             post.Pictures.OrderBy(x => x.Index).Select(x => x.Url));
+
+    public static ReactionDto ToDto(this Reaction reaction, User actingUser) =>
+        new(reaction.Author.ToDto(), reaction.Type, actingUser.Friends.Any(x => x.Guid == reaction.Author.Guid));
 
     public static EventDto ToDto(this Event @event, User? user)
     {

@@ -1,9 +1,5 @@
 ﻿using Api.DTO;
 using Api.DTO.Comments;
-using Api.DTO.Events;
-using Api.DTO.Posts;
-using Api.DTO.Users;
-using Domain.DataModel;
 using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +25,8 @@ public class CommentController : ControllerBase
     public ActionResult<Paged<CommentDto>> GetCommentResponses([FromQuery] Paging paging, [FromRoute] Guid id)
     {
         var comments = commentService.AsUser(User.GetGuid()).GetComment(id).Responses;
-        return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Select(p => p.ToDto()), DTO.Comments.CreationDateComparer.Instance, paging);
+        return Paged<CommentDto>.PageFrom(comments.Select(p => p.ToDto(User.GetGuid())),
+            CreationDateComparer.Instance, paging);
     }
 
     [HttpPost]
@@ -41,7 +38,7 @@ public class CommentController : ControllerBase
         if (newComment.InResponseTo is not null)
             inResponseTo = (Guid)newComment.InResponseTo;
         var comment = commentService.AsUser(User.GetGuid()).CreateComment(newComment.PostGuid, newComment.Content, inResponseTo, DateTime.Now);
-        return Ok(comment.ToDto());
+        return Ok(comment.ToDto(User.GetGuid()));
     }
 
     [HttpDelete]
@@ -51,6 +48,28 @@ public class CommentController : ControllerBase
     public ActionResult DeleteComment([FromRoute] Guid id)
     {
         commentService.AsUser(User.GetGuid()).DeleteComment(id);
+        return Ok();
+    }
+
+    [HttpGet]
+    [Authorize]
+    [Route("{id}/likes")]
+    [SwaggerOperation("List all comments's likes and dislikes")]
+    public ActionResult<Paged<LikeDto>> GetCommentLikes([FromRoute] Guid id, [FromQuery] Paging paging)
+    {
+        var likes = commentService.AsUser(User.GetGuid()).GetComment(id).Likes;
+        var paged = Paged<LikeDto>.PageFrom(likes.Select(x => x.ToDto(commentService.ActingUser!)),
+            ByFriendComparer.Instance, paging);
+        return Ok(paged);
+    }
+
+    [HttpPatch]
+    [Authorize]
+    [Route("{id}/likes")]
+    [SwaggerOperation("Set acting user's like/dislike to comment")]
+    public ActionResult PatchLike([FromRoute] Guid id, [FromBody] SetLike like)
+    {
+        commentService.AsUser(User.GetGuid()).SetLike(id, like.IsDislike);
         return Ok();
     }
 }

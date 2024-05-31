@@ -55,6 +55,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     public ActionResult<Paged<ListPostDto>> GetEventPosts([FromQuery] Paging paging, [FromRoute] Guid id)
     {
         var @event = eventService.AsUser(User.GetGuid()).GetEvent(id);
+
         return Paged<ListPostDto>.PageFrom(@event.Posts.OrderByDescending(p => p.CreationDate).Select(p => p.ToListPostDto()), DummyComparer.Instance, paging);
     }
 

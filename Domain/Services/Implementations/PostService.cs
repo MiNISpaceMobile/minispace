@@ -60,4 +60,26 @@ public class PostService(IUnitOfWork uow, IStorage storage)
 
         return posts;
     }
+
+    public void SetReaction(Guid postGuid, ReactionType? type)
+    {
+        AllowOnlyLoggedIn();
+
+        Post post = uow.Repository<Post>().GetOrThrow(postGuid);
+
+        Reaction? userReaction = post.Reactions.SingleOrDefault(x => x.Author.Guid == ActingUser!.Guid);
+        if (userReaction is null && !type.HasValue)
+            return;
+        if (userReaction is not null && type.HasValue && userReaction.Type == type.Value)
+            return;
+
+        if (userReaction is null && type.HasValue)
+            post.Reactions.Add(new Reaction(ActingUser!, post, type.Value));
+        else if (userReaction is not null && type.HasValue)
+            userReaction.Type = type.Value;
+        else if (userReaction is not null && !type.HasValue)
+            post.Reactions.Remove(userReaction);
+
+        uow.Commit();
+    }
 }

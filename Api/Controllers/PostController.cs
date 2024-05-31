@@ -4,7 +4,6 @@ using Api.DTO.Comments;
 using Api.DTO.Posts;
 using Domain.DataModel;
 using Domain.Services;
-using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -29,7 +28,7 @@ public class PostController : ControllerBase
     public ActionResult<PostDto> GetPostDetails([FromRoute] Guid id)
     {
         var post = postService.AsUser(User.GetGuid()).GetPost(id);
-        return Ok(post.ToDto());
+        return Ok(post.ToDto(User.GetGuid()));
     }
 
     [HttpGet]
@@ -63,7 +62,7 @@ public class PostController : ControllerBase
     public ActionResult<PostDto> CreatePost(CreatePost post)
     {
         Post newPost = postService.AsUser(User.GetGuid()).CreatePost(post.EventGuid, post.Title, post.Content);
-        return Ok(newPost.ToDto());
+        return Ok(newPost.ToDto(User.GetGuid()));
     }
 
     [HttpDelete]
@@ -82,7 +81,31 @@ public class PostController : ControllerBase
     [SwaggerOperation("List comments for given post")]
     public ActionResult<Paged<CommentDto>> GetPostComments([FromQuery] Paging paging, [FromRoute] Guid id)
     {
-        var comments = postService.AsUser(User.GetGuid()).GetPost(id).Comments;
-        return Paged<CommentDto>.PageFrom(comments.AsEnumerable().Where(c => c.InResponeseToId is null).Select(c => c.ToDto()), DTO.Comments.CreationDateComparer.Instance, paging);
+        var comments = postService.AsUser(User.GetGuid()).GetPost(id).Comments
+            .Where(c => c.InResponeseToId is null);
+        return Paged<CommentDto>.PageFrom(comments.Select(c => c.ToDto(User.GetGuid())),
+            DTO.Comments.CreationDateComparer.Instance, paging);
+    }
+
+    [HttpGet]
+    [Authorize]
+    [Route("{id}/reactions")]
+    [SwaggerOperation("List all post's reactions")]
+    public ActionResult<Paged<ReactionDto>> GetPostReactions([FromRoute] Guid id, [FromQuery] Paging paging)
+    {
+        var reactions = postService.AsUser(User.GetGuid()).GetPost(id).Reactions;
+        var paged = Paged<ReactionDto>.PageFrom(reactions.Select(x => x.ToDto(postService.ActingUser!)),
+            DTO.Posts.ByFriendComparer.Instance, paging);
+        return Ok(paged);
+    }
+
+    [HttpPatch]
+    [Authorize]
+    [Route("{id}/reactions")]
+    [SwaggerOperation("Set acting user's reaction to post")]
+    public ActionResult PatchReaction([FromRoute] Guid id, [FromBody] SetReaction reaction)
+    {
+        postService.AsUser(User.GetGuid()).SetReaction(id, reaction.Type);
+        return Ok();
     }
 }

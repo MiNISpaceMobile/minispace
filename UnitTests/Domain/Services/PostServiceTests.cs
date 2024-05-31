@@ -33,7 +33,7 @@ public class PostServiceTests
         { Guid = Guid.Parse("b091f07f-6ed7-4a80-bf7f-966765d3a13d") };
         events = new List<Event> { ev0, ev1 };
 
-        post = new Post(st0, ev0, "test");
+        post = new Post(st0, ev0, "test", "test");
 
         uow = new DictionaryUnitOfWork(Enumerable.Concat<BaseEntity>(students, events).Concat([post]));
 

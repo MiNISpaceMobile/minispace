@@ -1,11 +1,7 @@
 ﻿using Domain.Abstractions;
-using Domain.BaseTypes;
 using Domain.DataModel;
-using Domain.Services;
 using Domain.Services.Implementations;
-using Infrastructure.Storages;
 using Infrastructure.UnitOfWorks;
-using Microsoft.Extensions.Logging;
 
 namespace UnitTests.Domain.Services;
 
@@ -48,17 +44,16 @@ public class NotificationServiceTests
     [TestMethod]
     public void GenerateNewEventNotifications_FriendOrganizesEvent_AddsNotification()
     {
-        var notificationsCount = student.SocialNotifications.Count;
-        var hasNewEventNotification = student.SocialNotifications.Any(x => x.Type == SocialNotificationType.FriendOrganizesEvent);
+        var notifications = student.SocialNotifications;
+        var oldCount = notifications.Count;
+        var hasFriendOrganizesEventNotification = notifications.Any(x => x.Type == SocialNotificationType.FriendOrganizesEvent);
 
         notificationService.GenerateNewEventNotifications(@event);
-        var notifications = student.SocialNotifications;
-        var eventNotification = notifications.FirstOrDefault(x => x.Type == SocialNotificationType.FriendOrganizesEvent);
+        var friendOrganizesEventNotification = notifications.FirstOrDefault(x => x.Type == SocialNotificationType.FriendOrganizesEvent);
 
-        Assert.AreNotEqual(notifications.Count, notificationsCount);
-        Assert.IsNotNull(eventNotification);
-        Assert.AreNotEqual(hasNewEventNotification, eventNotification is not null);
-        Assert.AreEqual(eventNotification?.SourceId, @event.Guid);
+        Assert.AreNotEqual(notifications.Count, oldCount);
+        Assert.AreNotEqual(hasFriendOrganizesEventNotification, friendOrganizesEventNotification is not null);
+        Assert.AreEqual(friendOrganizesEventNotification?.SourceId, @event.Guid);
     }
     #endregion GenerateNewEventNotifications
 
@@ -66,17 +61,16 @@ public class NotificationServiceTests
     [TestMethod]
     public void GenerateNewPostNotifications_SubscribedEventNewPost_AddsNotification()
     {
-        var notificationsCount = student.PersonalNotifications.Count;
-        var hasNewPostNotification = student.PersonalNotifications.Any(x => x.Type == NotificationType.EventNewPost);
+        var notifications = student.PersonalNotifications;
+        var oldCount = notifications.Count;
+        var hasEventNewPostNotification = notifications.Any(x => x.Type == NotificationType.EventNewPost);
 
         notificationService.GenerateNewPostNotifications(post);
-        var notifications = student.PersonalNotifications;
-        var postNotification = notifications.FirstOrDefault(x => x.Type == NotificationType.EventNewPost);
+        var eventNewPostNotification = notifications.FirstOrDefault(x => x.Type == NotificationType.EventNewPost);
 
-        Assert.AreNotEqual(notifications.Count, notificationsCount);
-        Assert.IsNotNull(postNotification);
-        Assert.AreNotEqual(hasNewPostNotification, postNotification is not null);
-        Assert.AreEqual(postNotification?.SourceId, post.Guid);
+        Assert.AreNotEqual(notifications.Count, oldCount);
+        Assert.AreNotEqual(hasEventNewPostNotification, eventNewPostNotification is not null);
+        Assert.AreEqual(eventNewPostNotification?.SourceId, post.Guid);
     }
     #endregion GenerateNewPostNotifications
 
@@ -84,31 +78,29 @@ public class NotificationServiceTests
     [TestMethod]
     public void GenerateNewCommentNotifications_CommentGetsResponse_AddsNotification()
     {
-        var notificationsCount = student.PersonalNotifications.Count;
-        var hasNewResponseNotification = student.PersonalNotifications.Any(x => x.Type == NotificationType.CommentReponsedTo);
+        var notifications = student.PersonalNotifications;
+        var oldCount = notifications.Count;
+        var hasCommentRespondedToNotificiation = notifications.Any(x => x.Type == NotificationType.CommentReponsedTo);
 
         notificationService.GenerateNewCommentNotifications(response);
-        var notifications = student.PersonalNotifications;
-        var responseNotification = notifications.FirstOrDefault(x => x.Type == NotificationType.CommentReponsedTo);
+        var commentRespondedToNotification = notifications.FirstOrDefault(x => x.Type == NotificationType.CommentReponsedTo);
 
-        Assert.AreNotEqual(notifications.Count, notificationsCount);
-        Assert.IsNotNull(responseNotification);
-        Assert.AreNotEqual(hasNewResponseNotification, responseNotification is not null);
-        Assert.AreEqual(responseNotification?.SourceId, response.Guid);
+        Assert.AreNotEqual(notifications.Count, oldCount);
+        Assert.AreNotEqual(hasCommentRespondedToNotificiation, commentRespondedToNotification is not null);
+        Assert.AreEqual(commentRespondedToNotification?.SourceId, response.Guid);
     }
 
     [TestMethod]
     public void GenerateNewCommentNotifications_FriendCommentedSubscribedEvent_AddsNotification()
     {
-        var notificationsCount = student.SocialNotifications.Count;
-        var hasFriendCommentedNotification = student.SocialNotifications.Any(x => x.Type == SocialNotificationType.FriendCommented);
+        var notifications = student.SocialNotifications;
+        var notificationsCount = notifications.Count;
+        var hasFriendCommentedNotification = notifications.Any(x => x.Type == SocialNotificationType.FriendCommented);
 
         notificationService.GenerateNewCommentNotifications(response);
-        var notifications = student.SocialNotifications;
         var friendCommentedNotification = notifications.FirstOrDefault(x => x.Type == SocialNotificationType.FriendCommented);
 
         Assert.AreNotEqual(notifications.Count, notificationsCount);
-        Assert.IsNotNull(friendCommentedNotification);
         Assert.AreNotEqual(hasFriendCommentedNotification, friendCommentedNotification is not null);
         Assert.AreEqual(friendCommentedNotification?.SourceId, response.Guid);
     }
@@ -118,15 +110,14 @@ public class NotificationServiceTests
     [TestMethod]
     public void GenerateEventStartsSoonNotifications()
     {
-        var notificationsCount = student.PersonalNotifications.Count;
-        var hasEventStartsSoonNotification = student.PersonalNotifications.Any(x => x.Type == NotificationType.EventStartsSoon);
+        var notifications = student.PersonalNotifications;
+        var notificationsCount = notifications.Count;
+        var hasEventStartsSoonNotification = notifications.Any(x => x.Type == NotificationType.EventStartsSoon);
 
         notificationService.GenerateEventStartsSoonNotifications();
-        var notifications = student.PersonalNotifications;
         var eventsStartsSoonNotification = notifications.FirstOrDefault(x => x.Type == NotificationType.EventStartsSoon);
 
         Assert.AreNotEqual(notifications.Count, notificationsCount);
-        Assert.IsNotNull(eventsStartsSoonNotification);
         Assert.AreNotEqual(hasEventStartsSoonNotification, eventsStartsSoonNotification is not null);
         Assert.AreEqual(eventsStartsSoonNotification?.SourceId, @event.Guid);
     }
@@ -136,17 +127,16 @@ public class NotificationServiceTests
     [TestMethod]
     public void GenerateJoinedEventNotificatons()
     {
-        var notificationsCount = organizer.SocialNotifications.Count;
-        var hasFriendJoinedEventNotification = organizer.SocialNotifications.Any(x => x.Type == SocialNotificationType.FriendJoinedEvent);
+        var notifications = organizer.SocialNotifications;
+        var notificationsCount = notifications.Count;
+        var hasFriendJoinedEventNotification = notifications.Any(x => x.Type == SocialNotificationType.FriendJoinedEvent);
 
         notificationService.GenerateJoinedEventNotificatons(student, @event);
-        var notifications = organizer.SocialNotifications;
-        var FriendJoinedEventNotification = notifications.FirstOrDefault(x => x.Type == SocialNotificationType.FriendJoinedEvent);
+        var friendJoinedEventNotification = notifications.FirstOrDefault(x => x.Type == SocialNotificationType.FriendJoinedEvent);
 
         Assert.AreNotEqual(notifications.Count, notificationsCount);
-        Assert.IsNotNull(FriendJoinedEventNotification);
-        Assert.AreNotEqual(hasFriendJoinedEventNotification, FriendJoinedEventNotification is not null);
-        Assert.AreEqual(FriendJoinedEventNotification?.SourceId, @event.Guid);
+        Assert.AreNotEqual(hasFriendJoinedEventNotification, friendJoinedEventNotification is not null);
+        Assert.AreEqual(friendJoinedEventNotification?.SourceId, @event.Guid);
     }
     #endregion GenerateJoinedEventNotificatons
 }

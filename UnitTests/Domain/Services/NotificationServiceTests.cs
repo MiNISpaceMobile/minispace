@@ -35,7 +35,7 @@ public class NotificationServiceTests
         post = new Post(organizer, @event, "title", "post");
         comment = new Comment(student, post, "first comment", null);
         response = new Comment(organizer, post, "answer to commen", comment);
-        uow = new DictionaryUnitOfWork([student, organizer, @event, post, comment]);
+        uow = new DictionaryUnitOfWork([student, organizer, @event, post, comment, response]);
         notificationService = new(uow);
 
     }

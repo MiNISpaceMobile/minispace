@@ -12,7 +12,7 @@ namespace Api.Controllers;
 
 [Route("events")]
 [ApiController]
-public class EventsController(IEventService eventService) : ControllerBase
+public class EventsController(IEventService eventService, INotificationService notificationService) : ControllerBase
 {
     [HttpGet]
     [SwaggerOperation("List all events")]
@@ -37,6 +37,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     {
         var @event = eventService.AsUser(User.GetGuid()).CreateEvent(newEvent.Title, newEvent.Description, newEvent.EventCategory,
             newEvent.PublicationDate, newEvent.StartDate, newEvent.EndDate, newEvent.Location, newEvent.Capacity, newEvent.Fee);
+        notificationService.GenerateNewEventNotifications(@event);
         return Ok(@event.ToDto(eventService.ActingUser));
     }
 
@@ -75,8 +76,11 @@ public class EventsController(IEventService eventService) : ControllerBase
     [SwaggerOperation("Register for event")]
     public ActionResult RegisterForEvent(Guid id)
     {
-        return eventService.AsUser(User.GetGuid()).TryAddParticipant(id) ?
-            Ok() : BadRequest("You can't register for this event");
+        var isAdded = eventService.AsUser(User.GetGuid()).TryAddParticipant(id);
+        if(!isAdded)
+            return BadRequest("You can't register for this event");
+        notificationService.GenerateJoinedEventNotificatons(eventService.ActingUser!, eventService.GetEvent(id));
+        return Ok();
     }
 
     [HttpDelete]

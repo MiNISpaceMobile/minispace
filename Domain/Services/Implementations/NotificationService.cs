@@ -22,7 +22,7 @@ public class NotificationService(IUnitOfWork uow) : INotificationService
 
     public void GenerateNewCommentNotifications(Comment comment)
     {
-        comment.InResponseTo?.Author?.PersonalNotifications.Add(new Notification(comment.InResponseTo.Author, comment, NotificationType.CommentReponsedTo));
+        comment.InResponseTo?.Author?.PersonalNotifications.Add(new Notification(comment.InResponseTo.Author, comment, NotificationType.CommentRespondedTo));
         var @event = comment.Post.Event;
         foreach (var friend in comment.Author!.Friends)
             if (@event.Interested.Contains(friend) || @event.Participants.Contains(friend))

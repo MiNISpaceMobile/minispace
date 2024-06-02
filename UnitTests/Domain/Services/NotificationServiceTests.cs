@@ -80,10 +80,10 @@ public class NotificationServiceTests
     {
         var notifications = student.PersonalNotifications;
         var oldCount = notifications.Count;
-        var hasCommentRespondedToNotificiation = notifications.Any(x => x.Type == NotificationType.CommentReponsedTo);
+        var hasCommentRespondedToNotificiation = notifications.Any(x => x.Type == NotificationType.CommentRespondedTo);
 
         notificationService.GenerateNewCommentNotifications(response);
-        var commentRespondedToNotification = notifications.FirstOrDefault(x => x.Type == NotificationType.CommentReponsedTo);
+        var commentRespondedToNotification = notifications.FirstOrDefault(x => x.Type == NotificationType.CommentRespondedTo);
 
         Assert.AreNotEqual(notifications.Count, oldCount);
         Assert.AreNotEqual(hasCommentRespondedToNotificiation, commentRespondedToNotification is not null);

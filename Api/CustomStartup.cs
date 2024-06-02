@@ -66,14 +66,17 @@ public static class CustomStartup
 
         #region Users
 
-        var ad = new User("Dev", "Admin", "dev.admin@pw.edu.pl", epoch, "DevAdmin")
+        var ad = new User("Dev", "Admin", "", epoch, "DevAdmin")
         { Guid = Guid.Parse("10000000-0000-0000-0000-000000000000"), IsAdmin = true, IsOrganizer = true };
 
-        var or = new User("Dev", "Organizer", "dev.organizer@pw.edu.pl", epoch, "DevOrganizer")
+        var or = new User("Dev", "Organizer", "", epoch, "DevOrganizer")
         { Guid = Guid.Parse("20000000-0000-0000-0000-000000000000"), IsOrganizer = true };
 
-        var st = new User("Dev", "Student", "dev.student@pw.edu.pl", epoch, "DevStudent")
+        var st = new User("Dev", "Student", "", epoch, "DevStudent")
         { Guid = Guid.Parse("30000000-0000-0000-0000-000000000000") };
+
+        var pp = new User("P", "P", "", epoch, "1171335")
+        { Guid = Guid.Parse("00000000-0000-0690-0000-000000000000"), IsAdmin = true };
 
         ad.Friends.Add(or);
         or.Friends.Add(ad);
@@ -88,7 +91,7 @@ public static class CustomStartup
         st.SentFriendRequests.Add(s2a);
         ad.ReceivedFriendRequests.Add(s2a);
 
-        uow.Repository<User>().AddMany([ad, or, st]);
+        uow.Repository<User>().AddMany([ad, or, st, pp]);
         uow.Repository<FriendRequest>().AddMany([o2s, s2a]);
 
         #endregion Users

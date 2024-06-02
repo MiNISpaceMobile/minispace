@@ -123,9 +123,9 @@ public class NotificationServiceTests
     }
     #endregion GenerateEventStartsSoonNotifications
 
-    #region GenerateJoinedEventNotificatons
+    #region GenerateJoinedEventNotifications
     [TestMethod]
-    public void GenerateJoinedEventNotificatons()
+    public void GenerateJoinedEventNotifications()
     {
         var notifications = organizer.SocialNotifications;
         var notificationsCount = notifications.Count;
@@ -138,5 +138,5 @@ public class NotificationServiceTests
         Assert.AreNotEqual(hasFriendJoinedEventNotification, friendJoinedEventNotification is not null);
         Assert.AreEqual(friendJoinedEventNotification?.SourceId, @event.Guid);
     }
-    #endregion GenerateJoinedEventNotificatons
+    #endregion GenerateJoinedEventNotifications
 }

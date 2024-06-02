@@ -44,7 +44,7 @@ builder.Services.AddControllers(options => options.Filters.Add(new ProducesAttri
 
 // EF Core
 if (builder.Environment.IsDevelopment())
-builder.Services.AddEFContext<SqliteDbContext>();
+    builder.Services.AddEFContext<SqliteDbContext>();
 else
     builder.Services.AddEFContext<AzureMySqlDbContext>();
 builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();

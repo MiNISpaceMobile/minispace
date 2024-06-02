@@ -1,5 +1,6 @@
 using Api;
 using Api.Auth;
+using Api.BackgroundServices;
 using Domain.Abstractions;
 using Domain.Services;
 using Domain.Services.Abstractions;
@@ -53,12 +54,15 @@ builder.Services.AddScoped<IPingResponder, PongPingResponder>();
 builder.Services.AddScoped<IPictureService, PictureService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+// Background Services
+builder.Services.AddHostedService<NotificationBackgroundService>();
 // Integrations:
 builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
 builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IPostService, PostService>();
 
 /* Warning! Important! Will help you later!
  * 

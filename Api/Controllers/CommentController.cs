@@ -1,6 +1,7 @@
 ﻿using Api.DTO;
 using Api.DTO.Comments;
 using Domain.Services;
+using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -12,10 +13,12 @@ namespace Api.Controllers;
 public class CommentController : ControllerBase
 {
     private ICommentService commentService;
+    private INotificationService notificationService;
 
-    public CommentController(ICommentService commentService)
+    public CommentController(ICommentService commentService, INotificationService notificationService)
     {
         this.commentService = commentService;
+        this.notificationService = notificationService;
     }
 
     [HttpGet]
@@ -38,6 +41,7 @@ public class CommentController : ControllerBase
         if (newComment.InResponseTo is not null)
             inResponseTo = (Guid)newComment.InResponseTo;
         var comment = commentService.AsUser(User.GetGuid()).CreateComment(newComment.PostGuid, newComment.Content, inResponseTo, DateTime.Now);
+        notificationService.GenerateNewCommentNotifications(comment);
         return Ok(comment.ToDto(User.GetGuid()));
     }
 

@@ -7,6 +7,7 @@ using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Domain.Services.Abstractions;
 
 namespace Api.Controllers;
 
@@ -15,10 +16,12 @@ namespace Api.Controllers;
 public class PostController : ControllerBase
 {
     private IPostService postService;
+    private INotificationService notificationService;
 
-    public PostController(IPostService postService)
+    public PostController(IPostService postService, INotificationService notificationService)
     {
         this.postService = postService;
+        this.notificationService = notificationService;
     }
 
     [HttpGet]
@@ -66,6 +69,7 @@ public class PostController : ControllerBase
     public ActionResult<PostDto> CreatePost(CreatePost post)
     {
         Post newPost = postService.AsUser(User.GetGuid()).CreatePost(post.EventGuid, post.Title, post.Content);
+        notificationService.GenerateNewPostNotifications(newPost);
         return Ok(newPost.ToDto(User.GetGuid()));
     }
 

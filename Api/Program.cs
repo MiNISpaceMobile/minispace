@@ -8,6 +8,7 @@ using Domain.Services.Implementations;
 using Infrastructure.Authenticators;
 using Infrastructure.CryptographyProviders;
 using Infrastructure.DatabaseContexts;
+using Infrastructure.EmailSenders;
 using Infrastructure.JwtHandlers;
 using Infrastructure.PictureHandlers;
 using Infrastructure.PictureStorages;
@@ -43,7 +44,10 @@ builder.Services.AddControllers(options => options.Filters.Add(new ProducesAttri
  */
 
 // EF Core
-builder.Services.AddEFContext<SqliteDbContext>();
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddEFContext<SqliteDbContext>();
+else
+    builder.Services.AddEFContext<AzureMySqlDbContext>();
 builder.Services.AddScoped<IUnitOfWork, DatabaseUnitOfWork>();
 // Auth:
 builder.Services.AddSingleton<ICryptographyProvider<RSAParameters>, RsaConfigCryptographyProvider>();
@@ -62,6 +66,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHostedService<NotificationBackgroundService>();
 // Integrations:
 builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
+builder.Services.AddSingleton<IEmailSender, AzureEmailSender>();
 builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();
 
 /* Warning! Important! Will help you later!
@@ -93,6 +98,6 @@ app.UseExceptionHandler(o => { });
 app.MapControllers();
 
 // Our own function that setups a few things
-app.PerformCustomStartupActions(resetDb: true, generateDevUsersJwt: true);
+app.PerformCustomStartupActions(resetDb: false, generateDevUsersJwt: true);
 
 app.Run();

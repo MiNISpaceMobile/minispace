@@ -112,7 +112,14 @@ public class UsosAuthenticator : Domain.Abstractions.IAuthenticator
             uow.Repository<User>().Add(user);
             uow.Commit();
         }
-        // TODO: Update user data on login?
+        else // update existing user
+        {
+            user.FirstName = userResponse.FirstName;
+            user.LastName = userResponse.LastName;
+            user.Email = userResponse.Email;
+            user.DateOfBirth = userResponse.DateOfBirth;
+            uow.Commit();
+        }
 
         return user.Guid;
     }

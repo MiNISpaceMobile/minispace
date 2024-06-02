@@ -39,7 +39,7 @@ public class NotificationService(IUnitOfWork uow) : INotificationService
         uow.Commit();
     }
 
-    public void GenerateJoinedEventNotificatons(User user, Event @event)
+    public void GenerateJoinedEventNotifications(User user, Event @event)
     {
         foreach (var friend in user.Friends)
             friend.SocialNotifications.Add(new SocialNotification(friend, user, @event, SocialNotificationType.FriendJoinedEvent));

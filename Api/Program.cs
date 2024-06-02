@@ -59,7 +59,7 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Background Services
-builder.Services.AddHostedService<NotificationBackgroundServce>();
+builder.Services.AddHostedService<NotificationBackgroundService>();
 // Integrations:
 builder.Services.AddSingleton<IStorage, AzureBlobStorage>();
 builder.Services.AddSingleton<IPictureHandler, WebpPictureHandler>();

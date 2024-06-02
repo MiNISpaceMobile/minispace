@@ -2,7 +2,7 @@
 
 namespace Api.BackgroundServices;
 
-public class NotificationBackgroundServce(IServiceProvider serviceProvider) : BackgroundService
+public class NotificationBackgroundService(IServiceProvider serviceProvider) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

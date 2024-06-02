@@ -79,7 +79,7 @@ public class EventsController(IEventService eventService, INotificationService n
         var isAdded = eventService.AsUser(User.GetGuid()).TryAddParticipant(id);
         if(!isAdded)
             return BadRequest("You can't register for this event");
-        notificationService.GenerateJoinedEventNotificatons(eventService.ActingUser!, eventService.GetEvent(id));
+        notificationService.GenerateJoinedEventNotifications(eventService.ActingUser!, eventService.GetEvent(id));
         return Ok();
     }
 

@@ -9,5 +9,5 @@ public interface INotificationService
     public void GenerateNewPostNotifications(Post post);
     public void GenerateNewCommentNotifications(Comment comment);
     public void GenerateEventStartsSoonNotifications();
-    public void GenerateJoinedEventNotificatons(User user, Event @event);
+    public void GenerateJoinedEventNotifications(User user, Event @event);
 }

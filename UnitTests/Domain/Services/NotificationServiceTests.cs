@@ -34,7 +34,7 @@ public class NotificationServiceTests
 
         post = new Post(organizer, @event, "title", "post");
         comment = new Comment(student, post, "first comment", null);
-        response = new Comment(organizer, post, "answer to commen", comment);
+        response = new Comment(organizer, post, "answer to comment", comment);
         uow = new DictionaryUnitOfWork([student, organizer, @event, post, comment, response]);
         notificationService = new(uow);
 
@@ -131,7 +131,7 @@ public class NotificationServiceTests
         var notificationsCount = notifications.Count;
         var hasFriendJoinedEventNotification = notifications.Any(x => x.Type == SocialNotificationType.FriendJoinedEvent);
 
-        notificationService.GenerateJoinedEventNotificatons(student, @event);
+        notificationService.GenerateJoinedEventNotifications(student, @event);
         var friendJoinedEventNotification = notifications.FirstOrDefault(x => x.Type == SocialNotificationType.FriendJoinedEvent);
 
         Assert.AreNotEqual(notifications.Count, notificationsCount);

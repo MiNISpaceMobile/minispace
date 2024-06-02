@@ -3,6 +3,14 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Development database
+MinispaceDb/
+
+# Secrets
+minispace-secrets.json
+# This file should not be in the repo directory anyway
+# This rule is here so someone doesn't push it accidentally
+
 # User-specific files
 *.rsuser
 *.suo

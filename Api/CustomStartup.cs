@@ -44,93 +44,175 @@ public static class CustomStartup
         using var scope = app.Services.CreateScope();
         using var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        if (uow.Repository<Comment>().GetAll().Any() ||
-            uow.Repository<Event>().GetAll().Any() ||
-            uow.Repository<Post>().GetAll().Any() ||
-            uow.Repository<Report>().GetAll().Any() ||
+        if (uow.Repository<Event>().GetAll().Any() ||
             uow.Repository<User>().GetAll().Any())
         {
             app.Logger.LogInformation("Skipped database seeding since it was not empty");
             return;
         }
 
-        var now = DateTime.Now;
-        var week_in = now.AddDays(7);
-        var weeks_in = now.AddDays(14);
-        var week_ago = now.AddDays(-7);
-        var years_ago = now.AddYears(-30).AddMonths(-2).AddDays(3);
+        var epoch = DateTime.UnixEpoch;
+        var today = DateTime.UtcNow.Date.AddHours(9);
+        var week = new DateTime[7]
+        {
+            today.AddDays(-2),
+            today.AddDays(-1),
+            today,
+            today.AddDays(+1),
+            today.AddDays(+2),
+            today.AddDays(+3),
+            today.AddDays(+4),
+        };
 
-        var devAdmin = new User("Dev", "Admin", "dev.admin@pw.edu.pl", now, "DevAdmin")
-        { Guid = Guid.Parse("2a4bdafb-c2bd-43d5-9693-b77d4c1ceeb3"), IsAdmin = true, IsOrganizer = true };
+        #region Users
 
-        var devOrganizer = new User("Dev", "Organizer", "dev.organizer@pw.edu.pl", now, "DevOrganizer")
-        { Guid = Guid.Parse("d48c1100-3358-4734-9cca-05acadb5366e"), IsOrganizer = true };
+        var ad = new User("Dev", "Admin", "", epoch, "DevAdmin")
+        { Guid = Guid.Parse("10000000-0000-0000-0000-000000000000"), IsAdmin = true, IsOrganizer = true };
 
-        var devStudent = new User("Dev", "Student", "dev.student@pw.edu.pl", now, "DevStudent")
-        { Guid = Guid.Parse("ca67e06e-9e32-4955-9b3c-02c673322779") };
+        var or = new User("Dev", "Organizer", "", epoch, "DevOrganizer")
+        { Guid = Guid.Parse("20000000-0000-0000-0000-000000000000"), IsOrganizer = true };
 
-        uow.Repository<User>().AddMany([devAdmin, devOrganizer, devStudent]);
+        var st = new User("Dev", "Student", "", epoch, "DevStudent")
+        { Guid = Guid.Parse("30000000-0000-0000-0000-000000000000") };
 
-        var ad0 = new User("AdFirst0", "AdLast0", "ad0@pw.edu.pl", now)
-        { Guid = Guid.Parse("d1f78079-dab3-4ee3-b8c2-73b217377d89"), IsAdmin = true };
-        var ad1 = new User("AdFirst1", "AdLast1", "ad1@pw.edu.pl", now)
-        { Guid = Guid.Parse("2fbe3558-20d7-4872-8048-c6dbdd13a813"), IsAdmin = true };
-        var ad2 = new User("AdFirst2", "AdLast2", "ad2@pw.edu.pl", now)
-        { Guid = Guid.Parse("01c018c1-9dcc-42ba-9b53-123e33be0db2"), IsAdmin = true };
+        var pp = new User("P", "P", "", epoch, "1171335")
+        { Guid = Guid.Parse("00000000-0000-0690-0000-000000000000"), IsAdmin = true };
+
+        ad.Friends.Add(or);
+        or.Friends.Add(ad);
+
+        var o2s = new FriendRequest(st, or)
+        { Guid = Guid.Parse("00000001-0000-0000-0000-000000000000") };
+        or.SentFriendRequests.Add(o2s);
+        st.ReceivedFriendRequests.Add(o2s);
+
+        var s2a = new FriendRequest(ad, st)
+        { Guid = Guid.Parse("00000002-0000-0000-0000-000000000000") };
+        st.SentFriendRequests.Add(s2a);
+        ad.ReceivedFriendRequests.Add(s2a);
+
+        uow.Repository<User>().AddMany([ad, or, st, pp]);
+        uow.Repository<FriendRequest>().AddMany([o2s, s2a]);
+
+        #endregion Users
+
+        #region Events
+
+        var ev1 = new Event(or, "Ev1", "Des1", EventCategory.Uncategorized, week[0], week[1], week[2], "Loc1", null, null)
+        { Guid = Guid.Parse("01000000-0000-0000-0000-000000000000")};
+
+        var ev2 = new Event(or, "Ev2", "Des2", EventCategory.Uncategorized, week[1], week[2], week[4], "Loc2", 10, null)
+        { Guid = Guid.Parse("02000000-0000-0000-0000-000000000000")};
         
-        var st0 = new User("StFirst0", "StLast0", "st0@pw.edu.pl", now)
-        { Guid = Guid.Parse("e59669d5-7621-4685-8275-cb3432a1aa0f"), IsOrganizer = true };
-        var st1 = new User("StFirst1", "StLast1", "st1@pw.edu.pl", now)
-        { Guid = Guid.Parse("1cf19aa7-af25-4129-b01b-507c3816a347"), DateOfBirth = years_ago };
-        var st2 = new User("StFirst2", "StLast2", "st2@pw.edu.pl", now)
-        { Guid = Guid.Parse("08a5310b-02ec-4166-b102-f38face8cb27"), EmailNotification = false };
+        var ev3 = new Event(or, "Ev3", "Des3", EventCategory.Uncategorized, week[2], week[4], week[6], "Loc3", null, 10)
+        { Guid = Guid.Parse("03000000-0000-0000-0000-000000000000")};
+        
+        var ev4 = new Event(or, "Ev4", "Des4", EventCategory.Uncategorized, week[4], week[5], week[6], "Loc4", 10, 10)
+        { Guid = Guid.Parse("04000000-0000-0000-0000-000000000000")};
 
-        User[] users = [ad0, ad1, ad2, st0, st1, st2];
+        or.OrganizedEvents.Add(ev1);
+        or.OrganizedEvents.Add(ev2);
+        or.OrganizedEvents.Add(ev3);
+        or.OrganizedEvents.Add(ev4);
 
-        var ev0 = new Event(st0, "Ev0", "Des0", EventCategory.Uncategorized, week_ago, now, week_in, "Loc1", null, null)
-            { Guid = Guid.Parse("3a788a02-e7e9-4c96-b268-96eb9f71b98c"), ViewCount = 2 };
-        var ev1 = new Event(st0, "Ev1", "Des1", EventCategory.Uncategorized, now, week_in, weeks_in, "Loc2", 10, null)
-            { Guid = Guid.Parse("22b365d8-c76a-4e22-b546-9e37e5917fe1"), ViewCount = 3 };
-        var ev2 = new Event(st1, "Ev2", "Des2", EventCategory.Uncategorized, week_ago, now, weeks_in, "Loc3", null, 10)
-            { Guid = Guid.Parse("acbcd26e-877c-45cf-a697-ff4a3c70980a"), ViewCount = 2 };
-        ev0.Participants.Add(st0); ev0.Participants.Add(st1);
-        st0.JoinedEvents.Add(ev0); st1.JoinedEvents.Add(ev0);
-        ev1.Participants.Add(st0);
-        ev1.Interested.Add(st2);
-        st0.JoinedEvents.Add(ev1); st2.SubscribedEvents.Add(ev1);
-        ev2.Interested.Add(st1); ev2.Interested.Add(st2);
-        st1.SubscribedEvents.Add(ev2); st2.SubscribedEvents.Add(ev2);
-        Event[] events = [ev0, ev1, ev2];
+        ev1.Participants.Add(st);
+        st.JoinedEvents.Add(ev1);
+        ev1.Feedback.Add(new Feedback(st, ev1, 4));
 
-        var po0 = new Post(st0, ev0, "T0", "Po0")
-            { Guid = Guid.Parse("0fc79a80-dfdd-4d12-ade4-44f03c0ad9ef") };
-        var po1 = new Post(st0, ev0, "T1", "Po1")
-            { Guid = Guid.Parse("fe92c735-b049-406d-9a4c-d6d9b4456d4e") };
-        var po2 = new Post(st1, ev2, "T2", "Po2")
-            { Guid = Guid.Parse("8857657f-3157-4ff4-b06f-b6828e2b7d7e") };
-        Post[] posts = [po0, po1, po2];
+        ev2.Interested.Add(ad);
+        ad.SubscribedEvents.Add(ev2);
 
-        var co0 = new Comment(st1, po0, "Co0", null)
-            { Guid = Guid.Parse("06954235-f2b9-490e-b8ca-76b567db2ce4") };
-        var co1 = new Comment(st0, po0, "Co1", co0)
-            { Guid = Guid.Parse("29953098-1ab8-42e6-b07e-e84a50246247") };
-        var co2 = new Comment(st2, po2, "Co2", null)
-            { Guid = Guid.Parse("09c24709-70dc-4595-83a6-f738fbf6bd7a") };
-        Comment[] comments = [co0, co1, co2];
+        ev3.Interested.Add(st);
+        st.SubscribedEvents.Add(ev3);
+        ev3.Participants.Add(ad);
+        ad.JoinedEvents.Add(ev3);
 
-        var re0 = new CommentReport(co2, st1, "Re0", "Des0")
-            { Guid = Guid.Parse("05cc7ef1-489b-4313-89fc-f617a07248f9") };
-        var re1 = new EventReport(ev0, st0, "Re1", "Des1")
-            { Guid = Guid.Parse("7fb6f604-3a5c-4b57-9211-7173776cb0d7") };
-        var re2 = new PostReport(po2, st2, "Re2", "Des2")
-            { Guid = Guid.Parse("1efef05d-6ee6-48be-b636-dde8f82e8679") };
-        Report[] reports = [re0, re1, re2];
+        uow.Repository<Event>().AddMany([ev1, ev2, ev3, ev4]);
 
-        uow.Repository<Comment>().AddMany(comments);
-        uow.Repository<Event>().AddMany(events);
-        uow.Repository<Post>().AddMany(posts);
-        uow.Repository<Report>().AddMany(reports);
-        uow.Repository<User>().AddMany(users);
+        #endregion Events
+
+        #region Posts
+
+        var po1 = new Post(or, ev1, "Ti1", "Po1")
+        { Guid = Guid.Parse("00100000-0000-0000-0000-000000000000") };
+
+        var po2 = new Post(or, ev1, "Ti1", "Po1")
+        { Guid = Guid.Parse("00200000-0000-0000-0000-000000000000") };
+
+        var po3 = new Post(or, ev3, "Ti3", "Po3")
+        { Guid = Guid.Parse("00300000-0000-0000-0000-000000000000") };
+
+        po1.Reactions.Add(new Reaction(st, po1, ReactionType.Like));
+
+        po2.Reactions.Add(new Reaction(st, po2, ReactionType.Sad));
+
+        po3.Reactions.Add(new Reaction(st, po3, ReactionType.Funny));
+        po3.Reactions.Add(new Reaction(ad, po3, ReactionType.Wow));
+
+        uow.Repository<Post>().AddMany([po1, po2, po3]);
+
+        #endregion Posts
+
+        #region Comments
+
+        var co1 = new Comment(st, po1, "Co1", null)
+        { Guid = Guid.Parse("00010000-0000-0000-0000-000000000000") };
+
+        var co2 = new Comment(st, po3, "Co2", null)
+        { Guid = Guid.Parse("00020000-0000-0000-0000-000000000000") };
+
+        var co3 = new Comment(ad, po3, "Co3", co2)
+        { Guid = Guid.Parse("00030000-0000-0000-0000-000000000000") };
+
+        var co4 = new Comment(ad, po3, "Co4", null)
+        { Guid = Guid.Parse("00040000-0000-0000-0000-000000000000") };
+
+        co1.Likes.Add(new Like(or, co1, false));
+
+        co3.Likes.Add(new Like(st, co3, true));
+
+        co4.Likes.Add(new Like(or, co4, false));
+        co4.Likes.Add(new Like(st, co4, false));
+
+        uow.Repository<Comment>().AddMany([co1, co2, co3, co4]);
+
+        #endregion Comments
+
+        #region Reports
+
+        var re1 = new CommentReport(co3, st, "Re1", "Des1")
+        { Guid = Guid.Parse("00001000-0000-0000-0000-000000000000") };
+
+        var re2 = new PostReport(po2, ad, "Re2", "Des2")
+        { Guid = Guid.Parse("00002000-0000-0000-0000-000000000000") };
+
+        var re3 = new EventReport(ev2, st, "Re3", "Des3")
+        { Guid = Guid.Parse("00003000-0000-0000-0000-000000000000") };
+
+        re1.Responder = ad;
+        re1.IsOpen = false;
+
+        re3.Responder = ad;
+
+        #endregion Reports
+
+        #region Notifications
+
+        var no1 = new Notification(st, po3, NotificationType.EventNewPost, week[3])
+        { Guid = Guid.Parse("00000100-0000-0000-0000-000000000000") };
+
+        var no2 = new Notification(ad, po3, NotificationType.EventNewPost, week[3])
+        { Guid = Guid.Parse("00000200-0000-0000-0000-000000000000") };
+
+        var no3 = new Notification(st, co3, NotificationType.CommentRespondedTo, week[3])
+        { Guid = Guid.Parse("00000300-0000-0000-0000-000000000000") };
+
+        var no4 = new SocialNotification(or, ad, co4, SocialNotificationType.FriendCommented, week[3])
+        { Guid = Guid.Parse("00000400-0000-0000-0000-000000000000") };
+
+        uow.Repository<BaseNotification>().AddMany([no1, no2, no3, no4]);
+
+        #endregion Notifications
 
         uow.Commit();
 

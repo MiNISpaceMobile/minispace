@@ -5,6 +5,7 @@ using Domain.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Domain.Services.Implementations;
 
 namespace Api.Controllers;
 

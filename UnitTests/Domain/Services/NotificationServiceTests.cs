@@ -1,6 +1,7 @@
 ﻿using Domain.Abstractions;
 using Domain.DataModel;
 using Domain.Services.Implementations;
+using Infrastructure.EmailSenders;
 using Infrastructure.UnitOfWorks;
 
 namespace UnitTests.Domain.Services;
@@ -36,7 +37,7 @@ public class NotificationServiceTests
         comment = new Comment(student, post, "first comment", null);
         response = new Comment(organizer, post, "answer to comment", comment);
         uow = new DictionaryUnitOfWork([student, organizer, @event, post, comment, response]);
-        notificationService = new(uow);
+        notificationService = new(uow, new FakeEmailSender());
 
     }
 

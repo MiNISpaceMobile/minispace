@@ -5,7 +5,7 @@ using Domain.Services.Abstractions;
 
 namespace Domain.Services.Implementations;
 
-public class UserService(IUnitOfWork uow, IStorage storage)
+public class UserService(IUnitOfWork uow, IStorage storage, INotificationService notifications)
     : BaseService<IUserService, UserService>(uow), IUserService
 {
     private User OnlyPublicData(User user)
@@ -149,6 +149,8 @@ public class UserService(IUnitOfWork uow, IStorage storage)
         uow.Repository<FriendRequest>().Add(request);
         uow.Commit();
 
+        notifications.SendEmailIfEnabled(request);
+
         return request;
     }
 
@@ -175,7 +177,7 @@ public class UserService(IUnitOfWork uow, IStorage storage)
     {
         FriendRequest request = uow.Repository<FriendRequest>().GetOrThrow(requestId);
 
-        AllowOnlyUser(request.Target);
+        AllowOnlyUser(request.Author);
 
         uow.Repository<FriendRequest>().Delete(request);
         uow.Commit();

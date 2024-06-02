@@ -2,7 +2,7 @@
 
 public interface IEmailSender
 {
-    public const string From = "MiniSpace Team";
+    public string From { get; }
 
     public void SendEmail(string recipient, string subject, string content);
 }

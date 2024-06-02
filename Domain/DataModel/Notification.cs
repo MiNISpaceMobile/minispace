@@ -7,7 +7,7 @@ public enum NotificationType
     Unknown,
     EventNewPost, // When a Post is added to a subscribed Event 
     EventStartsSoon, // When a joined Event's StartDate is closer than 3 days
-    CommentReponsedTo, // When someone responds to Student's Comment
+    CommentRespondedTo, // When someone responds to Student's Comment
 }
 
 public enum SocialNotificationType
